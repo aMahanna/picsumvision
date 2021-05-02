@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { CallbackError } from 'mongoose';
 
 if (process.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires

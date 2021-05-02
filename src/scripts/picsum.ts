@@ -1,7 +1,5 @@
 /* eslint-disable */
 import '../database';
-import { CallbackError } from 'mongoose';
-import { ImageObject } from '../model/Image';
 import { Picsum } from 'picsum-photos';
 
 // TODO - Convert to ES6 Imports

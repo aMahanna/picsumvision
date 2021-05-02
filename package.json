@@ -7,10 +7,14 @@
   "author": "Anthony Mahanna",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/vision": "^2.3.1",
     "bcrypt": "^5.0.0",
     "express": "4.17.1",
     "http": "^0.0.1-security",
-    "mongoose": "^5.10.9"
+    "mongoose": "^5.10.9",
+    "node-fetch": "^2.6.1",
+    "picsum-photos": "^3.0.6",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
@@ -39,7 +43,7 @@
     "clean": "rimraf dist",
     "build": "tsc",
     "postinstall": "tsc",
-    "populate": "node dist/src/scripts/populate.js",
+    "picsum": "node dist/src/scripts/picsum.js",
     "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "engines": {

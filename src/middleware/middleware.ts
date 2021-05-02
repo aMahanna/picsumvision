@@ -1,8 +1,3 @@
-/**
- * userAuth.ts Is the middleware responsible for user authentication
- */
-
-import { UserObject, IUser } from '../model/User';
 import { Request, Response, NextFunction } from 'express';
 import { CallbackError } from 'mongoose';
 
@@ -12,15 +7,15 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
- * @function Responsible for validating a user's authenticity
+ * @function Responsible for something
  *
  * @param req
  * @param res
  * @param next
  * @returns void
  */
-const userAuth = function (req: Request, res: Response, next: NextFunction): void {
+const middleware = function (req: Request, res: Response, next: NextFunction): void {
   next();
 };
 
-export default userAuth;
+export default middleware;

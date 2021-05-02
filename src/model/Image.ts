@@ -7,9 +7,9 @@ import '../database';
 
 export interface IImage extends Document {
   id: string;
-  price: string;
+  author: string;
+  url: string;
   labels: string[];
-  stock: number;
   date: Date;
 }
 
@@ -23,10 +23,10 @@ export interface IImage extends Document {
  */
 const ImageSchema: Schema<Document<IImage>> = new Schema({
   id: { type: String, required: true, unique: true },
+  author: { type: String, required: true },
+  url: { type: String, required: true, unique: true },
   date: { type: Date, required: true, default: Date.now },
   labels: { type: [String], required: true },
-  stock: { type: Number, required: true, default: 0 },
-  price: { type: Number, required: true, default: 0 },
 });
 
 const ImageObject = model<IImage>('Image', ImageSchema, 'images');

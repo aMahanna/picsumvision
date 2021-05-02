@@ -19,7 +19,7 @@ interface PicsumImage {
   download_url: string; // Image direct URL for download
 }
 
-const MAX_RESULTS : number = 1;
+const MAX_RESULTS: number = 1;
 
 async function createGCPData(picsumUrl: string): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
@@ -29,7 +29,7 @@ async function createGCPData(picsumUrl: string): Promise<any> {
         features: [
           {
             maxResults: MAX_RESULTS,
-            type: "IMAGE_PROPERTIES"
+            type: 'IMAGE_PROPERTIES',
           },
           {
             maxResults: MAX_RESULTS,

@@ -2,7 +2,7 @@
  * This @file manages the LabelOf Edge Collection in our ArangoDB
  */
 
-import db from '../database';
+import db from '../../database';
 
 interface labelOfModel {
   _from: string;

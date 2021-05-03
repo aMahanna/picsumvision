@@ -2,7 +2,7 @@
  * This @file manages the Labels Document Collection in our ArangoDB
  */
 
-import db from '../database';
+import db from '../../database';
 import { aql } from 'arangojs';
 
 export interface labelModel {

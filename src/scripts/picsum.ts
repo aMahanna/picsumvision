@@ -2,9 +2,9 @@ import '../database';
 import fetch from 'node-fetch';
 import { Picsum } from 'picsum-photos';
 
-import { insertLabel, labelModel } from '../collection/Label';
-import { insertLabelOf } from '../collection/LabelOf';
-import { insertImage } from '../collection/Image';
+import { insertLabel, labelModel } from '../collections/Label/Label';
+import { insertLabelOf } from '../collections/Label/LabelOf';
+import { insertImage } from '../collections/Image';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -90,9 +90,7 @@ async function generateImages() {
     const PICSUM_URL: string = PICSUM_IMAGE.download_url;
 
     const GCP_DATA = await createGCPData(PICSUM_URL);
-    if (!GCP_DATA) {
-      continue; // No metadata implies we skip the image
-    }
+    if (!GCP_DATA) continue; // No metadata implies we skip the image
 
     console.log(`IMAGE: ${PICSUM_URL}`);
     console.dir(GCP_DATA, { depth: null });

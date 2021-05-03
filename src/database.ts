@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /** @see env.example */
-const ENCODED_CA: string = process.env.ARANGO_ENCODED_CA!; 
+const ENCODED_CA: string = process.env.ARANGO_ENCODED_CA!;
 const ROOT_PASS: string = process.env.ARANGO_ROOT_PASS!;
 const DB_NAME: string = process.env.ARANGO_DB_NAME!;
 const DB_URL: string = process.env.ARANGO_DB_URL!;

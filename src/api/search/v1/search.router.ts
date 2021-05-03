@@ -1,9 +1,6 @@
-import image from './search.controller';
+import search from './search.controller';
 import { Express } from 'express';
 
 export default function (app: Express): void {
-  /**
-   *
-   * @todo search routing
-   */
+  app.route('/api/search/author').post(search.from_author);
 }

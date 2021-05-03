@@ -14,7 +14,7 @@ export interface labelModel {
 
 const LabelCollection = db.collection('Labels');
 
-export class LabelObject {
+class LabelObject {
   /**
    * @method used to insert the label metadata of a particular image
    * Avoids GCP Label duplicates by checking the MID of each label
@@ -35,3 +35,5 @@ export class LabelObject {
     return queryResult.length === 0 ? (await LabelCollection.save(document))._id : queryResult[0];
   }
 }
+
+export const labelObject: LabelObject = new LabelObject();

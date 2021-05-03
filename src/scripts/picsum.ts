@@ -3,9 +3,9 @@ import fetch from 'node-fetch';
 import { Picsum } from 'picsum-photos';
 
 // Import the current ArangoDB Collections in-use
-import { LabelObject, labelModel } from '../collections/Label/Label';
-import { LabelOfObject } from '../collections/Label/LabelOf';
-import { ImageObject } from '../collections/Image';
+import { imageObject } from '../collections/Image';
+import { labelObject, labelModel } from '../collections/Label/Label';
+import { labelOfObject } from '../collections/Label/LabelOf';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -83,11 +83,6 @@ async function createGCPData(picsumUrl: string): Promise<any> {
 
   return Object.keys(gcpData).length === 0 ? undefined : gcpData; // Return undefined if no data is found
 }
-
-// Instantiate the current ArangoDB Collections in-use
-const imageObject: ImageObject = new ImageObject();
-const labelObject: LabelObject = new LabelObject();
-const labelOfObject: LabelOfObject = new LabelOfObject();
 
 async function generateImages() {
   for (let i = 0; i < 1; i++) {

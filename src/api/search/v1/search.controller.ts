@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
+import { imageObject } from '../../../collections/Image';
 
 namespace SearchController {
-  /**
-   *
-   * @todo search functionality
-   */
+  export async function from_author(req: Request, res: Response): Promise<void> {
+    const author: string = req.body.author;
+    const result: {}[] = await imageObject.simpleQuery('author', author);
+    res.status(200).json(result);
+  }
 }
 
 export default SearchController;

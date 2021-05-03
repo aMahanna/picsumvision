@@ -13,7 +13,7 @@ export interface labelOfModel {
 
 const LabelOfCollection = db.collection('LabelOf');
 
-export class LabelOfObject {
+class LabelOfObject {
   /**
    * @method inserts the LabelOf Edge linking an Image and a Label metadata
    *
@@ -25,3 +25,5 @@ export class LabelOfObject {
     return result._id;
   }
 }
+
+export const labelOfObject: LabelOfObject = new LabelOfObject();

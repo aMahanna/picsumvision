@@ -14,7 +14,7 @@ export interface imageModel {
 
 const ImageCollection = db.collection('Images');
 
-export class ImageObject {
+class ImageObject {
   /**
    * @method used to insert the Picsum images generated from the `yarn picsum` script
    * Avoids Picsum image duplicates by checking the ID of each Picsum Image
@@ -44,7 +44,27 @@ export class ImageObject {
       : queryResult[0];
   }
 
+  /**
+   * A temporary @method to test out the application API
+   *
+   * @param key
+   * @param value
+   */
+  public async simpleQuery(key: string, value: string): Promise<{}[]> {
+    const query = await db.query(aql`
+    FOR i IN Images
+    FILTER i[${key}] LIKE ${value}
+    RETURN i
+  `);
+    const result = await query.map(doc => {
+      return {author: doc.author, url: doc.url}
+    });
+    return result;
+  }
+
   // public truncate()  {
   //   ImageCollection.truncate();
   // }
 }
+
+export const imageObject: ImageObject = new ImageObject();

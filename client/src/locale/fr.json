@@ -1,0 +1,18 @@
+{
+  "translation": {
+    "languageName": "Français",
+    "compatability": 1.1,
+    "general": {
+      "title": "Picsum Vision",
+      "searchButton": "Rechercher",
+      "aboutButton": "À Propos",
+      "contact": "Des questions? Contactez ",
+      "errors": {
+        "warning": "Woah, qu'est-ce qui s'est passé? On va s'en occuper..."
+      }
+    },
+    "landingPage": {
+      "heading": "heading"
+    }
+  }
+}

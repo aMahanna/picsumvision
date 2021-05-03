@@ -42,7 +42,7 @@
     "postinstall": "tsc",
     "clearDB": "node dist/src/scripts/clear.js",
     "picsum": "node dist/src/scripts/picsum.js",
-    "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write && cd client && yarn prettier"
   },
   "engines": {
     "node": "^15.5.0",

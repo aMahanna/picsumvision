@@ -4,7 +4,7 @@
 
 import db from '../../database';
 
-interface labelOfModel {
+export interface labelOfModel {
   _from: string;
   _to: string;
   _score: number;
@@ -13,7 +13,17 @@ interface labelOfModel {
 
 const LabelOfCollection = db.collection('LabelOf');
 
-export async function insertLabelOf(document: labelOfModel) {
-  const result = await LabelOfCollection.save(document);
-  return result._id;
+class LabelOfObject {
+  /**
+   * @method inserts the LabelOf Edge linking an Image and a Label metadata
+   *
+   * @param edge implements the labelOfModel interfac
+   * @returns The ArangoID of the inserted LabelOf edge
+   */
+  async insertLabelOf(edge: labelOfModel) {
+    const result = await LabelOfCollection.save(edge);
+    return result._id;
+  }
 }
+
+export const labelOfObject: LabelOfObject = new LabelOfObject();

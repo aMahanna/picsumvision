@@ -1,0 +1,53 @@
+.navbar {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid lightgray;
+
+  &-nav {
+    &--items {
+      margin-top: 21px;
+
+      > a {
+        margin: 0 12px;
+
+        @media all and (max-width: $medium) {
+          width: 75%;
+        }
+
+        &:first-of-type {
+          font-weight: 500;
+          background-color: #31afd4;
+          color: white;
+
+          &:hover {
+            transition: 0.3s ease-in;
+            background-color: rgba(0, 0, 0, 0.04);
+            color: rgba(0, 0, 0, 0.87);
+          }
+        }
+      }
+    }
+  }
+}
+
+.nav {
+  &--image {
+    height: 128px;
+    width: 128px;
+    padding: 24px;
+
+    @media all and (max-width: $medium) {
+      height: 64px;
+      width: 64px;
+      padding: 6px;
+    }
+  }
+
+  &--title {
+    text-align: left;
+
+    @media all and (max-width: $medium) {
+      text-align: center;
+    }
+  }
+}

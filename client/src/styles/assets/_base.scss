@@ -1,0 +1,18 @@
+// Base styles for all components and files
+* {
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  white-space: pre-line;
+}
+
+body {
+  overflow: scroll; /* Show scrollbars */
+}
+
+h1 {
+  font-size: 36px;
+
+  @media all and (max-width: $medium) {
+    font-size: 32px;
+  }
+}

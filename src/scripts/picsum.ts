@@ -1,10 +1,10 @@
-/* eslint-disable */
 import '../database';
+import fetch from 'node-fetch';
 import { Picsum } from 'picsum-photos';
 
-// TODO - Convert to ES6 Imports
-const fetch = require('node-fetch');
-const { v4: uuidv4 } = require('uuid');
+import { insertLabel, labelModel } from '../collection/Label';
+import { insertLabelOf } from '../collection/LabelOf';
+import { insertImage } from '../collection/Image';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -29,40 +29,39 @@ async function createGCPData(picsumUrl: string): Promise<any> {
         features: [
           {
             maxResults: MAX_RESULTS,
-            type: 'IMAGE_PROPERTIES',
-          },
-          {
-            maxResults: MAX_RESULTS,
             type: 'LABEL_DETECTION',
           },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'FACE_DETECTION',
-          },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'LANDMARK_DETECTION',
-          },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'LOGO_DETECTION',
-          },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'OBJECT_LOCALIZATION',
-          },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'CROP_HINTS',
-          },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'WEB_DETECTION',
-          },
-          {
-            maxResults: MAX_RESULTS,
-            type: 'TEXT_DETECTION',
-          },
+          /**
+           * @todo Prepare ArangoDB for the rest of these features:
+           */
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'IMAGE_PROPERTIES',
+          // },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'FACE_DETECTION',
+          // },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'LANDMARK_DETECTION',
+          // },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'LOGO_DETECTION',
+          // },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'OBJECT_LOCALIZATION',
+          // },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'WEB_DETECTION',
+          // },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'TEXT_DETECTION',
+          // },
         ],
         image: {
           source: {
@@ -80,52 +79,44 @@ async function createGCPData(picsumUrl: string): Promise<any> {
       'Content-Type': 'application/json',
     },
   });
-  const gcpData = await gcpResponse.json();
-  return gcpData;
+  const gcpData = (await gcpResponse.json()).responses[0]; // Always returns an array with one element
 
-  // const labelObjects = gcpData.responses[0].labelAnnotations;
-
-  // if (!labelObjects)
-  //   return [];
-
-  // let labels: string[] = [];
-  // gcpData.responses[0].labelAnnotations.forEach((obj: GCPLabel) => labels.push(obj.description));
-  // return labels;
+  return Object.keys(gcpData).length === 0 ? undefined : gcpData; // Return undefined if no data is found
 }
 
 async function generateImages() {
   for (let i = 0; i < 1; i++) {
-    const picsumObject: PicsumImage = await Picsum.random();
-    const picsumUrl = picsumObject.download_url;
-    const gcpData = await createGCPData(picsumUrl);
+    const PICSUM_IMAGE: PicsumImage = await Picsum.random();
+    const PICSUM_URL: string = PICSUM_IMAGE.download_url;
 
-    if (!gcpData) {
-      // GCP Could not find any labels...
-      console.log('skipping...');
-      continue;
+    const GCP_DATA = await createGCPData(PICSUM_URL);
+    if (!GCP_DATA) {
+      continue; // No metadata implies we skip the image
     }
 
-    console.log(picsumUrl);
-    // console.dir(gcpData, { depth: null })
-    console.log(JSON.stringify(gcpData));
+    console.log(`IMAGE: ${PICSUM_URL}`);
+    console.dir(GCP_DATA, { depth: null });
 
-    // const image = new ImageObject({
-    //   id: uuidv4(),
-    //   author: picsumObject.author,
-    //   url: picsumUrl,
-    //   labels: googleVisionLabels,
-    //   stock: Math.floor(Math.random() * 10) + 1,
-    //   price: Math.floor(Math.random() * 101) + 1,
-    // });
+    // Insert Image into ArangoDB, and return its ID
+    const imageID: string = await insertImage({
+      id: PICSUM_IMAGE.id,
+      author: PICSUM_IMAGE.author,
+      url: PICSUM_URL,
+      date: Date(),
+    });
 
-    // image.save((err: CallbackError) => {
-    //   if (err) {
-    //     console.log(err);
-    //     process.exit(1);
-    //   } else {
-    //     console.log('Success: ', i);
-    //   }
-    // });
+    // Insert the Labels of the image, and builds Edge documents to connect all Labels with the Image in question
+    GCP_DATA.labelAnnotations.forEach(async (elem: labelModel) => {
+      const labelID: string = await insertLabel({ mid: elem.mid, description: elem.description });
+      const labelOfID: string = await insertLabelOf({
+        _from: labelID,
+        _to: imageID,
+        _score: elem.score,
+        _topicality: elem.topicality,
+      });
+
+      console.log(`Success! ${labelOfID}`);
+    });
   }
 }
 

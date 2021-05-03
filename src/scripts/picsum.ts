@@ -2,9 +2,10 @@ import '../database';
 import fetch from 'node-fetch';
 import { Picsum } from 'picsum-photos';
 
-import { insertLabel, labelModel } from '../collections/Label/Label';
-import { insertLabelOf } from '../collections/Label/LabelOf';
-import { insertImage } from '../collections/Image';
+// Import the current ArangoDB Collections in-use
+import { LabelObject, labelModel } from '../collections/Label/Label';
+import { LabelOfObject } from '../collections/Label/LabelOf';
+import { ImageObject } from '../collections/Image';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -20,7 +21,6 @@ interface PicsumImage {
 }
 
 const MAX_RESULTS: number = 1;
-
 async function createGCPData(picsumUrl: string): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
@@ -84,6 +84,11 @@ async function createGCPData(picsumUrl: string): Promise<any> {
   return Object.keys(gcpData).length === 0 ? undefined : gcpData; // Return undefined if no data is found
 }
 
+// Instantiate the current ArangoDB Collections in-use
+const imageObject: ImageObject = new ImageObject();
+const labelObject: LabelObject = new LabelObject();
+const labelOfObject: LabelOfObject = new LabelOfObject();
+
 async function generateImages() {
   for (let i = 0; i < 1; i++) {
     const PICSUM_IMAGE: PicsumImage = await Picsum.random();
@@ -96,7 +101,7 @@ async function generateImages() {
     console.dir(GCP_DATA, { depth: null });
 
     // Insert Image into ArangoDB, and return its ID
-    const imageID: string = await insertImage({
+    const imageID: string = await imageObject.insertImage({
       id: PICSUM_IMAGE.id,
       author: PICSUM_IMAGE.author,
       url: PICSUM_URL,
@@ -105,8 +110,8 @@ async function generateImages() {
 
     // Insert the Labels of the image, and builds Edge documents to connect all Labels with the Image in question
     GCP_DATA.labelAnnotations.forEach(async (elem: labelModel) => {
-      const labelID: string = await insertLabel({ mid: elem.mid, description: elem.description });
-      const labelOfID: string = await insertLabelOf({
+      const labelID: string = await labelObject.insertLabel({ mid: elem.mid, description: elem.description });
+      const labelOfID: string = await labelOfObject.insertLabelOf({
         _from: labelID,
         _to: imageID,
         _score: elem.score,

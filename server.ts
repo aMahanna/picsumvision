@@ -2,7 +2,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
-import image_routes from './src/api/image/v1/image.router';
+import search_routes from './src/api/search/v1/search.router';
 
 const app = express();
 
@@ -24,6 +24,6 @@ app.get('/*', (req, res) => {
 });
 
 // Add app reference to routes.
-image_routes(app);
+search_routes(app);
 
 http.createServer(app).listen(port, () => console.log(`Listening on port ${port}`)); // eslint-disable-line no-console

@@ -7,7 +7,6 @@ import search_routes from './src/api/search/v1/search.router';
 const app = express();
 
 if (process.env.NODE_ENV !== 'production') {
-  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
 }
 const port = process.env.PORT || 5000;

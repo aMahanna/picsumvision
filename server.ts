@@ -14,16 +14,14 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'client', 'build')));
-
-/** @todo Re-enable the RateLimiter if needed */
-
-// Route build files from client.
-app.get('/*', (req, res) => {
-    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
-});
+app.use(express.static(path.join(__dirname, '../client', 'build')));
 
 // Add app reference to routes.
 search_routes(app);
+
+// Route build files from client.
+app.get("/*", function (req, res) {
+   res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+})
 
 http.createServer(app).listen(port, () => console.log(`Listening on port ${port}`)); // eslint-disable-line no-console

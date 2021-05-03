@@ -10,7 +10,7 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
-        <button onClick={() => fetch('/api/login').then()}>Test</button>
+        <button onClick={() => fetch('/api/search/ping').then()}>Test</button>
         <a
           className="App-link"
           href="https://reactjs.org"

@@ -57,7 +57,9 @@ class ImageObject {
       SORT i[${key}]
       RETURN i
     `);
-    const result = await query.map(doc => { return { author: doc.author, url: doc.url }; });
+    const result = await query.map(doc => {
+      return { author: doc.author, url: doc.url };
+    });
     return result;
   }
 }

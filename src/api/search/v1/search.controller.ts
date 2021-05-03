@@ -7,6 +7,10 @@ namespace SearchController {
     const result: {}[] = await imageObject.simpleQuery('author', author);
     res.status(200).json(result);
   }
+
+  export async function ping(req: Request, res: Response): Promise<void> {
+    res.status(200).json('pong');
+  }
 }
 
 export default SearchController;

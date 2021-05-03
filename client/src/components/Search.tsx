@@ -15,7 +15,7 @@ const styles = () =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',
-      color: '#31AFD4',
+      color: '#2F2D2E',
       margin: 'auto',
     },
     image: {

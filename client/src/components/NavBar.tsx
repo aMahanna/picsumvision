@@ -30,7 +30,7 @@ const NavBar = () => {
       <Container component="div" maxWidth="sm">
         <div style={{ width: 'auto', display: 'inline-block' }}>
           <a href="/">
-            <img alt="Elections Logo" src={'/logo.png'} className="nav--image" />
+            <img alt="Elections Logo" src={'/logo.svg'} className="nav--image" />
           </a>
         </div>
         <div style={{ width: 'auto', display: 'inline-block' }}>

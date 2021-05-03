@@ -6,12 +6,12 @@ import { render, screen } from '@testing-library/react';
 import App from '../components/App';
 
 test('renders the react navbar', () => {
-   render(
+  render(
     <BrowserRouter>
       <I18nextProvider i18n={i18n}>
         <App />
       </I18nextProvider>
-    </BrowserRouter>
+    </BrowserRouter>,
   );
   const titleElement = screen.getByText(/Picsum Vision/i);
   expect(titleElement).toBeInTheDocument();

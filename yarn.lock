@@ -14,6 +14,13 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
+"@types/arangodb@^3.5.11":
+  version "3.5.11"
+  resolved "https://registry.yarnpkg.com/@types/arangodb/-/arangodb-3.5.11.tgz#66a67555fe6deb1e2027e1be5044a758537aede0"
+  integrity sha512-/CBCz2i653xl72V6LENuYqy7ZByfl2aKu5cr/cLPVkBFugFdMlQdCE5dayakthSDRm45QMIxAhfju4LdVmBSfg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/body-parser@*":
   version "1.19.0"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.19.0.tgz#0685b3c47eb3006ffed117cdd55164b61f80538f"

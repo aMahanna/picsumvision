@@ -3,7 +3,7 @@ import { imageObject } from '../../../collections/Image';
 
 namespace SearchController {
   export async function from_author(req: Request, res: Response): Promise<void> {
-    const author: string = req.body.author;
+    const author: string = req.body.author || '%';
     const result: {}[] = await imageObject.simpleQuery('author', author);
     res.status(200).json(result);
   }

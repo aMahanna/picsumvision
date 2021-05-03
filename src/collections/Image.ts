@@ -52,19 +52,14 @@ class ImageObject {
    */
   public async simpleQuery(key: string, value: string): Promise<{}[]> {
     const query = await db.query(aql`
-    FOR i IN Images
-    FILTER i[${key}] LIKE ${value}
-    RETURN i
-  `);
-    const result = await query.map(doc => {
-      return {author: doc.author, url: doc.url}
-    });
+      FOR i IN Images
+      FILTER i[${key}] LIKE ${value}
+      SORT i[${key}]
+      RETURN i
+    `);
+    const result = await query.map(doc => { return { author: doc.author, url: doc.url }; });
     return result;
   }
-
-  // public truncate()  {
-  //   ImageCollection.truncate();
-  // }
 }
 
 export const imageObject: ImageObject = new ImageObject();

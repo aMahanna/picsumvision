@@ -1,30 +1,29 @@
 /**
- * database.ts is in charge of connecting to MongoDB through Mongoose
- * @requires A valid MONGO_URI Environment Variable
+ * This @file uses the ArangoJS driver to connect to ArangoOasis
  */
 
-import mongoose from 'mongoose';
+import { Database } from 'arangojs';
 
 if (process.env.NODE_ENV !== 'production') {
-  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
 }
 
-const mongo_uri: string = process.env.MONGO_URI!;
+/** @see env.example */
+const ENCODED_CA: string = process.env.ARANGO_ENCODED_CA!;
+const ROOT_PASS: string = process.env.ARANGO_ROOT_PASS!;
+const DB_NAME: string = process.env.ARANGO_DB_NAME!;
+const DB_URL: string = process.env.ARANGO_DB_URL!;
 
-// Set mongoose configurations.
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
+const db = new Database({
+  url: DB_URL,
+  databaseName: DB_NAME,
+  agentOptions: { ca: Buffer.from(ENCODED_CA, 'base64') },
+});
 
-// Connect to MongoDB instance.
-mongoose
-  .connect(mongo_uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-  })
-  .then(() => console.log('Database Connected Successfully')) // eslint-disable-line no-console
-  .catch(err => {
-    console.error(err); // eslint-disable-line no-console
-  });
+db.useBasicAuth('root', ROOT_PASS); // Logging in with root user for now
+db.version().then(
+  version => console.log(version),
+  error => console.error(error),
+);
+
+export default db;

@@ -83,7 +83,7 @@ const Search = () => {
       const result = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
       if (result.status === 200) {
         const response = await result.json();
-        setResults(response.result);
+        setResults(response.result[0]);
       }
     }
   };
@@ -93,7 +93,7 @@ const Search = () => {
     if (result.status === 200) {
       const response = await result.json();
       setInput(response.labels.join(' ').toLowerCase());
-      setResults(response.result);
+      setResults(response.result[0]);
     }
   };
 

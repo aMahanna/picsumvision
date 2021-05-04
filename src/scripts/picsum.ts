@@ -22,7 +22,7 @@ interface PicsumImage {
   download_url: string; // Image direct URL for download
 }
 
-const MAX_RESULTS: number = 3;
+const MAX_RESULTS: number = 4;
 async function createGCPData(picsumUrl: string): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
@@ -83,16 +83,16 @@ async function createGCPData(picsumUrl: string): Promise<any> {
   });
   const gcpData = (await gcpResponse.json()).responses[0]; // Always returns an array with one element
 
-  return Object.keys(gcpData).length === 0 ? undefined : gcpData; // Return undefined if no data is found
+  return Object.keys(gcpData).length === 0 || gcpData.error ? undefined : gcpData; // Return undefined if no data / error
 }
 
 async function generateImages() {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 4; i++) {
     const PICSUM_IMAGE: PicsumImage = await Picsum.random();
     const PICSUM_URL: string = PICSUM_IMAGE.download_url;
 
     const GCP_DATA = await createGCPData(PICSUM_URL);
-    if (!GCP_DATA) continue; // No metadata implies we skip the image
+    if (!GCP_DATA) continue; // No metadata / GCP error implies we skip the image
 
     console.log(`IMAGE: ${PICSUM_URL}`);
     console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);

@@ -71,6 +71,7 @@ const LandingPage = (props: Props) => {
       {results.length !== 0 &&
         results.map((data: { author: string; url: string }) => (
           <Box key={data.url} mt={3}>
+            <h4>{data.author}</h4>
             <img alt={data.author} className={classes.image} src={data.url} />
           </Box>
         ))}

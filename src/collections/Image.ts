@@ -45,21 +45,28 @@ class ImageObject {
   }
 
   /**
-   * A temporary @method to test out the application API
+   * WORK IN PRGORESS: @method allows the user to query by multiple keys (e.g author, label, color, face,...)
    *
-   * @param key
-   * @param value
+   * @param labels An array of targetted words
    */
-  public async simpleQuery(key: string, value: string): Promise<{}[]> {
-    const query = await db.query(aql`
-      FOR i IN Images
-      FILTER i[${key}] LIKE ${value}
-      SORT i[${key}]
-      RETURN i
+  public async query_mixed_keys(Labels: string[]): Promise<{}[]> {
+    const response = await db.query(aql`
+      WITH Labels, Authors
+      FOR i IN Images 
+        FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf 
+          FOR data IN ${Labels}
+            FILTER CONTAINS(v.data, data)
+            COLLECT id = e._to WITH COUNT INTO num
+            LET image = DOCUMENT(id)
+            LET obj = {
+                "url": image.url,
+                "author": image.author,
+                "count": num
+            }
+            SORT obj.count DESC
+            RETURN obj
     `);
-    const result = await query.map(doc => {
-      return { author: doc.author, url: doc.url };
-    });
+    const result = await response.map(doc => doc);
     return result;
   }
 }

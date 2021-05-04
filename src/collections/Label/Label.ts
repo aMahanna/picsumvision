@@ -7,9 +7,7 @@ import { aql } from 'arangojs';
 
 export interface labelModel {
   mid: string;
-  description: string;
-  score: number;
-  topicality: number;
+  data: string;
 }
 
 const LabelCollection = db.collection('Labels');
@@ -22,7 +20,7 @@ class LabelObject {
    * @param document implements the labelModel interface
    * @returns the ArangoID of the Label inserted
    */
-  public async insertLabel(document: { mid: string; description: string }): Promise<string> {
+  public async insertLabel(document: labelModel): Promise<string> {
     const labelExistsQuery = await db.query(aql`
       FOR l IN Labels
       FILTER l.mid == ${document.mid}

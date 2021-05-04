@@ -19,29 +19,24 @@ const styles = () =>
       margin: 'auto',
     },
     image: {
-      height: '50%',
-      width: '50%',
+      height: '60%',
+      width: '60%',
+      borderRadius: '1cm',
     },
   });
 
 const LandingPage = (props: Props) => {
   const [t] = useTranslation();
   const { classes } = props;
-  const [value, setValue] = useState('');
+  const [labels, setLabels] = useState('');
   const [results, setResults] = useState([]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
+  const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setState(event.target.value);
   };
 
   const submit = async () => {
-    const result = await fetch('/api/search/author', {
-      method: 'POST',
-      body: JSON.stringify({ author: `%${value}%` }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const result = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}`);
     if (result.status === 200) {
       const response = await result.json();
       setResults(response);
@@ -56,22 +51,28 @@ const LandingPage = (props: Props) => {
           <WhereToVoteOutlinedIcon fontSize="large" />
         </Avatar>
         <Box mt={2}>
-          <TextField id="standard-textarea" label="Search by author" placeholder="Mario Calvo" onChange={handleChange} fullWidth />
+          <TextField
+            id="search-input"
+            autoComplete="off"
+            spellCheck
+            label="Search for labels"
+            placeholder="mountain sky"
+            onChange={handleChange(setLabels)}
+            fullWidth
+          />
         </Box>
         <div></div>
         <Box mt={2}>
-          <Button id="search" onClick={submit} variant="outlined">
+          <Button id="search-submit" onClick={submit} variant="outlined">
             Search
           </Button>
         </Box>
       </Container>
       {results.length !== 0 &&
         results.map((data: { author: string; url: string }) => (
-          <Box key={data.url} mt={2}>
-            <h5>{data.author}</h5>
-            <Box mt={1}>
-              <img alt={data.author} className={classes.image} src={data.url} />
-            </Box>
+          <Box key={data.url} mt={3}>
+            <h4>{data.author}</h4>
+            <img alt={data.author} className={classes.image} src={data.url} />
           </Box>
         ))}
     </Container>

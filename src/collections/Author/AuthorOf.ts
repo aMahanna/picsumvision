@@ -11,7 +11,6 @@ export interface authorOfModel {
 }
 
 const AuthorOfCollection = db.collection('AuthorOf');
-
 class AuthorOfObject {
   /**
    * @method inserts the AuthorOf Edge linking an Image and an Author
@@ -19,9 +18,8 @@ class AuthorOfObject {
    * @param edge implements the authorOfModel interface
    * @returns The ArangoID of the inserted AuthorOf edge
    */
-  async insertAuthorOf(edge: authorOfModel) {
-    const result = await AuthorOfCollection.save(edge);
-    return result._id;
+  async insertAuthorOf(edge: authorOfModel): Promise<void> {
+    await AuthorOfCollection.save(edge, { silent: true });
   }
 }
 

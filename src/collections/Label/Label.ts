@@ -6,6 +6,7 @@ import db from '../../database';
 import { aql } from 'arangojs';
 
 export interface labelModel {
+  _key: string;
   mid: string;
   data: string;
 }
@@ -21,16 +22,17 @@ class LabelObject {
    * @returns the ArangoID of the Label inserted
    */
   public async insertLabel(document: labelModel): Promise<string> {
-    const labelExistsQuery = await db.query(aql`
-      FOR l IN Labels
-      FILTER l.mid == ${document.mid}
-      LIMIT 1
-      RETURN l
+    /**
+     * @todo - Figure out why ArangoDB is not catching this document check, thus causing a key constraint violation
+     */
+    //const labelAlreadyExists = await LabelCollection.documentExists({ _key: document._key });
+    const query = await db.query(aql`
+      INSERT ${document} INTO ${LabelCollection} 
+      OPTIONS { ignoreErrors: true }
+      RETURN NEW
     `);
-    const queryResult = await labelExistsQuery.map(doc => doc._id);
-    console.log(queryResult.length > 0 ? `Duplicate label found! ${queryResult[0]}` : '');
-
-    return queryResult.length === 0 ? (await LabelCollection.save(document))._id : queryResult[0];
+    const result = await query.map(doc => doc);
+    return result[0] ? result[0]._id : `Labels/${document._key}`;
   }
 }
 

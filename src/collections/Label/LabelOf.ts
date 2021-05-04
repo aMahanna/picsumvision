@@ -8,7 +8,6 @@ export interface labelOfModel {
   _from: string;
   _to: string;
   _score: number;
-  _topicality: number;
 }
 
 const LabelOfCollection = db.collection('LabelOf');

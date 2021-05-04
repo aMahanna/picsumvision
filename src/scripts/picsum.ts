@@ -4,8 +4,10 @@ import { Picsum } from 'picsum-photos';
 
 // Import the current ArangoDB Collections in-use
 import { imageObject } from '../collections/Image';
-import { labelObject, labelModel } from '../collections/Label/Label';
+import { labelObject } from '../collections/Label/Label';
 import { labelOfObject } from '../collections/Label/LabelOf';
+import { authorObject } from '../collections/Author/Author';
+import { authorOfObject } from '../collections/Author/AuthorOf';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -20,7 +22,7 @@ interface PicsumImage {
   download_url: string; // Image direct URL for download
 }
 
-const MAX_RESULTS: number = 1;
+const MAX_RESULTS: number = 3;
 async function createGCPData(picsumUrl: string): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
@@ -31,6 +33,10 @@ async function createGCPData(picsumUrl: string): Promise<any> {
             maxResults: MAX_RESULTS,
             type: 'LABEL_DETECTION',
           },
+          // {
+          //   maxResults: MAX_RESULTS,
+          //   type: 'WEB_DETECTION',
+          // },
           /**
            * @todo Prepare ArangoDB for the rest of these features:
            */
@@ -48,15 +54,11 @@ async function createGCPData(picsumUrl: string): Promise<any> {
           // },
           // {
           //   maxResults: MAX_RESULTS,
-          //   type: 'LOGO_DETECTION',
+          //   typeclear: 'LOGO_DETECTION',
           // },
           // {
           //   maxResults: MAX_RESULTS,
           //   type: 'OBJECT_LOCALIZATION',
-          // },
-          // {
-          //   maxResults: MAX_RESULTS,
-          //   type: 'WEB_DETECTION',
           // },
           // {
           //   maxResults: MAX_RESULTS,
@@ -93,28 +95,45 @@ async function generateImages() {
     if (!GCP_DATA) continue; // No metadata implies we skip the image
 
     console.log(`IMAGE: ${PICSUM_URL}`);
+    console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);
     console.dir(GCP_DATA, { depth: null });
 
     // Insert Image into ArangoDB, and return its ID
     const imageID: string = await imageObject.insertImage({
       id: PICSUM_IMAGE.id,
-      author: PICSUM_IMAGE.author,
+      author: PICSUM_IMAGE.author.toUpperCase(),
       url: PICSUM_URL,
       date: Date(),
     });
 
-    // Insert the Labels of the image, and builds Edge documents to connect all Labels with the Image in question
-    GCP_DATA.labelAnnotations.forEach(async (elem: labelModel) => {
-      const labelID: string = await labelObject.insertLabel({ mid: elem.mid, description: elem.description });
+    /**
+     * @this performs AUTHOR operations
+     * @returns AUTHOR IDs
+     */
+    const authorID: string = await authorObject.insertAuthor({
+      fullName: PICSUM_IMAGE.author.toUpperCase(),
+      data: PICSUM_IMAGE.author.toUpperCase().split(' '),
+    });
+    const authorOfID: string = await authorOfObject.insertAuthorOf({
+      _from: authorID,
+      _to: imageID,
+      _score: 1,
+    });
+
+    /**
+     * @this performs LABEL operations
+     * @returns LABEL IDs
+     */
+    GCP_DATA.labelAnnotations.forEach(async (elem: any) => {
+      const labelID: string = await labelObject.insertLabel({ mid: elem.mid, data: elem.description.toUpperCase() });
       const labelOfID: string = await labelOfObject.insertLabelOf({
         _from: labelID,
         _to: imageID,
         _score: elem.score,
-        _topicality: elem.topicality,
       });
-
-      console.log(`Success! ${labelOfID}`);
     });
+
+    console.log(`Success! ${imageID}`);
   }
 }
 

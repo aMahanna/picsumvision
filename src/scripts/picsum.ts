@@ -105,7 +105,8 @@ async function generateImages() {
   const maxResults: number = 3;
 
   //1-3, 3-5, 5-7, 7-9, 9-11...
-  for (let i = 1; i < 2; i++) {
+  for (let i = 9; i < 11; i++) {
+    // const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/id/1048/info/`); // Used for testing
     const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${i}&limit=${limit}`);
     const PICSUM_LIST_RESULT = await PICSUM_LIST_RESPONSE.json();
     PICSUM_LIST_RESULT.forEach(async (PICSUM_IMAGE: PicsumImage) => {
@@ -117,10 +118,14 @@ async function generateImages() {
         return; // No metadata / GCP error implies we skip the image
       }
 
-      //console.log(`URL: ${PICSUM_URL}`);
+      // console.log(`URL: ${PICSUM_URL}`);
       // console.dir(GCP_DATA, { depth: null });
 
-      //Insert Image into ArangoDB, and return its ID
+      /**
+       * @this Inserts the Image document, and returns its ID
+       * If the image already exists, it will return UNDEFINED instead, therefore skipping
+       * this iteration of the loop
+       */
       const imageID: string | undefined = await imageObject.insertImage({
         _key: String(PICSUM_IMAGE.id),
         author: PICSUM_IMAGE.author.toUpperCase(),
@@ -152,10 +157,14 @@ async function generateImages() {
        * @this Inserts Label documents, and links the image using LabelOf edges
        * @returns "LABEL" IDs
        */
-      const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations?.concat(
-        GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [],
-      );
-      GCP_LABEL_OBJECT_ANNOTATIONS?.forEach(async (elem: GCPAnnotation) => {
+      const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations
+        ?.concat(GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [])
+        .sort((a: GCPAnnotation, b: GCPAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
+      const UNIQUE_LABELS: GCPAnnotation[] = [
+        ...new Map(GCP_LABEL_OBJECT_ANNOTATIONS.map((elem: GCPAnnotation) => [elem.mid, elem])).values(),
+      ];
+
+      UNIQUE_LABELS.forEach(async (elem: GCPAnnotation) => {
         const labelID: string = await labelObject.insertLabel({
           _key: stringToASCII(elem.mid),
           mid: elem.mid,

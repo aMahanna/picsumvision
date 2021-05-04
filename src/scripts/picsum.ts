@@ -8,6 +8,9 @@ import { labelOfObject } from '../collections/Label/LabelOf';
 import { authorObject } from '../collections/Author/Author';
 import { authorOfObject } from '../collections/Author/AuthorOf';
 
+// Test data
+import GCP_TEST_LABELS from './assets/TEST_LABELS';
+
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -97,65 +100,91 @@ async function createGCPData(picsumUrl: string, maxResults: number): Promise<any
 }
 
 async function generateImages() {
-  const limit: number = 5;
+  // number of picsum images: ~1000
+  const limit: number = 10;
   const maxResults: number = 3;
 
+  //1-3, 3-5, 5-7, 7-9, 9-11...
   for (let i = 1; i < 2; i++) {
     const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${i}&limit=${limit}`);
     const PICSUM_LIST_RESULT = await PICSUM_LIST_RESPONSE.json();
-
     PICSUM_LIST_RESULT.forEach(async (PICSUM_IMAGE: PicsumImage) => {
       const PICSUM_URL: string = PICSUM_IMAGE.download_url;
+
       const GCP_DATA = await createGCPData(PICSUM_URL, maxResults);
+      if (!GCP_DATA) {
+        console.log('SKIPPING');
+        return; // No metadata / GCP error implies we skip the image
+      }
 
-      if (!GCP_DATA) return; // No metadata / GCP error implies we skip the image
+      //console.log(`URL: ${PICSUM_URL}`);
+      // console.dir(GCP_DATA, { depth: null });
 
-      console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);
-      console.dir(GCP_DATA, { depth: null });
+      //Insert Image into ArangoDB, and return its ID
+      const imageID: string | undefined = await imageObject.insertImage({
+        _key: String(PICSUM_IMAGE.id),
+        author: PICSUM_IMAGE.author.toUpperCase(),
+        url: PICSUM_URL,
+        date: Date(),
+      });
+      if (!imageID) {
+        console.log('DUPLICATE IMAGE');
+        return;
+      }
 
-      // //Insert Image into ArangoDB, and return its ID
-      // const imageID: string = await imageObject.insertImage({
-      //   id: PICSUM_IMAGE.id,
-      //   author: PICSUM_IMAGE.author.toUpperCase(),
-      //   url: PICSUM_URL,
-      //   date: Date(),
-      // });
+      /**
+       * @this Inserts an Author document, and links the image using an AuthorOf edge
+       * @returns AUTHOR IDs
+       */
+      const authorData = PICSUM_IMAGE.author.toUpperCase().replace(' ', '');
+      const authorID: string = await authorObject.insertAuthor({
+        _key: stringToASCII(authorData),
+        data: authorData,
+        nameSplit: PICSUM_IMAGE.author.toUpperCase().split(' '),
+      });
+      await authorOfObject.insertAuthorOf({
+        _from: authorID,
+        _to: imageID,
+        _score: 1,
+      });
 
-      // /**
-      //  * @this performs AUTHOR operations
-      //  * @returns AUTHOR IDs
-      //  */
-      // const authorID: string = await authorObject.insertAuthor({
-      //   fullName: PICSUM_IMAGE.author.toUpperCase(),
-      //   data: PICSUM_IMAGE.author.toUpperCase().split(' '),
-      // });
-      // const authorOfID: string = await authorOfObject.insertAuthorOf({
-      //   _from: authorID,
-      //   _to: imageID,
-      //   _score: 1,
-      // });
-
-      // /**
-      //  * @this performs LABEL & OBJECT operations
-      //  * @returns "LABEL" IDs
-      //  */
-      // const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations?.concat(
-      //   GCP_DATA.localizedObjectAnnotations,
-      // );
-      // GCP_LABEL_OBJECT_ANNOTATIONS?.forEach(async (elem: GCPAnnotation) => {
-      //   const labelID: string = await labelObject.insertLabel({
-      //     mid: elem.mid,
-      //     data: (elem.description || elem.name)!.toUpperCase(),
-      //   });
-      //   const labelOfID: string = await labelOfObject.insertLabelOf({
-      //     _from: labelID,
-      //     _to: imageID,
-      //     _score: elem.score,
-      //   });
-      // });
-      // console.log(`Success! ${imageID}`);
+      /**
+       * @this Inserts Label documents, and links the image using LabelOf edges
+       * @returns "LABEL" IDs
+       */
+      const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations?.concat(
+        GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [],
+      );
+      GCP_LABEL_OBJECT_ANNOTATIONS?.forEach(async (elem: GCPAnnotation) => {
+        const labelID: string = await labelObject.insertLabel({
+          _key: stringToASCII(elem.mid),
+          mid: elem.mid,
+          data: (elem.description || elem.name)!.toUpperCase(),
+        });
+        await labelOfObject.insertLabelOf({
+          _from: labelID,
+          _to: imageID,
+          _score: elem.score,
+        });
+      });
+      console.log(`Success! ${imageID}`);
     });
   }
+}
+
+/**
+ * Converts the passed metadata value into ASCII code
+ * Used to create predictable/unique _key values for ArangoDB
+ *
+ * @param data A string representing the metadata value
+ * @returns
+ */
+function stringToASCII(data: string): string {
+  let _key: string = '';
+  data.split('').forEach(char => {
+    _key += char.charCodeAt(0);
+  });
+  return _key;
 }
 
 generateImages();

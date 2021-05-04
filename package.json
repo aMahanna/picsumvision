@@ -40,7 +40,7 @@
     "build": "tsc",
     "postinstall": "tsc",
     "clearDB": "node dist/src/scripts/clear.js",
-    "picsum": "node dist/src/scripts/picsum.js",
+    "picsum": "tsc && node dist/src/scripts/picsum.js",
     "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write && cd client && yarn prettier"
   },
   "engines": {

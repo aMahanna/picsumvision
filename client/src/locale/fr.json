@@ -13,6 +13,14 @@
     },
     "landingPage": {
       "heading": "heading"
+    },
+    "searchPage": {
+      "query": "Réaliser",
+      "attention": "Attention! Cette fonctionnalité supportera bientôt des mots clés en français!",
+      "surprise": "Surprends-moi",
+      "inputLabel": "Rechercher par mots clés (en englais pour le moment)",
+      "inputPlaceholder": "Cloud Mountain Rain",
+      "strictMode": "Mode strict"
     }
   }
 }

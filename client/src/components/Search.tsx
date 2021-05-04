@@ -2,16 +2,28 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
-import { Container, CssBaseline, withStyles, Avatar, createStyles, TextField, Button, Box } from '@material-ui/core';
-// Import Props interface to define what this component can receive as props
-import { Props } from './Props';
+import {
+  Container,
+  CssBaseline,
+  makeStyles,
+  createStyles,
+  Theme,
+  Avatar,
+  TextField,
+  Button,
+  Box,
+  Checkbox,
+  FormControlLabel,
+  Snackbar,
+} from '@material-ui/core';
+import MuiAlert from '@material-ui/lab/Alert';
 
 /**
  * CreateStyles allows us to style MUI components
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-const styles = () =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',
@@ -23,23 +35,43 @@ const styles = () =>
       width: '60%',
       borderRadius: '1cm',
     },
-  });
+    button: {
+      '& > *': {
+        margin: theme.spacing(1),
+      },
+    },
+  }),
+);
 
-const LandingPage = (props: Props) => {
-  const [t] = useTranslation();
-  const { classes } = props;
+const Search = () => {
+  const [t, i18n] = useTranslation();
+  const classes = useStyles();
   const [labels, setLabels] = useState('');
   const [results, setResults] = useState([]);
+  const [isStrict, setIsStrict] = useState(false);
 
   const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState(event.target.value);
+    setState(event.target.value || event.target.checked);
   };
 
-  const submit = async () => {
-    const result = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}`);
+  const handleCheckboxChange = (setCheckedState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCheckedState(event.target.checked);
+  };
+
+  const query = async () => {
+    const result = await fetch(`/api/search/mixed?labels=${labels.trim().toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
     if (result.status === 200) {
       const response = await result.json();
-      setResults(response);
+      setResults(response.result);
+    }
+  };
+
+  const surpriseme = async () => {
+    const result = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
+    if (result.status === 200) {
+      const response = await result.json();
+      setLabels(response.Labels.join(' ').toLowerCase());
+      setResults(response.result);
     }
   };
 
@@ -55,16 +87,26 @@ const LandingPage = (props: Props) => {
             id="search-input"
             autoComplete="off"
             spellCheck
-            label="Search for labels"
-            placeholder="mountain sky"
+            value={labels}
+            label={t('searchPage.inputLabel')}
+            placeholder={t('searchPage.inputPlaceholder')}
             onChange={handleChange(setLabels)}
             fullWidth
           />
+          <FormControlLabel
+            value={isStrict}
+            control={<Checkbox checked={isStrict} onChange={handleCheckboxChange(setIsStrict)} color="default" name="isStrict" />}
+            label={t('searchPage.strictMode')}
+            labelPlacement="end"
+          />
         </Box>
         <div></div>
-        <Box mt={2}>
-          <Button id="search-submit" onClick={submit} variant="outlined">
-            Search
+        <Box mt={2} className={classes.button}>
+          <Button id="search-submit" onClick={query} variant="outlined">
+            {t('searchPage.query')}
+          </Button>
+          <Button id="search-surprise" onClick={surpriseme} variant="outlined">
+            {t('searchPage.surprise')}
           </Button>
         </Box>
       </Container>
@@ -75,7 +117,12 @@ const LandingPage = (props: Props) => {
             <img alt={data.author} className={classes.image} src={data.url} />
           </Box>
         ))}
+      <Snackbar open={i18n.language === 'fr'} autoHideDuration={3000}>
+        <MuiAlert elevation={6} variant="filled" severity="warning">
+          {t('searchPage.attention')}
+        </MuiAlert>
+      </Snackbar>
     </Container>
   );
 };
-export default withStyles(styles)(LandingPage);
+export default Search;

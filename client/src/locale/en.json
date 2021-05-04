@@ -13,6 +13,14 @@
     },
     "landingPage": {
       "heading": "heading"
+    },
+    "searchPage": {
+      "query": "Query",
+      "attention": "",
+      "surprise": "Surprise Me",
+      "inputLabel": "Search by keywords",
+      "inputPlaceholder": "Cloud Mountain Rain",
+      "strictMode": "Strict Mode"
     }
   }
 }

@@ -1,6 +1,5 @@
 import '../database';
 import fetch from 'node-fetch';
-import { Picsum } from 'picsum-photos';
 
 // Import the current ArangoDB Collections in-use
 import { imageObject } from '../collections/Image';
@@ -8,6 +7,7 @@ import { labelObject } from '../collections/Label/Label';
 import { labelOfObject } from '../collections/Label/LabelOf';
 import { authorObject } from '../collections/Author/Author';
 import { authorOfObject } from '../collections/Author/AuthorOf';
+import { response } from 'express';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -22,46 +22,56 @@ interface PicsumImage {
   download_url: string; // Image direct URL for download
 }
 
-const MAX_RESULTS: number = 4;
-async function createGCPData(picsumUrl: string): Promise<any> {
+interface GCPAnnotation {
+  mid: string;
+  name?: string;
+  description?: string;
+  score: number;
+}
+
+async function createGCPData(picsumUrl: string, maxResults: number): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [
       {
         features: [
           {
-            maxResults: MAX_RESULTS,
+            maxResults,
             type: 'LABEL_DETECTION',
           },
+          {
+            maxResults,
+            type: 'OBJECT_LOCALIZATION',
+          },
           // {
-          //   maxResults: MAX_RESULTS,
-          //   type: 'WEB_DETECTION',
+          //   maxResults,
+          //   type: 'FACE_DETECTION',
+          // },
+          // {
+          //   maxResults,
+          //   type: 'SAFE_SEARCH_DETECTION',
           // },
           /**
            * @todo Prepare ArangoDB for the rest of these features:
            */
           // {
-          //   maxResults: MAX_RESULTS,
+          //   maxResults,
+          //   type: 'WEB_DETECTION',
+          // },
+          // {
+          //   maxResults,
           //   type: 'IMAGE_PROPERTIES',
           // },
           // {
-          //   maxResults: MAX_RESULTS,
-          //   type: 'FACE_DETECTION',
-          // },
-          // {
-          //   maxResults: MAX_RESULTS,
+          //   maxResults,
           //   type: 'LANDMARK_DETECTION',
           // },
           // {
-          //   maxResults: MAX_RESULTS,
+          //   maxResults,
           //   typeclear: 'LOGO_DETECTION',
           // },
           // {
-          //   maxResults: MAX_RESULTS,
-          //   type: 'OBJECT_LOCALIZATION',
-          // },
-          // {
-          //   maxResults: MAX_RESULTS,
+          //   maxResults,
           //   type: 'TEXT_DETECTION',
           // },
         ],
@@ -81,59 +91,69 @@ async function createGCPData(picsumUrl: string): Promise<any> {
       'Content-Type': 'application/json',
     },
   });
-  const gcpData = (await gcpResponse.json()).responses[0]; // Always returns an array with one element
+  const gcpData = (await gcpResponse.json()).responses;
 
-  return Object.keys(gcpData).length === 0 || gcpData.error ? undefined : gcpData; // Return undefined if no data / error
+  // Return undefined if no data / error
+  return !gcpData || Object.keys(gcpData[0]).length === 0 || gcpData[0].error ? undefined : gcpData[0];
 }
 
 async function generateImages() {
-  for (let i = 0; i < 4; i++) {
-    const PICSUM_IMAGE: PicsumImage = await Picsum.random();
-    const PICSUM_URL: string = PICSUM_IMAGE.download_url;
+  const limit = 5;
+  const maxResults: number = 3;
 
-    const GCP_DATA = await createGCPData(PICSUM_URL);
-    if (!GCP_DATA) continue; // No metadata / GCP error implies we skip the image
+  for (let i = 1; i < 2; i++) {
+    const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${i}&limit=${limit}`);
+    const PICSUM_LIST_RESULT = await PICSUM_LIST_RESPONSE.json();
 
-    console.log(`IMAGE: ${PICSUM_URL}`);
-    console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);
-    console.dir(GCP_DATA, { depth: null });
+    PICSUM_LIST_RESULT.forEach(async (PICSUM_IMAGE: PicsumImage) => {
+      const PICSUM_URL: string = PICSUM_IMAGE.download_url;
+      const GCP_DATA = await createGCPData(PICSUM_URL, maxResults);
 
-    // Insert Image into ArangoDB, and return its ID
-    const imageID: string = await imageObject.insertImage({
-      id: PICSUM_IMAGE.id,
-      author: PICSUM_IMAGE.author.toUpperCase(),
-      url: PICSUM_URL,
-      date: Date(),
+      if (!GCP_DATA) return; // No metadata / GCP error implies we skip the image
+
+      // console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);
+      // console.dir(GCP_DATA, { depth: null });
+
+      // Insert Image into ArangoDB, and return its ID
+      // const imageID: string = await imageObject.insertImage({
+      //   id: PICSUM_IMAGE.id,
+      //   author: PICSUM_IMAGE.author.toUpperCase(),
+      //   url: PICSUM_URL,
+      //   date: Date(),
+      // });
+
+      // /**
+      //  * @this performs AUTHOR operations
+      //  * @returns AUTHOR IDs
+      //  */
+      // const authorID: string = await authorObject.insertAuthor({
+      //   fullName: PICSUM_IMAGE.author.toUpperCase(),
+      //   data: PICSUM_IMAGE.author.toUpperCase().split(' '),
+      // });
+      // const authorOfID: string = await authorOfObject.insertAuthorOf({
+      //   _from: authorID,
+      //   _to: imageID,
+      //   _score: 1,
+      // });
+
+      /**
+       * @this performs LABEL & OBJECT operations
+       * @returns "LABEL" IDs
+       */
+      // const GCP_LABEL_OBJECT_ANNOTATIONS : GCPAnnotation[] = GCP_DATA.labelAnnotations?.concat(GCP_DATA.localizedObjectAnnotations);
+      // GCP_LABEL_OBJECT_ANNOTATIONS?.forEach(async (elem: GCPAnnotation) => {
+      //   const labelID: string = await labelObject.insertLabel({
+      //     mid: elem.mid,
+      //     data: (elem.description || elem.name)!.toUpperCase()
+      //   });
+      //   const labelOfID: string = await labelOfObject.insertLabelOf({
+      //     _from: labelID,
+      //     _to: imageID,
+      //     _score: elem.score,
+      //   });
+      // });
+      // console.log(`Success! ${imageID}`);
     });
-
-    /**
-     * @this performs AUTHOR operations
-     * @returns AUTHOR IDs
-     */
-    const authorID: string = await authorObject.insertAuthor({
-      fullName: PICSUM_IMAGE.author.toUpperCase(),
-      data: PICSUM_IMAGE.author.toUpperCase().split(' '),
-    });
-    const authorOfID: string = await authorOfObject.insertAuthorOf({
-      _from: authorID,
-      _to: imageID,
-      _score: 1,
-    });
-
-    /**
-     * @this performs LABEL operations
-     * @returns LABEL IDs
-     */
-    GCP_DATA.labelAnnotations.forEach(async (elem: any) => {
-      const labelID: string = await labelObject.insertLabel({ mid: elem.mid, data: elem.description.toUpperCase() });
-      const labelOfID: string = await labelOfObject.insertLabelOf({
-        _from: labelID,
-        _to: imageID,
-        _score: elem.score,
-      });
-    });
-
-    console.log(`Success! ${imageID}`);
   }
 }
 

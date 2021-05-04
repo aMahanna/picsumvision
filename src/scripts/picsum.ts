@@ -7,7 +7,6 @@ import { labelObject } from '../collections/Label/Label';
 import { labelOfObject } from '../collections/Label/LabelOf';
 import { authorObject } from '../collections/Author/Author';
 import { authorOfObject } from '../collections/Author/AuthorOf';
-import { response } from 'express';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -98,7 +97,7 @@ async function createGCPData(picsumUrl: string, maxResults: number): Promise<any
 }
 
 async function generateImages() {
-  const limit = 5;
+  const limit: number = 5;
   const maxResults: number = 3;
 
   for (let i = 1; i < 2; i++) {
@@ -111,10 +110,10 @@ async function generateImages() {
 
       if (!GCP_DATA) return; // No metadata / GCP error implies we skip the image
 
-      // console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);
-      // console.dir(GCP_DATA, { depth: null });
+      console.log(`AUTHOR: ${PICSUM_IMAGE.author}`);
+      console.dir(GCP_DATA, { depth: null });
 
-      // Insert Image into ArangoDB, and return its ID
+      // //Insert Image into ArangoDB, and return its ID
       // const imageID: string = await imageObject.insertImage({
       //   id: PICSUM_IMAGE.id,
       //   author: PICSUM_IMAGE.author.toUpperCase(),
@@ -136,15 +135,17 @@ async function generateImages() {
       //   _score: 1,
       // });
 
-      /**
-       * @this performs LABEL & OBJECT operations
-       * @returns "LABEL" IDs
-       */
-      // const GCP_LABEL_OBJECT_ANNOTATIONS : GCPAnnotation[] = GCP_DATA.labelAnnotations?.concat(GCP_DATA.localizedObjectAnnotations);
+      // /**
+      //  * @this performs LABEL & OBJECT operations
+      //  * @returns "LABEL" IDs
+      //  */
+      // const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations?.concat(
+      //   GCP_DATA.localizedObjectAnnotations,
+      // );
       // GCP_LABEL_OBJECT_ANNOTATIONS?.forEach(async (elem: GCPAnnotation) => {
       //   const labelID: string = await labelObject.insertLabel({
       //     mid: elem.mid,
-      //     data: (elem.description || elem.name)!.toUpperCase()
+      //     data: (elem.description || elem.name)!.toUpperCase(),
       //   });
       //   const labelOfID: string = await labelOfObject.insertLabelOf({
       //     _from: labelID,

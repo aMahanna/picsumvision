@@ -141,7 +141,7 @@ async function generateImages() {
        * @this Inserts an Author document, and links the image using an AuthorOf edge
        * @returns AUTHOR IDs
        */
-      const authorData = PICSUM_IMAGE.author.toUpperCase().replace(' ', '');
+      const authorData = PICSUM_IMAGE.author.toUpperCase().replace(' ', '-');
       const authorID: string = await authorObject.insertAuthor({
         _key: stringToASCII(authorData),
         data: authorData,
@@ -165,10 +165,11 @@ async function generateImages() {
       ];
 
       UNIQUE_LABELS.forEach(async (elem: GCPAnnotation) => {
+        const labelData = (elem.description || elem.name)!.toUpperCase().replace(' ', '-');
         const labelID: string = await labelObject.insertLabel({
           _key: stringToASCII(elem.mid),
           mid: elem.mid,
-          data: (elem.description || elem.name)!.toUpperCase(),
+          data: labelData,
         });
         await labelOfObject.insertLabelOf({
           _from: labelID,

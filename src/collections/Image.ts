@@ -47,7 +47,8 @@ class ImageObject {
    */
   public async query_mixed_keys(TargetLabels: string[]): Promise<{}[] | undefined> {
     try {
-      const response = await db.query(aql`
+      const looseMatches = await (
+        await db.query(aql`
         WITH Labels, Authors
         FOR i IN Images 
           FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
@@ -61,9 +62,26 @@ class ImageObject {
               }
               SORT obj.count DESC
               RETURN obj
-      `);
-      const result = await response.map(doc => doc);
-      return result;
+      `)
+      ).all();
+
+      const exactAuthorMatches = await (
+        await db.query(aql`
+        FOR doc IN ${looseMatches}
+          FOR data IN ${TargetLabels}
+          FILTER SUBSTITUTE(doc.author, " ", "") == data
+          SORT doc.author DESC
+          RETURN doc
+      `)
+      ).all();
+
+      const finalResult = await (
+        await db.query(aql`
+          RETURN UNIQUE(APPEND(${exactAuthorMatches},${looseMatches}))
+      `)
+      ).all();
+
+      return finalResult;
     } catch (error) {
       console.error(error);
       return undefined;
@@ -77,7 +95,8 @@ class ImageObject {
    */
   public async query_mixed_keys_strict(TargetLabels: string[]): Promise<{}[] | undefined> {
     try {
-      const response = await db.query(aql`
+      const strictMatches = await (
+        await db.query(aql`
         WITH Labels, Authors
         FOR i IN Images 
           FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
@@ -91,9 +110,10 @@ class ImageObject {
               }
               FILTER obj.count >= ${TargetLabels.length}
               RETURN obj
-      `);
-      const result = await response.map(doc => doc);
-      return result;
+      `)
+      ).all();
+
+      return [strictMatches];
     } catch (error) {
       console.error(error);
       return undefined;
@@ -101,7 +121,7 @@ class ImageObject {
   }
 
   /**
-   * WORK IN PRGORESS: @method Returns 3 random labels
+   * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
    */
   public async fetch_surprise_keys(): Promise<string[] | undefined> {
     try {
@@ -112,7 +132,7 @@ class ImageObject {
           LIMIT 1
           FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT RAND()
-            LIMIT 3
+            LIMIT 4
             RETURN v
       `);
 

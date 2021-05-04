@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../i18n';
 import { render, screen } from '@testing-library/react';
-import App from '../components/App';
+import App from '../pages/App';
 
 test('renders the react navbar', () => {
   render(

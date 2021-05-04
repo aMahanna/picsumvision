@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
@@ -14,9 +14,9 @@ import {
   Box,
   Checkbox,
   FormControlLabel,
-  Snackbar,
 } from '@material-ui/core';
-import MuiAlert from '@material-ui/lab/Alert';
+
+import Alert from '../components/Alert';
 
 /**
  * CreateStyles allows us to style MUI components
@@ -46,12 +46,24 @@ const useStyles = makeStyles((theme: Theme) =>
 const Search = () => {
   const [t, i18n] = useTranslation();
   const classes = useStyles();
-  const [labels, setLabels] = useState('');
+  const [input, setInput] = useState('');
   const [results, setResults] = useState([]);
   const [isStrict, setIsStrict] = useState(false);
+  const [inputPlaceholder, setInputPlaceholder] = useState('');
+
+  const [suggestInput, setSuggestInput] = useState(false);
+  const [frenchWarning, setFrenchWarning] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/search/randomkeys')
+      .then(result => result.json())
+      .then(response => {
+        setInputPlaceholder(response.labels.join(' ').toLowerCase());
+      });
+  }, []);
 
   const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState(event.target.value || event.target.checked);
+    setState(event.target.value);
   };
 
   const handleCheckboxChange = (setCheckedState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,18 +71,28 @@ const Search = () => {
   };
 
   const query = async () => {
-    const result = await fetch(`/api/search/mixed?labels=${labels.trim().toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
-    if (result.status === 200) {
-      const response = await result.json();
-      setResults(response.result);
+    const labels = input.trim(); /** @todo Figure our more "cleanup" features to add in order to refine the search */
+    if (labels === '') {
+      fetch('/api/search/randomkeys')
+        .then(result => result.json())
+        .then(response => {
+          setSuggestInput(true);
+          setInputPlaceholder(response.labels.join(' ').toLowerCase());
+        });
+    } else {
+      const result = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
+      if (result.status === 200) {
+        const response = await result.json();
+        setResults(response.result);
+      }
     }
   };
 
-  const surpriseme = async () => {
+  const surpriseMe = async () => {
     const result = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
     if (result.status === 200) {
       const response = await result.json();
-      setLabels(response.Labels.join(' ').toLowerCase());
+      setInput(response.labels.join(' ').toLowerCase());
       setResults(response.result);
     }
   };
@@ -87,10 +109,10 @@ const Search = () => {
             id="search-input"
             autoComplete="off"
             spellCheck
-            value={labels}
+            value={input}
             label={t('searchPage.inputLabel')}
-            placeholder={t('searchPage.inputPlaceholder')}
-            onChange={handleChange(setLabels)}
+            placeholder={inputPlaceholder}
+            onChange={handleChange(setInput)}
             fullWidth
           />
           <FormControlLabel
@@ -105,7 +127,7 @@ const Search = () => {
           <Button id="search-submit" onClick={query} variant="outlined">
             {t('searchPage.query')}
           </Button>
-          <Button id="search-surprise" onClick={surpriseme} variant="outlined">
+          <Button id="search-surprise" onClick={surpriseMe} variant="outlined">
             {t('searchPage.surprise')}
           </Button>
         </Box>
@@ -117,11 +139,24 @@ const Search = () => {
             <img alt={data.author} className={classes.image} src={data.url} />
           </Box>
         ))}
-      <Snackbar open={i18n.language === 'fr'} autoHideDuration={3000}>
-        <MuiAlert elevation={6} variant="filled" severity="warning">
-          {t('searchPage.attention')}
-        </MuiAlert>
-      </Snackbar>
+      <Alert
+        open={i18n.language === 'fr' && frenchWarning}
+        message={t('searchPage.attention')}
+        severity="warning"
+        onSnackbarClose={(e, r) => {
+          return r === 'clickaway' ? undefined : setFrenchWarning(false);
+        }}
+        onAlertClose={() => setFrenchWarning(false)}
+      ></Alert>
+      <Alert
+        open={suggestInput}
+        message={`${t('searchPage.suggestAlert')}${inputPlaceholder}'?`}
+        severity="info"
+        onSnackbarClose={(e, r) => {
+          return r === 'clickaway' ? undefined : setSuggestInput(false);
+        }}
+        onAlertClose={() => setSuggestInput(false)}
+      ></Alert>
     </Container>
   );
 };

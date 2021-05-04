@@ -16,11 +16,12 @@
     },
     "searchPage": {
       "query": "Réaliser",
-      "attention": "Attention! Cette fonctionnalité supportera bientôt des mots clés en français!",
+      "attention": "Attention! Cette fonctionnalité ne supporte pas encore des mots clés en français",
       "surprise": "Surprends-moi",
-      "inputLabel": "Rechercher par mots clés (en englais pour le moment)",
+      "inputLabel": "Rechercher par mots clés",
       "inputPlaceholder": "Cloud Mountain Rain",
-      "strictMode": "Mode strict"
+      "strictMode": "Mode strict",
+      "suggestAlert": "Puis-je suggérer '"
     }
   }
 }

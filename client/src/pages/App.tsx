@@ -3,7 +3,7 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'; // Allows for website bilingualism
 
 // Import React Components
-import NavBar from './NavBar';
+import NavBar from '../components/NavBar';
 import LandingPage from './LandingPage';
 import Search from './Search';
 // import Login from './Login';

@@ -60,7 +60,6 @@ class ImageObject {
                   "count": num
               }
               SORT obj.count DESC
-              LIMIT 3
               RETURN obj
       `);
       const result = await response.map(doc => doc);
@@ -91,7 +90,6 @@ class ImageObject {
                   "count": num
               }
               FILTER obj.count >= ${TargetLabels.length}
-              LIMIT 3
               RETURN obj
       `);
       const result = await response.map(doc => doc);

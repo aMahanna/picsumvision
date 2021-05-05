@@ -13,6 +13,15 @@
     },
     "landingPage": {
       "heading": "heading"
+    },
+    "searchPage": {
+      "query": "Query",
+      "attention": "Attention! Cette fonctionnalité ne supporte pas encore des mots clés en français",
+      "surprise": "Surprise Me",
+      "inputLabel": "Search by keywords",
+      "inputPlaceholder": "Cloud Mountain Rain",
+      "strictMode": "Strict Mode",
+      "suggestAlert": "May I suggest '"
     }
   }
 }

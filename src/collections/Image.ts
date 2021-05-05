@@ -4,9 +4,10 @@
 
 import db from '../database';
 import { aql } from 'arangojs';
+import { response } from 'express';
 
 export interface imageModel {
-  id: number;
+  _key: string;
   author: string;
   url: string;
   date: string;
@@ -22,26 +23,21 @@ class ImageObject {
    * @param document implements the imageModel interface
    * @returns the ArangoID of the Image inserted
    */
-  public async insertImage(document: imageModel): Promise<string> {
-    const imageExitsQuery = await db.query(aql`
-    FOR i IN Images
-    FILTER i._key == ${document.id}
-    LIMIT 1
-    RETURN i
-  `);
-    const queryResult = await imageExitsQuery.map(doc => doc._id);
-    console.log(queryResult.length > 0 ? `Duplicate image found! ${queryResult[0]}` : '');
-
-    return queryResult.length === 0
-      ? (
-          await ImageCollection.save({
-            _key: `${document.id}`,
-            author: document.author,
-            url: document.url,
-            date: document.date,
-          })
-        )._id
-      : queryResult[0];
+  public async insertImage(document: imageModel): Promise<string | undefined> {
+    const imageAlreadyExists = await ImageCollection.document({ _key: document._key }, true);
+    return imageAlreadyExists
+      ? undefined
+      : (
+          await ImageCollection.save(
+            {
+              _key: document._key,
+              author: document.author,
+              url: document.url,
+              date: document.date,
+            },
+            { waitForSync: true, overwriteMode: 'ignore' },
+          )
+        )._id;
   }
 
   /**
@@ -49,25 +45,137 @@ class ImageObject {
    *
    * @param labels An array of targetted words
    */
-  public async query_mixed_keys(Labels: string[]): Promise<{}[]> {
-    const response = await db.query(aql`
-      WITH Labels, Authors
-      FOR i IN Images 
-        FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf 
-          FOR data IN ${Labels}
-            FILTER CONTAINS(v.data, data)
-            COLLECT id = e._to WITH COUNT INTO num
-            LET image = DOCUMENT(id)
-            LET obj = {
-                "url": image.url,
-                "author": image.author,
-                "count": num
-            }
-            SORT obj.count DESC
-            RETURN obj
-    `);
-    const result = await response.map(doc => doc);
-    return result;
+  public async query_mixed_keys(TargetLabels: string[]): Promise<{}[] | undefined> {
+    try {
+      const looseMatches = await (
+        await db.query(aql`
+        WITH Labels, Authors
+        FOR i IN Images 
+          FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            FOR data IN ${TargetLabels}
+              FILTER CONTAINS(v.data, data)
+              COLLECT image = i, id = e._to WITH COUNT INTO num
+              LET obj = {
+                  "url": image.url,
+                  "author": image.author,
+                  "count": num
+              }
+              SORT obj.count DESC
+              LIMIT 3
+              RETURN obj
+      `)
+      ).all();
+
+      const exactAuthorMatches = await (
+        await db.query(aql`
+        FOR doc IN ${looseMatches}
+          FOR data IN ${TargetLabels}
+          FILTER SUBSTITUTE(doc.author, " ", "") == data
+          SORT doc.author DESC
+          RETURN doc
+      `)
+      ).all();
+
+      const finalResult = await (
+        await db.query(aql`
+          RETURN UNIQUE(APPEND(${exactAuthorMatches},${looseMatches}))
+      `)
+      ).all();
+
+      return finalResult;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  /**
+   * WORK IN PRGORESS: @method allows the user to query by STRICT MODE
+   *
+   * @param labels An array of targetted words that MUST BE ALL IN the IMAGE
+   */
+  public async query_mixed_keys_strict(TargetLabels: string[]): Promise<{}[] | undefined> {
+    try {
+      const strictMatches = await (
+        await db.query(aql`
+        WITH Labels, Authors
+        FOR i IN Images 
+          FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            FOR data IN ${TargetLabels}
+              FILTER v.data == data
+              COLLECT image = i, id = e._to WITH COUNT INTO num
+              LET obj = {
+                  "url": image.url,
+                  "author": image.author,
+                  "count": num
+              }
+              FILTER obj.count >= ${TargetLabels.length}
+              LIMIT 3
+              SORT RAND()
+              RETURN obj
+      `)
+      ).all();
+
+      return [strictMatches];
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  /**
+   * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
+   */
+  public async fetch_surprise_keys(): Promise<string[] | undefined> {
+    try {
+      const response = await db.query(aql`
+        With Labels, Authors
+        FOR i IN Images
+          SORT RAND()
+          LIMIT 1
+          FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            SORT RAND()
+            LIMIT 4
+            RETURN v
+      `);
+
+      const result = await response.map(doc => doc.data);
+      return result;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  /**
+   * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
+   */
+  public async fetch_image_info(id: string): Promise<{}[] | undefined> {
+    try {
+      const result = await (
+        await db.query(aql`
+        WITH Labels
+        Let image = FIRST((
+          FOR i IN Images
+          FILTER i._key == ${id}
+          LIMIT 1
+          RETURN i
+        ))
+        Let labels = (
+          FOR v, e, p IN 1..1 ANY image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FILTER e._from == v._id
+          SORT e._score DESC
+          RETURN {score: e._score, data: v.data}
+        )
+        RETURN {image, labels}
+      `)
+      ).all();
+      console.log(result);
+      return result;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
   }
 }
 

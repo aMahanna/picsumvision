@@ -11,17 +11,15 @@ export interface labelOfModel {
 }
 
 const LabelOfCollection = db.collection('LabelOf');
-
 class LabelOfObject {
   /**
    * @method inserts the LabelOf Edge linking an Image and a Label metadata
    *
-   * @param edge implements the labelOfModel interfac
+   * @param edge implements the labelOfModel interface
    * @returns The ArangoID of the inserted LabelOf edge
    */
-  async insertLabelOf(edge: labelOfModel) {
-    const result = await LabelOfCollection.save(edge);
-    return result._id;
+  async insertLabelOf(edge: labelOfModel): Promise<void> {
+    await LabelOfCollection.save(edge, { silent: true });
   }
 }
 

@@ -11,13 +11,12 @@
     "express": "4.17.1",
     "http": "^0.0.1-security",
     "node-fetch": "^2.6.1",
-    "picsum-photos": "^3.0.6",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.5.10",
     "@types/arangodb": "^3.5.11",
     "@types/express": "^4.17.11",
+    "@types/node-fetch": "^2.5.10",
     "concurrently": "^5.3.0",
     "dotenv": "^8.2.0",
     "nodemon": "^2.0.6",
@@ -41,7 +40,7 @@
     "build": "tsc",
     "postinstall": "tsc",
     "clearDB": "node dist/src/scripts/clear.js",
-    "picsum": "node dist/src/scripts/picsum.js",
+    "picsum": "tsc && node dist/src/scripts/picsum.js",
     "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write && cd client && yarn prettier"
   },
   "engines": {

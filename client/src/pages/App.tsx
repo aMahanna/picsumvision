@@ -3,9 +3,10 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'; // Allows for website bilingualism
 
 // Import React Components
-import NavBar from './NavBar';
+import NavBar from '../components/NavBar';
 import LandingPage from './LandingPage';
 import Search from './Search';
+import Info from './Info';
 // import Login from './Login';
 // import Candidates from './Candidates';
 
@@ -27,6 +28,7 @@ const App = () => {
       <Switch>
         <Route exact path="/" component={LandingPage} />
         <Route exact path="/search" component={Search} />
+        <Route exact path="/info/:id" component={Info} />
         <Route render={() => <Redirect to={{ pathname: '/' }} />} />
       </Switch>
     </div>

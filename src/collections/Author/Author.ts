@@ -6,8 +6,9 @@ import db from '../../database';
 import { aql } from 'arangojs';
 
 export interface authorModel {
-  fullName: string;
-  data: string[];
+  _key: string;
+  data: string;
+  nameSplit: string[];
 }
 
 const AuthorCollection = db.collection('Authors');
@@ -21,16 +22,22 @@ class AuthorObject {
    * @returns the ArangoID of the Author inserted
    */
   public async insertAuthor(document: authorModel): Promise<string> {
-    const authorExistsQuery = await db.query(aql`
-      FOR a IN Authors
-      FILTER a.fullName == ${document.fullName}
-      LIMIT 1
-      RETURN a
-    `);
-    const queryResult = await authorExistsQuery.map(doc => doc._id);
-    console.log(queryResult.length > 0 ? `Duplicate author found! ${queryResult[0]}` : '');
+    /**
+     * @todo - Figure out why ArangoDB is not catching this document check, thus causing a key constraint violation
+     */
+    // const authorAlreadyExists = await AuthorCollection.document({ _key: document._key }, true);
+    // if (authorAlreadyExists) /** @todo remove */ console.log('Duplicate AUTHOR found: ', authorAlreadyExists._id);
+    // return authorAlreadyExists
+    //   ? authorAlreadyExists._id
+    //   : (await AuthorCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
 
-    return queryResult.length === 0 ? (await AuthorCollection.save(document))._id : queryResult[0];
+    const query = await db.query(aql`
+      INSERT ${document} INTO ${AuthorCollection} 
+      OPTIONS { ignoreErrors: true }
+      RETURN NEW
+    `);
+    const result = await query.map(doc => doc);
+    return result[0] ? result[0]._id : `Authors/${document._key}`;
   }
 }
 

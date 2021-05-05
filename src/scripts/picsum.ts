@@ -111,10 +111,8 @@ async function generateImages() {
     const PICSUM_RESULT = await PICSUM_RESPONSE.json();
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
   }
-  console.log(PICSUM_LIST.length);
 
   for (let j = 0; j < PICSUM_LIST.length; j++) {
-    // PICSUM_LIST.forEach(async (PICSUM_IMAGE: PicsumImage) => {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
     const PICSUM_URL: string = PICSUM_IMAGE.download_url;
 
@@ -147,7 +145,7 @@ async function generateImages() {
      * @this Inserts an Author document, and links the image using an AuthorOf edge
      * @returns AUTHOR IDs
      */
-    const authorData = PICSUM_IMAGE.author.toUpperCase().replace(' ', '-');
+    const authorData = PICSUM_IMAGE.author.toUpperCase().split(' ').join('-');
     const authorID: string = await authorObject.insertAuthor({
       _key: stringToASCII(authorData),
       data: authorData,
@@ -172,7 +170,7 @@ async function generateImages() {
 
     for (let t = 0; t < UNIQUE_LABELS.length; t++) {
       const elem: GCPAnnotation = UNIQUE_LABELS[t];
-      const labelData = (elem.description || elem.name)!.toUpperCase().replace(' ', '-');
+      const labelData = (elem.description || elem.name)!.toUpperCase().split(' ').join('-');
       const labelID: string = await labelObject.insertLabel({
         _key: stringToASCII(elem.mid),
         mid: elem.mid,

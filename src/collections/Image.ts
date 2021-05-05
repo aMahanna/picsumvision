@@ -4,7 +4,6 @@
 
 import db from '../database';
 import { aql } from 'arangojs';
-import { response } from 'express';
 
 export interface imageModel {
   _key: string;
@@ -128,18 +127,20 @@ class ImageObject {
    */
   public async fetch_surprise_keys(): Promise<string[] | undefined> {
     try {
-      const response = await db.query(aql`
+      const result = await (
+        await db.query(aql`
         With Labels, Authors
         FOR i IN Images
           SORT RAND()
           LIMIT 1
           FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT RAND()
-            LIMIT 4
-            RETURN v
-      `);
+            LIMIT 3
+            SORT v.data
+            RETURN v.data
+      `)
+      ).all();
 
-      const result = await response.map(doc => doc.data);
       return result;
     } catch (error) {
       console.error(error);
@@ -170,7 +171,7 @@ class ImageObject {
         RETURN {image, labels}
       `)
       ).all();
-      console.log(result);
+
       return result;
     } catch (error) {
       console.error(error);

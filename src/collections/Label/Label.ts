@@ -3,7 +3,6 @@
  */
 
 import db from '../../database';
-import { aql } from 'arangojs';
 
 export interface labelModel {
   _key: string;

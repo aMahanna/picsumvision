@@ -23,7 +23,6 @@ namespace SearchController {
       res.status(200).json({ result, labels });
     }
   }
-
 }
 
 export default SearchController;

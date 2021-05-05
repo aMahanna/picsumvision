@@ -17,6 +17,7 @@ import {
 } from '@material-ui/core';
 
 import Alert from '../components/Alert';
+import Gallery from '../components/Gallery';
 import usePersistedState from '../hooks/usePersistedState';
 
 /**
@@ -32,13 +33,18 @@ const useStyles = makeStyles((theme: Theme) =>
       margin: 'auto',
     },
     image: {
-      height: '50%',
-      width: '50%',
-      borderRadius: '1cm',
+      height: '100%',
+      width: '100%',
     },
     button: {
       '& > *': {
+        color: '#2f2d2e',
         margin: theme.spacing(1),
+        '&:hover': {
+          transition: '0.3s ease-in',
+          backgroundColor: '#2f2d2e',
+          color: 'white',
+        },
       },
     },
   }),
@@ -162,6 +168,7 @@ const Search = (props: any) => {
             placeholder={inputPlaceholder}
             onChange={handleChange(setTextFieldInput)}
             fullWidth
+            variant="standard"
           />
           <FormControlLabel
             value={isStrict}
@@ -170,28 +177,16 @@ const Search = (props: any) => {
             labelPlacement="end"
           />
         </Box>
-        <div></div>
         <Box mt={2} className={classes.button}>
-          <Button id="search-submit" onClick={() => query()} variant="outlined">
+          <Button id="search-submit" onClick={() => query()}>
             {t('searchPage.query')}
           </Button>
-          <Button id="search-surprise" onClick={surpriseMe} variant="outlined">
+          <Button id="search-surprise" onClick={surpriseMe}>
             {t('searchPage.surprise')}
           </Button>
         </Box>
       </Container>
-      {searchResult.length !== 0 && !resultIsEmpty && (
-        <Box mt={3}>
-          {searchResult.map((data: { author: string; url: string }) => (
-            <Box key={data.url} mt={3}>
-              <h4>{data.author}</h4>
-              <a href={`/info/${data.url.split('/')[4]}`}>
-                <img alt={data.author} className={classes.image} src={data.url} />
-              </a>
-            </Box>
-          ))}
-        </Box>
-      )}
+      {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
       {resultIsEmpty && (
         <Box mt={3}>
           <h5>Shoot, no results found</h5>

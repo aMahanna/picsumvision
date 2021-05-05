@@ -14,28 +14,14 @@
           width: 75%;
         }
 
-        &:nth-of-type(1) {
-          font-weight: 500;
-          background-color: #2f2d2e;
-          color: white;
+        font-weight: 500;
+        background-color: #2f2d2e;
+        color: white;
 
-          &:hover {
-            transition: 0.3s ease-in;
-            background-color: rgba(0, 0, 0, 0.04);
-            color: rgba(0, 0, 0, 0.87);
-          }
-        }
-
-        &:nth-of-type(2) {
-          font-weight: 500;
-          background-color: #2f2d2e;
-          color: white;
-
-          &:hover {
-            transition: 0.3s ease-in;
-            background-color: rgba(0, 0, 0, 0.04);
-            color: rgba(0, 0, 0, 0.87);
-          }
+        &:hover {
+          transition: 0.3s ease-in;
+          background-color: rgba(0, 0, 0, 0.04);
+          color: rgba(0, 0, 0, 0.87);
         }
       }
     }

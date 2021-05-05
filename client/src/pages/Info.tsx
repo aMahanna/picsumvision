@@ -29,7 +29,7 @@ const useStyles = makeStyles(() =>
 const Info = (props: any) => {
   //const [t] = useTranslation();
   const classes = useStyles();
-  const imageID = props.match.params.id;
+  const [imageID] = useState(props.match.params.id);
   const [imageURL, setImageURL] = useState('');
   const [imageAuthor, setImageAuthor] = useState('');
   const [imageLabels, setImageLabels] = useState([]);
@@ -38,11 +38,15 @@ const Info = (props: any) => {
     fetch(`/api/info/image?id=${imageID}`)
       .then(response => response.json())
       .then(result => {
-        setImageURL(result.data.image.url);
-        setImageAuthor(result.data.image.author);
-        setImageLabels(result.data.labels);
+        if (result.data.image) {
+          setImageURL(result.data.image.url);
+          setImageAuthor(result.data.image.author);
+          setImageLabels(result.data.labels);
+        } else {
+          props.history.push('/search');
+        }
       });
-  }, []);
+  }, [imageID, props.history]);
 
   return (
     <Container component="main" maxWidth="md">

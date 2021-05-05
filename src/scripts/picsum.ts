@@ -101,84 +101,91 @@ async function createGCPData(picsumUrl: string, maxResults: number): Promise<any
 
 async function generateImages() {
   // number of picsum images: ~1000
-  const limit: number = 10;
+  const limit: number = 100;
   const maxResults: number = 3;
 
-  //1-3, 3-5, 5-7, 7-9, 9-11...
-  for (let i = 9; i < 11; i++) {
+  let PICSUM_LIST: PicsumImage[] = [];
+  for (let i = 1; i < 11; i++) {
     // const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/id/1048/info/`); // Used for testing
-    const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${i}&limit=${limit}`);
-    const PICSUM_LIST_RESULT = await PICSUM_LIST_RESPONSE.json();
-    PICSUM_LIST_RESULT.forEach(async (PICSUM_IMAGE: PicsumImage) => {
-      const PICSUM_URL: string = PICSUM_IMAGE.download_url;
+    const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${i}&limit=${limit}`);
+    const PICSUM_RESULT = await PICSUM_RESPONSE.json();
+    PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
+  }
+  console.log(PICSUM_LIST.length);
 
-      const GCP_DATA = await createGCPData(PICSUM_URL, maxResults);
-      if (!GCP_DATA) {
-        console.log('SKIPPING');
-        return; // No metadata / GCP error implies we skip the image
-      }
+  for (let j = 0; j < PICSUM_LIST.length; j++) {
+    // PICSUM_LIST.forEach(async (PICSUM_IMAGE: PicsumImage) => {
+    const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
+    const PICSUM_URL: string = PICSUM_IMAGE.download_url;
 
-      // console.log(`URL: ${PICSUM_URL}`);
-      // console.dir(GCP_DATA, { depth: null });
+    const GCP_DATA = await createGCPData(PICSUM_URL, maxResults);
+    if (!GCP_DATA) {
+      console.log('SKIPPING');
+      continue; // No metadata / GCP error implies we skip the image
+    }
 
-      /**
-       * @this Inserts the Image document, and returns its ID
-       * If the image already exists, it will return UNDEFINED instead, therefore skipping
-       * this iteration of the loop
-       */
-      const imageID: string | undefined = await imageObject.insertImage({
-        _key: String(PICSUM_IMAGE.id),
-        author: PICSUM_IMAGE.author.toUpperCase(),
-        url: PICSUM_URL,
-        date: Date(),
-      });
-      if (!imageID) {
-        console.log('DUPLICATE IMAGE');
-        return;
-      }
+    // console.log(`URL: ${PICSUM_URL}`);
+    // console.dir(GCP_DATA, { depth: null });
 
-      /**
-       * @this Inserts an Author document, and links the image using an AuthorOf edge
-       * @returns AUTHOR IDs
-       */
-      const authorData = PICSUM_IMAGE.author.toUpperCase().replace(' ', '-');
-      const authorID: string = await authorObject.insertAuthor({
-        _key: stringToASCII(authorData),
-        data: authorData,
-        nameSplit: PICSUM_IMAGE.author.toUpperCase().split(' '),
-      });
-      await authorOfObject.insertAuthorOf({
-        _from: authorID,
-        _to: imageID,
-        _score: 1,
-      });
-
-      /**
-       * @this Inserts Label documents, and links the image using LabelOf edges
-       * @returns "LABEL" IDs
-       */
-      const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations
-        ?.concat(GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [])
-        .sort((a: GCPAnnotation, b: GCPAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
-      const UNIQUE_LABELS: GCPAnnotation[] = [
-        ...new Map(GCP_LABEL_OBJECT_ANNOTATIONS.map((elem: GCPAnnotation) => [elem.mid, elem])).values(),
-      ];
-
-      UNIQUE_LABELS.forEach(async (elem: GCPAnnotation) => {
-        const labelData = (elem.description || elem.name)!.toUpperCase().replace(' ', '-');
-        const labelID: string = await labelObject.insertLabel({
-          _key: stringToASCII(elem.mid),
-          mid: elem.mid,
-          data: labelData,
-        });
-        await labelOfObject.insertLabelOf({
-          _from: labelID,
-          _to: imageID,
-          _score: elem.score,
-        });
-      });
-      console.log(`Success! ${imageID}`);
+    /**
+     * @this Inserts the Image document, and returns its ID
+     * If the image already exists, it will return UNDEFINED instead, therefore skipping
+     * this iteration of the loop
+     */
+    const imageID: string | undefined = await imageObject.insertImage({
+      _key: String(PICSUM_IMAGE.id),
+      author: PICSUM_IMAGE.author.toUpperCase(),
+      url: PICSUM_URL,
+      date: Date(),
     });
+    if (!imageID) {
+      console.log('DUPLICATE IMAGE');
+      continue;
+    }
+
+    /**
+     * @this Inserts an Author document, and links the image using an AuthorOf edge
+     * @returns AUTHOR IDs
+     */
+    const authorData = PICSUM_IMAGE.author.toUpperCase().replace(' ', '-');
+    const authorID: string = await authorObject.insertAuthor({
+      _key: stringToASCII(authorData),
+      data: authorData,
+      nameSplit: PICSUM_IMAGE.author.toUpperCase().split(' '),
+    });
+    await authorOfObject.insertAuthorOf({
+      _from: authorID,
+      _to: imageID,
+      _score: 1,
+    });
+
+    /**
+     * @this Inserts Label documents, and links the image using LabelOf edges
+     * @returns "LABEL" IDs
+     */
+    const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations
+      ?.concat(GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [])
+      .sort((a: GCPAnnotation, b: GCPAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
+    const UNIQUE_LABELS: GCPAnnotation[] = [
+      ...new Map(GCP_LABEL_OBJECT_ANNOTATIONS.map((elem: GCPAnnotation) => [elem.mid, elem])).values(),
+    ];
+
+    for (let t = 0; t < UNIQUE_LABELS.length; t++) {
+      const elem: GCPAnnotation = UNIQUE_LABELS[t];
+      const labelData = (elem.description || elem.name)!.toUpperCase().replace(' ', '-');
+      const labelID: string = await labelObject.insertLabel({
+        _key: stringToASCII(elem.mid),
+        mid: elem.mid,
+        data: labelData,
+      });
+      await labelOfObject.insertLabelOf({
+        _from: labelID,
+        _to: imageID,
+        _score: elem.score,
+      });
+    }
+
+    console.log(`Success! ${imageID}`);
   }
 }
 

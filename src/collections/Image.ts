@@ -60,7 +60,7 @@ class ImageObject {
                   "count": num
               }
               SORT obj.count DESC
-              LIMIT 3
+              LIMIT 6
               RETURN obj
       `)
       ).all();

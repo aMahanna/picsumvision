@@ -80,8 +80,7 @@ class ImageObject {
           RETURN UNIQUE(APPEND(${exactAuthorMatches},${looseMatches}))
       `)
       ).all();
-
-      return finalResult;
+      return finalResult[0];
     } catch (error) {
       console.error(error);
       return undefined;
@@ -115,7 +114,7 @@ class ImageObject {
       `)
       ).all();
 
-      return [strictMatches];
+      return strictMatches;
     } catch (error) {
       console.error(error);
       return undefined;

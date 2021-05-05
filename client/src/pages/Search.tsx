@@ -113,8 +113,8 @@ const Search = (props: any) => {
       const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
       if (response.status === 200) {
         const result = await response.json();
-        setResults(result.result[0]);
-        updateCache(index, result.result[0]);
+        setResults(result.result);
+        updateCache(index, result.result);
       }
     }
   };
@@ -124,8 +124,8 @@ const Search = (props: any) => {
     if (response.status === 200) {
       const result = await response.json();
       setTextFieldInput(result.labels.join(' ').toLowerCase());
-      setResults(result.result[0]);
-      updateCache(result.labels.join('_').toLowerCase(), result.result[0]);
+      setResults(result.result);
+      updateCache(result.labels.join('_').toLowerCase(), result.result);
     }
   };
 

@@ -1,6 +1,6 @@
 /**
  * @this is a work in progress, as is with the picsum.ts @file
- * 
+ *
  * Eventually, there will only be one GCP file to use
  */
 

@@ -14,8 +14,6 @@ import {
   Box,
   Checkbox,
   FormControlLabel,
-  GridList,
-  GridListTile
 } from '@material-ui/core';
 
 import Alert from '../components/Alert';
@@ -32,11 +30,10 @@ const useStyles = makeStyles((theme: Theme) =>
       color: '#2F2D2E',
       margin: 'auto',
     },
-    root: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      overflow: 'hidden',
-      backgroundColor: "inherit",
+    image: {
+      height: '50%',
+      width: '50%',
+      borderRadius: '1cm',
     },
     button: {
       '& > *': {
@@ -136,17 +133,16 @@ const Search = () => {
         </Box>
       </Container>
       {results.length !== 0 && (
-        <div className={classes.root}>
-          <Box mt={2}>
-          <GridList cellHeight={results.length < 3 ? 500 : 250} spacing={20} cols={results.length < 3 ? 1 : 3}>
-              {results.map((tile:{ author: string; url: string }) => (
-                <GridListTile key={tile.url} cols={1}>
-                  <img src={tile.url} alt={tile.author} />
-                </GridListTile>
-              ))}
-            </GridList>
-          </Box>
-        </div>
+        <Box mt={3}>
+          {results.map((data: { author: string; url: string }) => (
+            <Box key={data.url} mt={3}>
+              <h4>{data.author}</h4>
+              <a href={`/info/${data.url.split('/')[4]}`}>
+                <img alt={data.author} className={classes.image} src={data.url} />
+              </a>
+            </Box>
+          ))}
+        </Box>
       )}
       <Alert
         open={i18n.language === 'fr' && frenchWarning}

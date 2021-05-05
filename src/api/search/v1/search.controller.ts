@@ -24,6 +24,12 @@ namespace SearchController {
     }
   }
 
+  export async function from_image_id(req: Request, res: Response): Promise<void> {
+    const id: string = typeof req.query.id === 'string' ? req.query.id : '0';
+    const result: {}[] | undefined = await imageObject.fetch_image_info(id);
+    res.status(200).json({ result });
+  }
+
   export async function fetch_surprise_keys(req: Request, res: Response): Promise<void> {
     const labels: string[] | undefined = await imageObject.fetch_surprise_keys();
     if (!labels) res.status(500).json('Error fetching surprise keys');

@@ -61,6 +61,7 @@ class ImageObject {
                   "count": num
               }
               SORT obj.count DESC
+              LIMIT 3
               RETURN obj
       `)
       ).all();
@@ -109,6 +110,8 @@ class ImageObject {
                   "count": num
               }
               FILTER obj.count >= ${TargetLabels.length}
+              LIMIT 3
+              SORT RAND()
               RETURN obj
       `)
       ).all();
@@ -137,6 +140,37 @@ class ImageObject {
       `);
 
       const result = await response.map(doc => doc.data);
+      return result;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  /**
+   * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
+   */
+  public async fetch_image_info(id: string): Promise<{}[] | undefined> {
+    try {
+      const result = await (
+        await db.query(aql`
+        WITH Labels
+        Let image = FIRST((
+          FOR i IN Images
+          FILTER i._key == ${id}
+          LIMIT 1
+          RETURN i
+        ))
+        Let labels = (
+          FOR v, e, p IN 1..1 ANY image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FILTER e._from == v._id
+          SORT e._score DESC
+          RETURN {score: e._score, data: v.data}
+        )
+        RETURN {image, labels}
+      `)
+      ).all();
+      console.log(result);
       return result;
     } catch (error) {
       console.error(error);

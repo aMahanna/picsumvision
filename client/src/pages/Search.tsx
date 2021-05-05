@@ -64,6 +64,7 @@ const Search = (props: any) => {
   const [resultIsEmpty, setResultIsEmpty] = useState(false);
 
   const [persistedData, setPersistedData] = usePersistedState('data', {});
+  const [lastSearch, setLastSearch] = usePersistedState('lastSearch', '');
 
   useEffect(() => {
     const historyIndex: string = props.location.state?.fromHistory;
@@ -75,6 +76,9 @@ const Search = (props: any) => {
         setTextFieldInput(historyIndex);
         query(historyIndex);
       }
+    } else if (lastSearch !== '') {
+      setTextFieldInput(lastSearch.split('_').join(' '));
+      setSearchResult(persistedData[lastSearch].data);
     } else {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
@@ -148,6 +152,7 @@ const Search = (props: any) => {
           date: Date(),
         },
       });
+      setLastSearch(index);
     }
   };
 

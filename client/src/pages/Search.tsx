@@ -133,7 +133,8 @@ const Search = (props: any) => {
   };
 
   const updateCache = async (index: string, data: {}[]) => {
-    if (data.length !== 0 && !isStrict) { /** @todo Figure out behaviour for isStrict requests */
+    if (data.length !== 0 && !isStrict) {
+      /** @todo Figure out behaviour for isStrict requests */
       setPersistedData({
         ...persistedData,
         [index]: {

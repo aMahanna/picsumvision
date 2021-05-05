@@ -55,7 +55,7 @@ const Search = () => {
   const [frenchWarning, setFrenchWarning] = useState(true);
 
   useEffect(() => {
-    fetch('/api/search/randomkeys')
+    fetch('/api/info/randomkeys')
       .then(result => result.json())
       .then(response => {
         setInputPlaceholder(response.labels.join(' ').toLowerCase());
@@ -73,7 +73,7 @@ const Search = () => {
   const query = async () => {
     const labels = input.trim(); /** @todo Figure our more "cleanup" features to add in order to refine the search */
     if (labels === '') {
-      fetch('/api/search/randomkeys')
+      fetch('/api/info/randomkeys')
         .then(result => result.json())
         .then(response => {
           setSuggestInput(true);

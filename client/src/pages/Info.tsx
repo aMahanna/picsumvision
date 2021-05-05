@@ -35,7 +35,7 @@ const Info = (props: any) => {
   const [imageLabels, setImageLabels] = useState([]);
 
   useEffect(() => {
-    fetch(`/api/search/image?id=${imageID}`)
+    fetch(`/api/info/image?id=${imageID}`)
       .then(result => result.json())
       .then(response => {
         setImageURL(response.result[0].image.url);

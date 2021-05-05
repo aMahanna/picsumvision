@@ -72,7 +72,7 @@ const Search = (props: any) => {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
         .then(response => {
-          setInputPlaceholder(response.labels.join(' ').toLowerCase());
+          setInputPlaceholder(response.labels.join(' '));
         });
     }
   }, []);
@@ -105,11 +105,11 @@ const Search = (props: any) => {
       const response = await fetch('/api/info/randomkeys');
       const result = await response.json();
       setSuggestInput(true);
-      setInputPlaceholder(result.labels.join(' ').toLowerCase());
+      setInputPlaceholder(result.labels.join(' '));
     } else if (persistedData[index] && !isStrict) {
       setResults(persistedData[index].results);
     } else {
-      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input.toUpperCase()}`;
+      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
       const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
       if (response.status === 200) {
         const result = await response.json();
@@ -123,9 +123,9 @@ const Search = (props: any) => {
     const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
     if (response.status === 200) {
       const result = await response.json();
-      setTextFieldInput(result.labels.join(' ').toLowerCase());
+      setTextFieldInput(result.labels.join(' '));
       setResults(result.result);
-      updateCache(result.labels.join('_').toLowerCase(), result.result);
+      updateCache(result.labels.join('_'), result.result);
     }
   };
 
@@ -204,7 +204,7 @@ const Search = (props: any) => {
       ></Alert>
       <Alert
         open={suggestInput}
-        message={`${t('searchPage.suggestAlert')}${inputPlaceholder}'?`}
+        message={`${t('searchPage.suggestAlert')}${inputPlaceholder}`}
         severity="info"
         onSnackbarClose={(e, r) => {
           return r === 'clickaway' ? undefined : setSuggestInput(false);

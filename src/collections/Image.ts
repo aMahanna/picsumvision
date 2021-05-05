@@ -52,7 +52,7 @@ class ImageObject {
         FOR i IN Images 
           FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             FOR data IN ${TargetLabels}
-              FILTER CONTAINS(v.data, data)
+              FILTER CONTAINS(LOWER(v.data), LOWER(data))
               COLLECT image = i, id = e._to WITH COUNT INTO num
               LET obj = {
                   "url": image.url,
@@ -69,7 +69,7 @@ class ImageObject {
         await db.query(aql`
         FOR doc IN ${looseMatches}
           FOR data IN ${TargetLabels}
-          FILTER SUBSTITUTE(doc.author, " ", "") == data
+          FILTER LOWER(SUBSTITUTE(doc.author, " ", "")) == LOWER(data)
           SORT doc.author DESC
           RETURN doc
       `)
@@ -100,7 +100,7 @@ class ImageObject {
         FOR i IN Images 
           FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             FOR data IN ${TargetLabels}
-              FILTER v.data == data
+              FILTER LOWER(v.data) == LOWER(data)
               COLLECT image = i, id = e._to WITH COUNT INTO num
               LET obj = {
                   "url": image.url,
@@ -136,7 +136,7 @@ class ImageObject {
             SORT RAND()
             LIMIT 3
             SORT v.data
-            RETURN v.data
+            RETURN LOWER(v.data)
       `)
       ).all();
 

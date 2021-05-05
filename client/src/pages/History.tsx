@@ -65,7 +65,7 @@ const History = (props: any) => {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
         .then(response => {
-          setMakeHistory(response.labels.join(' ').toLowerCase());
+          setMakeHistory(response.labels.join(' '));
         });
     }
   }, [history]);

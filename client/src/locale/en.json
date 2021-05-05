@@ -22,7 +22,7 @@
       "inputLabel": "Search by keywords / image url",
       "inputPlaceholder": "Cloud Mountain Rain",
       "strictMode": "Strict Mode",
-      "suggestAlert": "May I suggest '"
+      "suggestAlert": "Suggestion: "
     }
   }
 }

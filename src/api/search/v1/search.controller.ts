@@ -5,21 +5,21 @@ import parseGCPData from '../../../gcp';
 namespace SearchController {
   export async function from_mixed_keys(req: Request, res: Response): Promise<void> {
     const labels: string[] = typeof req.query.labels === 'string' ? req.query.labels.split(' ') : [''];
-    const result: {}[] | undefined = await (req.query.isStrict
+    const data: {}[] | undefined = await (req.query.isStrict
       ? imageObject.query_mixed_keys_strict(labels)
       : imageObject.query_mixed_keys(labels));
 
-    res.status(result ? 200 : 500).json(result ? { result } : 'Error searching from mixed keys');
+    res.status(data ? 200 : 500).json(data ? { data } : 'Error searching from mixed keys');
   }
 
   export async function from_surprise_keys(req: Request, res: Response): Promise<void> {
     const labels: string[] | undefined = await imageObject.fetch_surprise_keys();
     if (!labels) res.status(500).json('Error fetching surprise keys');
     else {
-      const result: {}[] | undefined = await (req.query.isStrict
+      const data: {}[] | undefined = await (req.query.isStrict
         ? imageObject.query_mixed_keys_strict(labels)
         : imageObject.query_mixed_keys(labels));
-      res.status(result ? 200 : 500).json(result ? { result, labels } : 'Error searching from mixed keys');
+      res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
     }
   }
 
@@ -30,12 +30,11 @@ namespace SearchController {
       const labels: string[] | undefined = await parseGCPData(url);
       if (!labels) res.status(500).json('Error fetching surprise keys');
       else {
-        console.log('LABELS: ', labels);
-        const result: {}[] | undefined = await (req.query.isStrict
+        const data: {}[] | undefined = await (req.query.isStrict
           ? imageObject.query_mixed_keys_strict(labels)
           : imageObject.query_mixed_keys(labels));
 
-        res.status(result ? 200 : 500).json(result ? { result } : 'Error searching from mixed keys');
+        res.status(data ? 200 : 500).json(data ? { data } : 'Error searching from mixed keys');
       }
     }
   }

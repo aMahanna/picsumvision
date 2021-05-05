@@ -25,11 +25,11 @@ import { Container } from '@material-ui/core';
 //   }),
 // );
 
-function HistoryComponent(props: { data: any }) {
-  const key: string = Object.keys(props.data)[0];
+function HistoryComponent(props: { persistedState: any }) {
+  const key: string = Object.keys(props.persistedState)[0];
   const search: string = key.split('_').join(' ');
-  const date: Date = props.data[key].date;
-  const results: number = props.data[key].results.length;
+  const date: Date = props.persistedState[key].date;
+  const results: number = props.persistedState[key].data.length;
   return (
     <div className="history">
       <h4>
@@ -86,7 +86,7 @@ const History = (props: any) => {
           </Link>
         </div>
       )}
-      {history && history.map((data: any) => <HistoryComponent key={Object.keys(data)[0]} data={data}></HistoryComponent>)}
+      {history && history.map((elem: any) => <HistoryComponent key={Object.keys(elem)[0]} persistedState={elem}></HistoryComponent>)}
     </Container>
   );
 };

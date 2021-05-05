@@ -49,12 +49,13 @@ const Search = (props: any) => {
   const classes = useStyles();
 
   const [textFieldInput, setTextFieldInput] = useState('');
-  const [results, setResults] = useState([]);
+  const [searchResult, setSearchResult] = useState([]);
   const [isStrict, setIsStrict] = useState(false);
   const [inputPlaceholder, setInputPlaceholder] = useState('');
 
   const [suggestInput, setSuggestInput] = useState(false);
   const [frenchWarning, setFrenchWarning] = useState(true);
+  const [resultIsEmpty, setResultIsEmpty] = useState(false);
 
   const [persistedData, setPersistedData] = usePersistedState('data', {});
 
@@ -63,7 +64,7 @@ const Search = (props: any) => {
     if (historyIndex) {
       if (persistedData[historyIndex]) {
         setTextFieldInput(historyIndex.split('_').join(' '));
-        setResults(persistedData[historyIndex].results);
+        setSearchResult(persistedData[historyIndex].data);
       } else {
         setTextFieldInput(historyIndex);
         query(historyIndex);
@@ -107,14 +108,15 @@ const Search = (props: any) => {
       setSuggestInput(true);
       setInputPlaceholder(result.labels.join(' '));
     } else if (persistedData[index] && !isStrict) {
-      setResults(persistedData[index].results);
+      setSearchResult(persistedData[index].data);
     } else {
       const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
       const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
       if (response.status === 200) {
         const result = await response.json();
-        setResults(result.result);
-        updateCache(index, result.result);
+        setSearchResult(result.data);
+        setResultIsEmpty(result.data.length === 0);
+        updateCache(index, result.data);
       }
     }
   };
@@ -124,22 +126,18 @@ const Search = (props: any) => {
     if (response.status === 200) {
       const result = await response.json();
       setTextFieldInput(result.labels.join(' '));
-      setResults(result.result);
-      updateCache(result.labels.join('_'), result.result);
+      setSearchResult(result.data);
+      setResultIsEmpty(result.data.length === 0);
+      updateCache(result.labels.join('_'), result.data);
     }
   };
 
-  const updateCache = async (index: string, results: {}[]) => {
-    if (results.length !== 0 && !isStrict) {
-      /** @todo Figure how behaviour for isStrict requests */
-      // for (const [key, value] of Object.entries(persistedData)) {
-      //   if (JSON.stringify((value as any).results) === JSON.stringify(results))
-      //     return; // No update to cache if result already exists in cache, regardless of the query
-      // }
+  const updateCache = async (index: string, data: {}[]) => {
+    if (data.length !== 0 && !isStrict) { /** @todo Figure out behaviour for isStrict requests */
       setPersistedData({
         ...persistedData,
         [index]: {
-          results,
+          data,
           date: Date(),
         },
       });
@@ -181,9 +179,9 @@ const Search = (props: any) => {
           </Button>
         </Box>
       </Container>
-      {results.length !== 0 && (
+      {searchResult.length !== 0 && !resultIsEmpty && (
         <Box mt={3}>
-          {results.map((data: { author: string; url: string }) => (
+          {searchResult.map((data: { author: string; url: string }) => (
             <Box key={data.url} mt={3}>
               <h4>{data.author}</h4>
               <a href={`/info/${data.url.split('/')[4]}`}>
@@ -191,6 +189,11 @@ const Search = (props: any) => {
               </a>
             </Box>
           ))}
+        </Box>
+      )}
+      {resultIsEmpty && (
+        <Box mt={3}>
+          <h5>Shoot, no results found</h5>
         </Box>
       )}
       <Alert

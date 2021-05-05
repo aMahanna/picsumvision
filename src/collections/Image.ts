@@ -171,7 +171,7 @@ class ImageObject {
       `)
       ).all();
 
-      return result;
+      return result[0];
     } catch (error) {
       console.error(error);
       return undefined;

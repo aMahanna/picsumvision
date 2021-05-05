@@ -4,8 +4,8 @@ import { imageObject } from '../../../collections/Image';
 namespace InfoController {
   export async function fetch_image(req: Request, res: Response): Promise<void> {
     const id: string = typeof req.query.id === 'string' ? req.query.id : '0';
-    const result: {}[] | undefined = await imageObject.fetch_image_info(id);
-    res.status(200).json({ result });
+    const data: {}[] | undefined = await imageObject.fetch_image_info(id);
+    res.status(200).json({ data });
   }
 
   export async function fetch_surprise_keys(req: Request, res: Response): Promise<void> {

@@ -36,13 +36,13 @@ const Info = (props: any) => {
 
   useEffect(() => {
     fetch(`/api/info/image?id=${imageID}`)
-      .then(result => result.json())
-      .then(response => {
-        setImageURL(response.result[0].image.url);
-        setImageAuthor(response.result[0].image.author);
-        setImageLabels(response.result[0].labels);
+      .then(response => response.json())
+      .then(result => {
+        setImageURL(result.data.image.url);
+        setImageAuthor(result.data.image.author);
+        setImageLabels(result.data.labels);
       });
-  });
+  }, []);
 
   return (
     <Container component="main" maxWidth="md">

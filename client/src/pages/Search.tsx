@@ -48,7 +48,7 @@ const Search = (props: any) => {
   const [t, i18n] = useTranslation();
   const classes = useStyles();
 
-  const [input, setInput] = useState('');
+  const [textFieldInput, setTextFieldInput] = useState('');
   const [results, setResults] = useState([]);
   const [isStrict, setIsStrict] = useState(false);
   const [inputPlaceholder, setInputPlaceholder] = useState('');
@@ -62,10 +62,10 @@ const Search = (props: any) => {
     const historyIndex: string = props.location.state?.fromHistory;
     if (historyIndex) {
       if (persistedData[historyIndex]) {
-        setInput(historyIndex.split('_').join(' '));
+        setTextFieldInput(historyIndex.split('_').join(' '));
         setResults(persistedData[historyIndex].results);
       } else {
-        setInput(historyIndex);
+        setTextFieldInput(historyIndex);
         query(historyIndex);
       }
     } else {
@@ -85,10 +85,23 @@ const Search = (props: any) => {
     setCheckedState(event.target.checked);
   };
 
+  const isURLImageInput = (inputAttempt: string) => {
+    var pattern = new RegExp(
+      '^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
+      'i',
+    ); // fragment locator
+    return pattern.test(inputAttempt);
+  };
+
   const query = async (forceInput?: string) => {
-    const labels: string = (forceInput || input).trim();
-    const index: string = labels.split(' ').sort().join('_').toLowerCase(); // For indexing the client-cache
-    if (labels === '') {
+    const input: string = (forceInput || textFieldInput).trim();
+    const index: string = input.split(' ').sort().join('_').toLowerCase(); // For indexing the client-cache
+    if (input === '') {
       const response = await fetch('/api/info/randomkeys');
       const result = await response.json();
       setSuggestInput(true);
@@ -96,7 +109,8 @@ const Search = (props: any) => {
     } else if (persistedData[index] && !isStrict) {
       setResults(persistedData[index].results);
     } else {
-      const response = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
+      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input.toUpperCase()}`;
+      const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
       if (response.status === 200) {
         const result = await response.json();
         setResults(result.result[0]);
@@ -109,7 +123,7 @@ const Search = (props: any) => {
     const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
     if (response.status === 200) {
       const result = await response.json();
-      setInput(result.labels.join(' ').toLowerCase());
+      setTextFieldInput(result.labels.join(' ').toLowerCase());
       setResults(result.result[0]);
       updateCache(result.labels.join('_').toLowerCase(), result.result[0]);
     }
@@ -144,10 +158,10 @@ const Search = (props: any) => {
             id="search-input"
             autoComplete="off"
             spellCheck
-            value={input}
+            value={textFieldInput}
             label={t('searchPage.inputLabel')}
             placeholder={inputPlaceholder}
-            onChange={handleChange(setInput)}
+            onChange={handleChange(setTextFieldInput)}
             fullWidth
           />
           <FormControlLabel

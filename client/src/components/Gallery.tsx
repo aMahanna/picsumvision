@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, ImageList, ImageListItem } from '@material-ui/core';
+import { Box, ImageList, ImageListItem, ImageListItemBar } from '@material-ui/core';
 
 export default function Gallery(props: any) {
   return (
@@ -12,6 +12,7 @@ export default function Gallery(props: any) {
               <Link to={`/info/${item.url.split('/')[4]}`}>
                 <img className={props.imageClass} src={item.url} alt={item.author} loading="lazy" />
               </Link>
+              <ImageListItemBar position="bottom" title={item.author} />
             </ImageListItem>
           ))}
         </ImageList>

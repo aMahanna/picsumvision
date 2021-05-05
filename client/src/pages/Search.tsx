@@ -17,6 +17,7 @@ import {
 } from '@material-ui/core';
 
 import Alert from '../components/Alert';
+import usePersistedState from '../hooks/usePersistedState';
 
 /**
  * CreateStyles allows us to style MUI components
@@ -43,9 +44,10 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const Search = () => {
+const Search = (props: any) => {
   const [t, i18n] = useTranslation();
   const classes = useStyles();
+
   const [input, setInput] = useState('');
   const [results, setResults] = useState([]);
   const [isStrict, setIsStrict] = useState(false);
@@ -54,12 +56,25 @@ const Search = () => {
   const [suggestInput, setSuggestInput] = useState(false);
   const [frenchWarning, setFrenchWarning] = useState(true);
 
+  const [persistedData, setPersistedData] = usePersistedState('data', {});
+
   useEffect(() => {
-    fetch('/api/info/randomkeys')
-      .then(result => result.json())
-      .then(response => {
-        setInputPlaceholder(response.labels.join(' ').toLowerCase());
-      });
+    const historyIndex: string = props.location.state?.fromHistory;
+    if (historyIndex) {
+      if (persistedData[historyIndex]) {
+        setInput(historyIndex.split('_').join(' '));
+        setResults(persistedData[historyIndex].results);
+      } else {
+        setInput(historyIndex);
+        query(historyIndex);
+      }
+    } else {
+      fetch('/api/info/randomkeys')
+        .then(result => result.json())
+        .then(response => {
+          setInputPlaceholder(response.labels.join(' ').toLowerCase());
+        });
+    }
   }, []);
 
   const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,30 +85,50 @@ const Search = () => {
     setCheckedState(event.target.checked);
   };
 
-  const query = async () => {
-    const labels = input.trim(); /** @todo Figure our more "cleanup" features to add in order to refine the search */
+  const query = async (forceInput?: string) => {
+    const labels: string = (forceInput || input).trim();
+    const index: string = labels.split(' ').sort().join('_').toLowerCase(); // For indexing the client-cache
     if (labels === '') {
-      fetch('/api/info/randomkeys')
-        .then(result => result.json())
-        .then(response => {
-          setSuggestInput(true);
-          setInputPlaceholder(response.labels.join(' ').toLowerCase());
-        });
+      const response = await fetch('/api/info/randomkeys');
+      const result = await response.json();
+      setSuggestInput(true);
+      setInputPlaceholder(result.labels.join(' ').toLowerCase());
+    } else if (persistedData[index] && !isStrict) {
+      setResults(persistedData[index].results);
     } else {
-      const result = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
-      if (result.status === 200) {
-        const response = await result.json();
-        setResults(response.result[0]);
+      const response = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
+      if (response.status === 200) {
+        const result = await response.json();
+        setResults(result.result[0]);
+        updateCache(index, result.result[0]);
       }
     }
   };
 
   const surpriseMe = async () => {
-    const result = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
-    if (result.status === 200) {
-      const response = await result.json();
-      setInput(response.labels.join(' ').toLowerCase());
-      setResults(response.result[0]);
+    const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
+    if (response.status === 200) {
+      const result = await response.json();
+      setInput(result.labels.join(' ').toLowerCase());
+      setResults(result.result[0]);
+      updateCache(result.labels.join('_').toLowerCase(), result.result[0]);
+    }
+  };
+
+  const updateCache = async (index: string, results: {}[]) => {
+    if (results.length !== 0 && !isStrict) {
+      /** @todo Figure how behaviour for isStrict requests */
+      // for (const [key, value] of Object.entries(persistedData)) {
+      //   if (JSON.stringify((value as any).results) === JSON.stringify(results))
+      //     return; // No update to cache if result already exists in cache, regardless of the query
+      // }
+      setPersistedData({
+        ...persistedData,
+        [index]: {
+          results,
+          date: Date(),
+        },
+      });
     }
   };
 
@@ -124,7 +159,7 @@ const Search = () => {
         </Box>
         <div></div>
         <Box mt={2} className={classes.button}>
-          <Button id="search-submit" onClick={query} variant="outlined">
+          <Button id="search-submit" onClick={() => query()} variant="outlined">
             {t('searchPage.query')}
           </Button>
           <Button id="search-surprise" onClick={surpriseMe} variant="outlined">

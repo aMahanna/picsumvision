@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
 import { Container, CssBaseline, Box, makeStyles, Avatar, createStyles } from '@material-ui/core';
@@ -27,7 +27,7 @@ const useStyles = makeStyles(() =>
 );
 
 const Info = (props: any) => {
-  const [t] = useTranslation();
+  //const [t] = useTranslation();
   const classes = useStyles();
   const imageID = props.match.params.id;
   const [imageURL, setImageURL] = useState('');
@@ -42,7 +42,7 @@ const Info = (props: any) => {
         setImageAuthor(response.result[0].image.author);
         setImageLabels(response.result[0].labels);
       });
-  }, []);
+  });
 
   return (
     <Container component="main" maxWidth="md">

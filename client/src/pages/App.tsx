@@ -4,11 +4,10 @@ import { useTranslation } from 'react-i18next'; // Allows for website bilinguali
 
 // Import React Components
 import NavBar from '../components/NavBar';
-import LandingPage from './LandingPage';
+import Landing from './Landing';
 import Search from './Search';
 import Info from './Info';
-// import Login from './Login';
-// import Candidates from './Candidates';
+import History from './History';
 
 /**
  * The Main React Component
@@ -26,8 +25,9 @@ const App = () => {
     <div className="App">
       <NavBar />
       <Switch>
-        <Route exact path="/" component={LandingPage} />
-        <Route exact path="/search" component={Search} />
+        <Route exact path="/" component={Landing} />
+        <Route exact path="/search" render={props => <Search {...props} />} />
+        <Route exact path="/history" component={History} />
         <Route exact path="/info/:id" component={Info} />
         <Route render={() => <Redirect to={{ pathname: '/' }} />} />
       </Switch>

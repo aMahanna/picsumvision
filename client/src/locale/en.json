@@ -5,6 +5,7 @@
     "general": {
       "title": "Picsum Vision",
       "searchButton": "Search",
+      "historyButton": "History",
       "aboutButton": "About",
       "contact": "Inquiries? Contact ",
       "errors": {

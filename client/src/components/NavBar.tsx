@@ -40,6 +40,9 @@ const NavBar = () => {
           <Button size="large" to="/search" component={Link}>
             {t('general.searchButton')}
           </Button>
+          <Button size="large" to="/history" component={Link}>
+            {t('general.historyButton')}
+          </Button>
           <Button size="large" to="/about" component={Link}>
             {t('general.aboutButton')}
           </Button>

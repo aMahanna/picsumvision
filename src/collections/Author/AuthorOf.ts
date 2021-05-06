@@ -4,7 +4,7 @@
 
 import db from '../../database';
 
-export interface authorOfModel {
+interface authorOfModel {
   _from: string;
   _to: string;
   _score: number;

@@ -53,13 +53,17 @@ function HistoryComponent(props: { persistedState: any }) {
 const History = (props: any) => {
   //const [t] = useTranslation();
   //const classes = useStyles();
-  const [makeHistory, setMakeHistory] = useState('');
+  const [makeHistory, setMakeHistory] = useState(''); // Provide some random labels for a quick search
   const [history] = useState(() => {
     const persistedState = localStorage.getItem('data');
     const persistedData = persistedState ? JSON.parse(persistedState) : {};
     return Object.keys(persistedData).length === 0 ? undefined : Object.entries(persistedData).map(e => ({ [e[0]]: e[1] }));
   });
 
+  /**
+   * @useEffect Sets some random labels for a quick search
+   * (if user has no history)
+   */
   useEffect(() => {
     if (!history) {
       fetch('/api/info/randomkeys')

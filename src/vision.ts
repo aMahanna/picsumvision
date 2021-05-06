@@ -1,22 +1,23 @@
 /**
  * @this is a work in progress, as is with the picsum.ts @file
  *
- * Eventually, there will only be one GCP file to use
+ * Eventually, there will only be one Vision file to use
  */
 
 import fetch from 'node-fetch';
+import { VisionAnnotation } from './interfaces';
+
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-interface GCPAnnotation {
-  mid: string;
-  name?: string;
-  description?: string;
-  score: number;
-}
-
-async function createGCPData(picsumUrl: string, maxResults: number): Promise<any> {
+/**
+ *
+ * @param url -- The url to target
+ * @param maxResults -- The maximum number of results to get for each feature type
+ * @returns An object containing the compiled metadata (@todo add its typing)
+ */
+async function fetchVisionMetadata(url: string, maxResults: number): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [
@@ -64,44 +65,52 @@ async function createGCPData(picsumUrl: string, maxResults: number): Promise<any
         ],
         image: {
           source: {
-            imageUri: picsumUrl,
+            imageUri: url,
           },
         },
       },
     ],
   };
 
-  const gcpResponse = await fetch(uri, {
+  const response = await fetch(uri, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
     },
   });
-  const gcpData = (await gcpResponse.json()).responses;
+  const result = (await response.json()).responses;
 
-  // Return undefined if no data / error
-  return !gcpData || Object.keys(gcpData[0]).length === 0 ? undefined : gcpData[0];
+  // Return undefined if no data was found
+  return !result || Object.keys(result[0]).length === 0 ? undefined : result[0];
 }
 
-export default async function parseGCPData(url: string): Promise<string[] | undefined> {
-  const GCP_DATA = await createGCPData(url, 3);
-  if (!GCP_DATA || GCP_DATA.error) {
-    console.log(GCP_DATA);
+/**
+ *
+ * @param url The url to pass to the Vision API
+ * @returns An array of labels representing the image in question
+ */
+export default async function parseVisionData(url: string): Promise<string[] | undefined> {
+  const VISION_DATA = await fetchVisionMetadata(url, 3); // Set max results to 3 for now
+  if (!VISION_DATA || VISION_DATA.error) {
+    // Exit early if Vision does not find anything
+    console.log(VISION_DATA);
     return undefined;
   }
 
-  const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations
-    ?.concat(GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [])
-    .sort((a: GCPAnnotation, b: GCPAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
-  const UNIQUE_LABELS: GCPAnnotation[] = [
-    ...new Map(GCP_LABEL_OBJECT_ANNOTATIONS.map((elem: GCPAnnotation) => [elem.mid, elem])).values(),
+  // Parse, sort & unify the metadata to ensure there are no conflicting values
+  const VISION_LABEL_OBJECT_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
+    ?.concat(VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [])
+    .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
+  const UNIQUE_LABELS: VisionAnnotation[] = [
+    ...new Map(VISION_LABEL_OBJECT_ANNOTATIONS.map((elem: VisionAnnotation) => [elem.mid, elem])).values(),
   ];
 
+  // Iterate through the Unique Labels array the labels
   let labelsObject: string[] = [];
   for (let t = 0; t < UNIQUE_LABELS.length; t++) {
-    const elem: GCPAnnotation = UNIQUE_LABELS[t];
+    const elem: VisionAnnotation = UNIQUE_LABELS[t];
     labelsObject.push((elem.description || elem.name)!.toLowerCase().split(' ').join('-'));
   }
-  return labelsObject.sort();
+  return labelsObject;
 }

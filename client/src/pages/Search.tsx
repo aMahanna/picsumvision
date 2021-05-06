@@ -51,22 +51,34 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const Search = (props: any) => {
-  const [t, i18n] = useTranslation();
+/**
+ * The page responsible for image search functionality
+ *
+ * @param props Used to accept searches from the History page
+ * @returns
+ */
+const Search = (props: { location: any }) => {
+  const [t, i18n] = useTranslation(); // Translation use
   const classes = useStyles();
 
-  const [textFieldInput, setTextFieldInput] = useState('');
-  const [searchResult, setSearchResult] = useState([]);
-  const [isStrict, setIsStrict] = useState(false);
-  const [inputPlaceholder, setInputPlaceholder] = useState('');
+  const [textFieldInput, setTextFieldInput] = useState(''); // The input of the search bar
+  const [searchResult, setSearchResult] = useState([]); // The results of the search
+  const [isStrict, setIsStrict] = useState(false); // The nature of the search
+  const [inputPlaceholder, setInputPlaceholder] = useState(''); // The placeholder of the search bar
 
-  const [suggestInput, setSuggestInput] = useState(false);
-  const [frenchWarning, setFrenchWarning] = useState(true);
-  const [resultIsEmpty, setResultIsEmpty] = useState(false);
+  const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
+  const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
+  const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
 
-  const [persistedData, setPersistedData] = usePersistedState('data', {});
-  const [lastSearch, setLastSearch] = usePersistedState('lastSearch', '');
+  const [persistedData, setPersistedData] = usePersistedState('data', {}); // Persist previous results to use for search history
+  const [lastSearch, setLastSearch] = usePersistedState('lastSearch', ''); // Persist last search to use for visualization
 
+  /**
+   * @useEffect Determines whether to:
+   * - Render search results based on previous history (if the user has requested to do so)
+   * - Render search results based on the user's last search (if the user has exited the Search tab)
+   * - Set random labels as the input placeholder for search inspiration
+   */
   useEffect(() => {
     const historyIndex: string = props.location.state?.fromHistory;
     if (historyIndex) {
@@ -89,14 +101,25 @@ const Search = (props: any) => {
     }
   }, []);
 
+  // Handles the change of any MUI component that isn't the Checkbox (so currently just the search bar)
   const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setState(event.target.value);
   };
 
+  // Sets the value of the Strict Mode checkbox
   const handleCheckboxChange = (setCheckedState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setCheckedState(event.target.checked);
   };
 
+  /**
+   * Handles behaviour when user clicks on the @button QUERY
+   * - If the input is blank, suggest something to the user
+   * - If the input already exists in client cache, render result from there
+   * - Else, search by API
+   *  - If the input is a URL, hit a different endpoint than normal
+   * - Update cache with new search results
+   * @param forceInput A forced label value, only used when the user has requested to see a previous search history result
+   */
   const query = async (forceInput?: string) => {
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
@@ -116,6 +139,11 @@ const Search = (props: any) => {
     }
   };
 
+  /**
+   * Handles behaviour when user clicks on the @button SURPRISE ME
+   * - Hits the /surpriseme endpoint
+   * - Update cache with new search results
+   */
   const surpriseMe = async () => {
     const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
     if (response.status === 200) {
@@ -127,6 +155,7 @@ const Search = (props: any) => {
     }
   };
 
+  // Fetches random labels to user for search inspiration
   const suggestUser = async () => {
     const response = await fetch('/api/info/randomkeys');
     const result = await response.json();
@@ -134,6 +163,13 @@ const Search = (props: any) => {
     setInputPlaceholder(result.labels.join(' '));
   };
 
+  /**
+   * Updates the cache with new search results
+   * This way, users don't need make another API call to re-render previous search results
+   *
+   * @param index The index of the cache
+   * @param data  The data to store
+   */
   const updateCache = async (index: string, data: {}[]) => {
     if (data.length !== 0 && !isStrict) {
       /** @todo Figure out behaviour for isStrict requests */
@@ -148,6 +184,12 @@ const Search = (props: any) => {
     }
   };
 
+  /**
+   * Returns whether the string is a url or not
+   * - Removes the query parameter when comparing for easier Regex matching
+   * @param inputAttempt The url attempt
+   * @returns boolean
+   */
   const isURLImageInput = (inputAttempt: string) => {
     var pattern = new RegExp(
       '^(https?:\\/\\/)?' + // protocol

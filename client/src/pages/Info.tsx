@@ -34,6 +34,11 @@ const Info = (props: any) => {
   const [imageAuthor, setImageAuthor] = useState('');
   const [imageLabels, setImageLabels] = useState([]);
 
+  /**
+   *
+   * @useEffect Fetches & sets the information of an image
+   * If no image is found, redirect to landing page
+   */
   useEffect(() => {
     fetch(`/api/info/image?id=${imageID}`)
       .then(response => response.json())
@@ -43,7 +48,7 @@ const Info = (props: any) => {
           setImageAuthor(result.data.image.author);
           setImageLabels(result.data.labels);
         } else {
-          props.history.push('/search');
+          props.history.push('/');
         }
       });
   }, [imageID, props.history]);

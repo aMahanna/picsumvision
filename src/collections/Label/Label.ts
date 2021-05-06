@@ -4,7 +4,7 @@
 
 import db from '../../database';
 
-export interface labelModel {
+interface labelModel {
   _key: string;
   mid: string;
   data: string;
@@ -15,7 +15,7 @@ const LabelCollection = db.collection('Labels');
 class LabelObject {
   /**
    * @method used to insert the label metadata of a particular image
-   * Avoids GCP Label duplicates by checking the MID of each label
+   * Avoids Vision Label duplicates by checking the MID of each label
    *
    * @param document implements the labelModel interface
    * @returns the ArangoID of the Label inserted

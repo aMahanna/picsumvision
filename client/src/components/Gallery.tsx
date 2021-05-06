@@ -1,3 +1,7 @@
+/**
+ * @component used to render the search results in a grid layout
+ */
+
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Box, ImageList, ImageListItem, ImageListItemBar } from '@material-ui/core';

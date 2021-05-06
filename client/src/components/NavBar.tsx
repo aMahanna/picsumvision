@@ -1,3 +1,7 @@
+/**
+ * @component used to render the Navigation bar of the application
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Import Material-UI Components
@@ -6,9 +10,6 @@ import { CssBaseline, Container, Button, Link as MUILink } from '@material-ui/co
 // Import useTranslation hook to allow for bilingualism
 import { useTranslation } from 'react-i18next';
 
-/**
- * The Navigation Bar of the website holds the Logo, Title, and Search / About Buttons
- */
 const NavBar = () => {
   const [t, i18n] = useTranslation();
   const lang = i18n.language; // Fetch the current language being used ('en'/'fr')

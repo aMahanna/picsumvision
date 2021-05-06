@@ -4,7 +4,7 @@
 
 import db from '../../database';
 
-export interface authorModel {
+interface authorModel {
   _key: string;
   data: string;
   nameSplit: string[];

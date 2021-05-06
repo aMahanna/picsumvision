@@ -1,7 +1,7 @@
 /**
- * @this is a work in progress, as is with the gcp.ts @file
+ * @this is a work in progress, as is with the vision.ts @file
  *
- * Eventually, there will only be one GCP file to use
+ * Eventually, there will only be one Vision file to use
  */
 
 import '../database';
@@ -14,30 +14,23 @@ import { labelOfObject } from '../collections/Label/LabelOf';
 import { authorObject } from '../collections/Author/Author';
 import { authorOfObject } from '../collections/Author/AuthorOf';
 
-// Test data
-import GCP_TEST_LABELS from './assets/TEST_LABELS';
+// Import the test data
+import VISION_TEST_LABELS from './assets/VISION_TEST_LABELS';
+
+// Import the interfaces used
+import { VisionAnnotation, PicsumImage } from '../interfaces';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-interface PicsumImage {
-  id: number; // Image ID in Lorem Picsum
-  author: string; // Image author
-  width: number; // Image width
-  height: number; // Image height
-  url: string; // Image original URL (source site)
-  download_url: string; // Image direct URL for download
-}
-
-interface GCPAnnotation {
-  mid: string;
-  name?: string;
-  description?: string;
-  score: number;
-}
-
-async function createGCPData(picsumUrl: string, maxResults: number): Promise<any> {
+/**
+ *
+ * @param url -- The url to target
+ * @param maxResults -- The maximum number of results to get for each feature type
+ * @returns An object containing the compiled metadata (@todo add its typing)
+ */
+async function fetchVisionMetadata(url: string, maxResults: number): Promise<any> {
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [
@@ -85,24 +78,24 @@ async function createGCPData(picsumUrl: string, maxResults: number): Promise<any
         ],
         image: {
           source: {
-            imageUri: picsumUrl,
+            imageUri: url,
           },
         },
       },
     ],
   };
 
-  const gcpResponse = await fetch(uri, {
+  const response = await fetch(uri, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
     },
   });
-  const gcpData = (await gcpResponse.json()).responses;
+  const result = (await response.json()).responses;
 
-  // Return undefined if no data / error
-  return !gcpData || Object.keys(gcpData[0]).length === 0 || gcpData[0].error ? undefined : gcpData[0];
+  // Return undefined if no data was found
+  return !result || Object.keys(result[0]).length === 0 ? undefined : result[0];
 }
 
 async function generateImages() {
@@ -122,14 +115,15 @@ async function generateImages() {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
     const PICSUM_URL: string = PICSUM_IMAGE.download_url;
 
-    const GCP_DATA = await createGCPData(PICSUM_URL, maxResults);
-    if (!GCP_DATA) {
-      console.log('SKIPPING');
-      continue; // No metadata / GCP error implies we skip the image
+    const VISION_DATA = await fetchVisionMetadata(PICSUM_URL, maxResults);
+    if (!VISION_DATA || VISION_DATA.error) {
+      // Exit early if Vision does not find anything
+      console.log(VISION_DATA);
+      return undefined;
     }
 
     // console.log(`URL: ${PICSUM_URL}`);
-    // console.dir(GCP_DATA, { depth: null });
+    // console.dir(VISION_DATA, { depth: null });
 
     /**
      * @this Inserts the Image document, and returns its ID
@@ -167,15 +161,16 @@ async function generateImages() {
      * @this Inserts Label documents, and links the image using LabelOf edges
      * @returns "LABEL" IDs
      */
-    const GCP_LABEL_OBJECT_ANNOTATIONS: GCPAnnotation[] = GCP_DATA.labelAnnotations
-      ?.concat(GCP_DATA.localizedObjectAnnotations ? GCP_DATA.localizedObjectAnnotations : [])
-      .sort((a: GCPAnnotation, b: GCPAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
-    const UNIQUE_LABELS: GCPAnnotation[] = [
-      ...new Map(GCP_LABEL_OBJECT_ANNOTATIONS.map((elem: GCPAnnotation) => [elem.mid, elem])).values(),
+    // Parse, sort & unify the metadata to ensure there are no conflicting values
+    const VISION_LABEL_OBJECT_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
+      ?.concat(VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [])
+      .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
+    const UNIQUE_LABELS: VisionAnnotation[] = [
+      ...new Map(VISION_LABEL_OBJECT_ANNOTATIONS.map((elem: VisionAnnotation) => [elem.mid, elem])).values(),
     ];
 
     for (let t = 0; t < UNIQUE_LABELS.length; t++) {
-      const elem: GCPAnnotation = UNIQUE_LABELS[t];
+      const elem: VisionAnnotation = UNIQUE_LABELS[t];
       const labelData = (elem.description || elem.name)!.split(' ').join('-');
       const labelID: string = await labelObject.insertLabel({
         _key: stringToASCII(elem.mid),

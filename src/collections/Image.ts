@@ -3,11 +3,11 @@
  * * @todo Add typing to parameter & return values
  */
 
+import { Vertice, Connection } from '../interfaces';
 import db from '../database';
-import { vertice, connection } from '../interfaces';
 import { aql } from 'arangojs';
 
-export interface imageModel {
+interface imageModel {
   _key: string;
   author: string;
   url: string;
@@ -46,7 +46,7 @@ class ImageObject {
    *
    * @param targetLabels An array of targetted words
    */
-  public async query_mixed_keys(targetLabels: string[]): Promise<{}[] | undefined> {
+  public async query_mixed_keys_loose(targetLabels: string[]): Promise<{}[] | undefined> {
     try {
       const looseMatches = await (
         await db.query(aql`
@@ -186,7 +186,7 @@ class ImageObject {
   /**
    * WORK IN PRGORESS: @method Returns vertices & edges for visualization tool
    */
-  public async fetch_visualizer_info(collection: {}[]): Promise<{ vertices: vertice[]; connections: connection[] } | undefined> {
+  public async fetch_visualizer_info(collection: {}[]): Promise<{ vertices: Vertice[]; connections: Connection[] } | undefined> {
     try {
       return (
         await (

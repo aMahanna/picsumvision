@@ -101,7 +101,7 @@ export default async function parseGCPData(url: string): Promise<string[] | unde
   let labelsObject: string[] = [];
   for (let t = 0; t < UNIQUE_LABELS.length; t++) {
     const elem: GCPAnnotation = UNIQUE_LABELS[t];
-    labelsObject.push((elem.description || elem.name)!.split(' ').join('-'));
+    labelsObject.push((elem.description || elem.name)!.toLowerCase().split(' ').join('-'));
   }
-  return labelsObject;
+  return labelsObject.sort();
 }

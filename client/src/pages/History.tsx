@@ -27,7 +27,7 @@ import { Container } from '@material-ui/core';
 
 function HistoryComponent(props: { persistedState: any }) {
   const key: string = Object.keys(props.persistedState)[0];
-  const search: string = key.split('_').join(' ');
+  const search: string = key;
   const date: Date = props.persistedState[key].date;
   const results: number = props.persistedState[key].data.length;
   return (

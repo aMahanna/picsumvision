@@ -71,14 +71,14 @@ const Search = (props: any) => {
     const historyIndex: string = props.location.state?.fromHistory;
     if (historyIndex) {
       if (persistedData[historyIndex]) {
-        setTextFieldInput(historyIndex.split('_').join(' '));
+        setTextFieldInput(historyIndex);
         setSearchResult(persistedData[historyIndex].data);
       } else {
         setTextFieldInput(historyIndex);
         query(historyIndex);
       }
     } else if (lastSearch !== '') {
-      setTextFieldInput(lastSearch.split('_').join(' '));
+      setTextFieldInput(lastSearch);
       setSearchResult(persistedData[lastSearch]?.data || []);
     } else {
       fetch('/api/info/randomkeys')
@@ -99,7 +99,7 @@ const Search = (props: any) => {
 
   const query = async (forceInput?: string) => {
     const input: string = (forceInput || textFieldInput).trim();
-    const index: string = input.split(' ').sort().join('_').toLowerCase(); // For indexing the client-cache
+    const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
     if (input === '') {
       suggestUser();
     } else if (persistedData[index] && !isStrict) {
@@ -111,7 +111,7 @@ const Search = (props: any) => {
         const result = await response.json();
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
-        updateCache(result.labels.sort().join('_').toLowerCase(), result.data);
+        updateCache(result.labels.join(' '), result.data);
       }
     }
   };
@@ -123,7 +123,7 @@ const Search = (props: any) => {
       setTextFieldInput(result.labels.join(' '));
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels.join('_'), result.data);
+      updateCache(result.labels.join(' '), result.data);
     }
   };
 

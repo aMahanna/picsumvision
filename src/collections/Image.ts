@@ -1,8 +1,10 @@
 /**
  * This @file manages the Images Document Collection in our ArangoDB
+ * * @todo Add typing to parameter & return values
  */
 
 import db from '../database';
+import { vertice, connection } from '../interfaces';
 import { aql } from 'arangojs';
 
 export interface imageModel {
@@ -184,7 +186,7 @@ class ImageObject {
   /**
    * WORK IN PRGORESS: @method Returns vertices & edges for visualization tool
    */
-  public async fetch_visualizer_info(collection: {}[]): Promise<{}[] | undefined> {
+  public async fetch_visualizer_info(collection: {}[]): Promise<{ vertices: vertice[]; connections: connection[] } | undefined> {
     try {
       return (
         await (

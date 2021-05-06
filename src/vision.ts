@@ -90,7 +90,7 @@ async function fetchVisionMetadata(url: string, maxResults: number): Promise<any
  * @param url The url to pass to the Vision API
  * @returns An array of labels representing the image in question
  */
-export default async function parseVisionData(url: string): Promise<string[] | undefined> {
+export default async function parseVisionData(url: string): Promise<string | undefined> {
   const VISION_DATA = await fetchVisionMetadata(url, 3); // Set max results to 3 for now
   if (!VISION_DATA || VISION_DATA.error) {
     // Exit early if Vision does not find anything
@@ -110,7 +110,7 @@ export default async function parseVisionData(url: string): Promise<string[] | u
   let labelsObject: string[] = [];
   for (let t = 0; t < UNIQUE_LABELS.length; t++) {
     const elem: VisionAnnotation = UNIQUE_LABELS[t];
-    labelsObject.push((elem.description || elem.name)!.toLowerCase().split(' ').join('-'));
+    labelsObject.push((elem.description || elem.name)!.toLowerCase());
   }
-  return labelsObject;
+  return labelsObject.join(' ');
 }

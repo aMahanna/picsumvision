@@ -101,7 +101,7 @@ async function fetchVisionMetadata(url: string, maxResults: number): Promise<any
 async function generateImages() {
   // number of picsum images: ~1000
   const limit: number = 100;
-  const maxResults: number = 3;
+  const maxResults: number = 6;
 
   let PICSUM_LIST: PicsumImage[] = [];
   for (let i = 1; i < 11; i++) {
@@ -145,11 +145,10 @@ async function generateImages() {
      * @this Inserts an Author document, and links the image using an AuthorOf edge
      * @returns AUTHOR IDs
      */
-    const authorData = PICSUM_IMAGE.author.split(' ').join('-');
     const authorID: string = await authorObject.insertAuthor({
-      _key: stringToASCII(authorData),
-      data: authorData,
-      nameSplit: PICSUM_IMAGE.author.split(' '),
+      _key: stringToASCII(PICSUM_IMAGE.author),
+      name: PICSUM_IMAGE.author,
+      data: PICSUM_IMAGE.author,
     });
     await authorOfObject.insertAuthorOf({
       _from: authorID,
@@ -171,11 +170,11 @@ async function generateImages() {
 
     for (let t = 0; t < UNIQUE_LABELS.length; t++) {
       const elem: VisionAnnotation = UNIQUE_LABELS[t];
-      const labelData = (elem.description || elem.name)!.split(' ').join('-');
+      const label = (elem.description || elem.name)!;
       const labelID: string = await labelObject.insertLabel({
         _key: stringToASCII(elem.mid),
         mid: elem.mid,
-        data: labelData,
+        label,
       });
       await labelOfObject.insertLabelOf({
         _from: labelID,

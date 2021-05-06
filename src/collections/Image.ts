@@ -46,80 +46,26 @@ class ImageObject {
    *
    * @param targetLabels An array of targetted words
    */
-  public async query_mixed_keys_loose(targetLabels: string[]): Promise<{}[] | undefined> {
+  public async query_mixed_keys(targetLabels: string): Promise<{}[] | undefined> {
     try {
-      const looseMatches = await (
+      const matches = await (
         await db.query(aql`
-        WITH Labels, Authors
-        FOR i IN Images 
-          FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            FOR data IN ${targetLabels}
-              FILTER CONTAINS(LOWER(v.data), LOWER(data))
-              COLLECT image = i, id = e._to WITH COUNT INTO num
-              LET obj = {
-                  "_id": image._id,
-                  "_key": image._key,
-                  "url": image.url,
-                  "author": image.author,
-                  "count": num
-              }
-              SORT obj.count DESC
-              LIMIT 6
-              RETURN obj
+        WITH Labels, Authors, Images
+        LET t = TOKENS(${targetLabels}, 'text_en')
+        FOR doc IN searchview 
+          SEARCH ANALYZER(
+            doc.data IN t || 
+            BOOST(doc.data IN TOKENS(FIRST(t), 'text_en'), 5) || 
+            BOOST(doc.label IN t, 4) ||
+            BOOST(doc.name IN t, 3)
+          , 'text_en') 
+          SORT BM25(doc, 1.2, 0) DESC 
+          FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            RETURN DISTINCT v
       `)
       ).all();
 
-      const exactAuthorMatches = await (
-        await db.query(aql`
-        FOR doc IN ${looseMatches}
-          FOR data IN ${targetLabels}
-          FILTER LOWER(SUBSTITUTE(doc.author, " ", "")) == LOWER(data)
-          SORT doc.author DESC
-          RETURN doc
-      `)
-      ).all();
-
-      const finalMatches = await (
-        await db.query(aql`
-          RETURN UNIQUE(APPEND(${exactAuthorMatches},${looseMatches}))
-      `)
-      ).all();
-
-      return finalMatches[0];
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
-  }
-
-  /**
-   * WORK IN PRGORESS: @method allows the user to query by STRICT MODE
-   *
-   * @param targetLabels An array of targetted words that MUST BE ALL IN the IMAGE
-   */
-  public async query_mixed_keys_strict(targetLabels: string[]): Promise<{}[] | undefined> {
-    try {
-      const strictMatches = await (
-        await db.query(aql`
-        WITH Labels, Authors
-        FOR i IN Images 
-          FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            FOR data IN ${targetLabels}
-              FILTER LOWER(v.data) == LOWER(data) AND e._score >= 0.95
-              COLLECT image = i, id = e._to WITH COUNT INTO num
-              LET obj = {
-                  "_id": image._id,
-                  "_key": image._key,
-                  "url": image.url,
-                  "author": image.author,
-                  "count": num
-              }
-              FILTER obj.count == ${targetLabels.length}
-              RETURN obj
-      `)
-      ).all();
-
-      return strictMatches;
+      return matches;
     } catch (error) {
       console.error(error);
       return undefined;
@@ -129,7 +75,7 @@ class ImageObject {
   /**
    * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
    */
-  public async fetch_surprise_keys(): Promise<string[] | undefined> {
+  public async fetch_surprise_keys(): Promise<string | undefined> {
     try {
       const result = await (
         await db.query(aql`
@@ -137,15 +83,16 @@ class ImageObject {
         FOR i IN Images
           SORT RAND()
           LIMIT 1
-          FOR v, e, p IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT RAND()
             LIMIT 3
-            SORT v.data
-            RETURN LOWER(v.data)
+            LET label= SPLIT(v.data, " ")
+            SORT RAND()
+            RETURN FIRST(label)
       `)
       ).all();
 
-      return result;
+      return result.join(' ');
     } catch (error) {
       console.error(error);
       return undefined;
@@ -167,10 +114,10 @@ class ImageObject {
           RETURN i
         ))
         Let labels = (
-          FOR v, e, p IN 1..1 ANY image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FOR v, e, p IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
           FILTER e._from == v._id
           SORT e._score DESC
-          RETURN {score: e._score, data: v.data}
+          RETURN {score: e._score, data: v.label}
         )
         RETURN {image, labels}
       `)

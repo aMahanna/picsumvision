@@ -27,7 +27,7 @@ namespace InfoController {
    * @param res Response
    */
   export async function fetch_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string[] | undefined = await imageObject.fetch_surprise_keys();
+    const labels: string | undefined = await imageObject.fetch_surprise_keys();
     if (!labels) res.status(500).json('Error fetching surprise keys');
     if (labels) {
       res.status(200).json({ labels });

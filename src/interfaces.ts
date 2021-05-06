@@ -7,6 +7,8 @@
 export interface Vertice {
   _id: string; // ArangoDB-generated ID
   _key: string; // The number section of ArangoDB-generated ID
+  label?: string; // The Vision label assigned (strictly for Label vertices)
+  name?: string; // The author name assigned (strictly for Author vertices)
   data: string; // The data it holds
 }
 

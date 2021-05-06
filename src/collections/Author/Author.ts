@@ -6,8 +6,8 @@ import db from '../../database';
 
 interface authorModel {
   _key: string;
+  name: string;
   data: string;
-  nameSplit: string[];
 }
 
 const AuthorCollection = db.collection('Authors');

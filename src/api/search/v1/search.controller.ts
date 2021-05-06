@@ -11,18 +11,18 @@ namespace SearchController {
   /**
    * Handles requests to the @endpoint /api/search/mixed
    * Using the labels provides, returns the result of an ArangoDB query
-   * The result depends on the isStrict & isVisualizeRequest query parameters provided
+   * The result depends on the isVisualizeRequest query parameter provided
    *
    * @param req Request
    * @param res Response
    */
   export async function from_mixed_keys(req: Request, res: Response): Promise<void> {
-    const labels: string[] = typeof req.query.labels === 'string' ? req.query.labels.split(' ') : [''];
-    let data: {}[] | undefined = await fetch_data(req.query, labels);
+    const labels: string = typeof req.query.labels === 'string' ? req.query.labels : '';
+    let data: {}[] | undefined = await imageObject.query_mixed_keys(labels);
     if (!data) {
       res.status(500).json('Error searching from mixed keys');
     } else if (!req.query.isVisualizeRequest) {
-      res.status(200).json({ data, labels });
+      res.status(200).json({ data, labels: labels.split(' ').sort().join(' ') });
     } else {
       const visualizationInfo = await imageObject.fetch_visualizer_info(data);
       if (!visualizationInfo) {
@@ -37,16 +37,15 @@ namespace SearchController {
   /**
    * Handles requests to the @endpoint /api/search/surpriseme
    * Will fetch random labels, and then query the result
-   * The result depends on the isStrict parameters provided
    *
    * @param req Request
    * @param res Response
    */
   export async function from_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string[] | undefined = await imageObject.fetch_surprise_keys();
+    const labels: string | undefined = await imageObject.fetch_surprise_keys();
     if (!labels) res.status(500).json('Error fetching surprise keys');
     else {
-      const data: {}[] | undefined = await fetch_data(req.query, labels);
+      const data: {}[] | undefined = await imageObject.query_mixed_keys(labels);
       res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
     }
   }
@@ -63,26 +62,13 @@ namespace SearchController {
     const url: string = typeof req.query.url === 'string' ? req.query.url : '';
     if (url === '') res.status(400).json('Unacceptable URL');
     else {
-      const labels: string[] | undefined = await parseVisionData(url);
+      const labels: string | undefined = await parseVisionData(url);
       if (!labels) res.status(500).json('Error fetching surprise keys');
       else {
-        const data: {}[] | undefined = await fetch_data(req.query, labels);
+        const data: {}[] | undefined = await imageObject.query_mixed_keys(labels);
         res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
       }
     }
-  }
-
-  /**
-   * Queries the ArangoDB in either a "strict" or "loose" fahsion
-   *
-   * @param queryParams An object to check the req.query.isStrict value
-   * @param labels The labels to target
-   * @returns The data from ArangoDB
-   */
-  async function fetch_data(queryParams: any, labels: string[]): Promise<{}[] | undefined> {
-    return await (queryParams.isStrict
-      ? imageObject.query_mixed_keys_strict(labels)
-      : imageObject.query_mixed_keys_loose(labels));
   }
 
   /**
@@ -94,10 +80,9 @@ namespace SearchController {
   function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }) {
     let nodes: { id: string; label: string; color: string }[] = [];
     let edges: { id: string; from: string; to: string; label: string }[] = [];
-
     for (let i = 0; i < info.vertices.length; i++) {
       const vertice: Vertice = info.vertices[i];
-      nodes = nodes.concat([{ id: vertice._id, label: vertice.data, color: '#41BBD9' }]);
+      nodes = nodes.concat([{ id: vertice._id, label: (vertice.label || vertice.name)!, color: '#41BBD9' }]);
     }
 
     for (let j = 0; j < info.connections.length; j++) {

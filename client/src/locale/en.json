@@ -22,8 +22,10 @@
       "visualize": "Visualize",
       "inputLabel": "Search by keywords / image url",
       "inputPlaceholder": "Cloud Mountain Rain",
-      "strictMode": "Strict Mode",
       "suggestAlert": "Suggestion: "
+    },
+    "historyPage": {
+      "clear": "Clear History"
     }
   }
 }

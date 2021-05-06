@@ -3,19 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
-import {
-  Container,
-  CssBaseline,
-  makeStyles,
-  createStyles,
-  Theme,
-  Avatar,
-  TextField,
-  Button,
-  Box,
-  Checkbox,
-  FormControlLabel,
-} from '@material-ui/core';
+import { Container, CssBaseline, makeStyles, createStyles, Theme, Avatar, TextField, Button, Box } from '@material-ui/core';
 
 import Alert from '../components/Alert';
 import Gallery from '../components/Gallery';
@@ -63,7 +51,6 @@ const Search = (props: { location: any }) => {
 
   const [textFieldInput, setTextFieldInput] = useState(''); // The input of the search bar
   const [searchResult, setSearchResult] = useState([]); // The results of the search
-  const [isStrict, setIsStrict] = useState(false); // The nature of the search
   const [inputPlaceholder, setInputPlaceholder] = useState(''); // The placeholder of the search bar
 
   const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
@@ -96,7 +83,7 @@ const Search = (props: { location: any }) => {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
         .then(response => {
-          setInputPlaceholder(response.labels.join(' '));
+          setInputPlaceholder(response.labels);
         });
     }
   }, []);
@@ -104,11 +91,6 @@ const Search = (props: { location: any }) => {
   // Handles the change of any MUI component that isn't the Checkbox (so currently just the search bar)
   const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setState(event.target.value);
-  };
-
-  // Sets the value of the Strict Mode checkbox
-  const handleCheckboxChange = (setCheckedState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCheckedState(event.target.checked);
   };
 
   /**
@@ -125,16 +107,16 @@ const Search = (props: { location: any }) => {
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
     if (input === '') {
       suggestUser();
-    } else if (persistedData[index] && !isStrict) {
+    } else if (persistedData[index]) {
       setSearchResult(persistedData[index].data);
     } else {
       const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
-      const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
+      const response = await fetch(uri);
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
-        updateCache(result.labels.join(' '), result.data);
+        updateCache(result.labels, result.data);
       }
     }
   };
@@ -145,13 +127,13 @@ const Search = (props: { location: any }) => {
    * - Update cache with new search results
    */
   const surpriseMe = async () => {
-    const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
+    const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
       const result = await response.json();
-      setTextFieldInput(result.labels.join(' '));
+      setTextFieldInput(result.labels);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels.join(' '), result.data);
+      updateCache(result.labels, result.data);
     }
   };
 
@@ -160,7 +142,7 @@ const Search = (props: { location: any }) => {
     const response = await fetch('/api/info/randomkeys');
     const result = await response.json();
     setSuggestInput(true);
-    setInputPlaceholder(result.labels.join(' '));
+    setInputPlaceholder(result.labels);
   };
 
   /**
@@ -171,8 +153,7 @@ const Search = (props: { location: any }) => {
    * @param data  The data to store
    */
   const updateCache = async (index: string, data: {}[]) => {
-    if (data.length !== 0 && !isStrict) {
-      /** @todo Figure out behaviour for isStrict requests */
+    if (data.length !== 0) {
       setPersistedData({
         ...persistedData,
         [index]: {
@@ -221,12 +202,6 @@ const Search = (props: { location: any }) => {
             onChange={handleChange(setTextFieldInput)}
             fullWidth
             variant="standard"
-          />
-          <FormControlLabel
-            value={isStrict}
-            control={<Checkbox checked={isStrict} onChange={handleCheckboxChange(setIsStrict)} color="default" name="isStrict" />}
-            label={t('searchPage.strictMode')}
-            labelPlacement="end"
           />
         </Box>
         <Box mt={2} className={classes.button}>

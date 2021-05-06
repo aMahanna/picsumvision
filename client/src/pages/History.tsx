@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container } from '@material-ui/core';
+import { Container, Button, createStyles, makeStyles, Theme } from '@material-ui/core';
 
 // Import Props interface to define what this component can receive as props
 /**
@@ -10,20 +10,21 @@ import { Container } from '@material-ui/core';
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-// const useStyles = makeStyles(() =>
-//   createStyles({
-//     avatar: {
-//       backgroundColor: 'inherit',
-//       color: '#2F2D2E',
-//       margin: 'auto',
-//     },
-//     image: {
-//       height: '50%',
-//       width: '50%',
-//       borderRadius: '1cm',
-//     },
-//   }),
-// );
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    button: {
+      '& > *': {
+        color: '#2f2d2e',
+        margin: theme.spacing(1),
+        '&:hover': {
+          transition: '0.3s ease-in',
+          backgroundColor: '#2f2d2e',
+          color: 'white',
+        },
+      },
+    },
+  }),
+);
 
 function HistoryComponent(props: { persistedState: any }) {
   const key: string = Object.keys(props.persistedState)[0];
@@ -51,8 +52,8 @@ function HistoryComponent(props: { persistedState: any }) {
 }
 
 const History = (props: any) => {
-  //const [t] = useTranslation();
-  //const classes = useStyles();
+  const [t] = useTranslation();
+  const classes = useStyles();
   const [makeHistory, setMakeHistory] = useState(''); // Provide some random labels for a quick search
   const [history] = useState(() => {
     const persistedState = localStorage.getItem('data');
@@ -69,13 +70,24 @@ const History = (props: any) => {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
         .then(response => {
-          setMakeHistory(response.labels.join(' '));
+          setMakeHistory(response.labels);
         });
     }
   }, [history]);
 
+  const clearCache = async () => {
+    localStorage.removeItem('data');
+    localStorage.removeItem('lastSearch');
+    window.location.reload();
+  };
+
   return (
     <Container component="main" maxWidth="md">
+      {history && (
+        <Button id="history-clear" className={classes.button} onClick={clearCache}>
+          {t('historyPage.clear')}
+        </Button>
+      )}
       {!history && (
         <div className="history">
           <Link

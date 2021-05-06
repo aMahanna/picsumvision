@@ -6,7 +6,7 @@ import { Container, CssBaseline } from '@material-ui/core';
 const options = {
   layout: {
     hierarchical: false,
-    improveLayout: true
+    improvedLayout: true,
   },
   edges: {
     color: '#2f2d2e',
@@ -15,8 +15,8 @@ const options = {
     hover: true,
     hideEdgesOnDrag: true,
     hideEdgesOnZoom: true,
-    zoomSpeed: 0.6
-  }
+    zoomSpeed: 0.6,
+  },
 };
 
 /**
@@ -60,13 +60,9 @@ const Visualize = () => {
     <Container>
       <CssBaseline />
       <h4>Last search: {lastSearch}</h4>
-      {graph !== undefined && 
-        <Graph 
-          graph={graph} 
-          options={options} 
-          events={events} 
-          style={{ border: 'solid', borderRadius: '1cm', height: '600px' }} 
-        />}
+      {graph !== undefined && (
+        <Graph graph={graph} options={options} events={events} style={{ border: 'solid', borderRadius: '1cm', height: '600px' }} />
+      )}
     </Container>
   );
 };

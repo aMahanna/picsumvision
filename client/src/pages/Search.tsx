@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
@@ -78,7 +79,7 @@ const Search = (props: any) => {
       }
     } else if (lastSearch !== '') {
       setTextFieldInput(lastSearch.split('_').join(' '));
-      setSearchResult(persistedData[lastSearch].data);
+      setSearchResult(persistedData[lastSearch]?.data || []);
     } else {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
@@ -96,27 +97,11 @@ const Search = (props: any) => {
     setCheckedState(event.target.checked);
   };
 
-  const isURLImageInput = (inputAttempt: string) => {
-    var pattern = new RegExp(
-      '^(https?:\\/\\/)?' + // protocol
-        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-        '(\\#[-a-z\\d_]*)?$',
-      'i',
-    ); // fragment locator
-    return pattern.test(inputAttempt);
-  };
-
   const query = async (forceInput?: string) => {
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join('_').toLowerCase(); // For indexing the client-cache
     if (input === '') {
-      const response = await fetch('/api/info/randomkeys');
-      const result = await response.json();
-      setSuggestInput(true);
-      setInputPlaceholder(result.labels.join(' '));
+      suggestUser();
     } else if (persistedData[index] && !isStrict) {
       setSearchResult(persistedData[index].data);
     } else {
@@ -126,7 +111,7 @@ const Search = (props: any) => {
         const result = await response.json();
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
-        updateCache(index, result.data);
+        updateCache(result.labels.sort().join('_').toLowerCase(), result.data);
       }
     }
   };
@@ -142,6 +127,13 @@ const Search = (props: any) => {
     }
   };
 
+  const suggestUser = async () => {
+    const response = await fetch('/api/info/randomkeys');
+    const result = await response.json();
+    setSuggestInput(true);
+    setInputPlaceholder(result.labels.join(' '));
+  };
+
   const updateCache = async (index: string, data: {}[]) => {
     if (data.length !== 0 && !isStrict) {
       /** @todo Figure out behaviour for isStrict requests */
@@ -154,6 +146,19 @@ const Search = (props: any) => {
       });
       setLastSearch(index);
     }
+  };
+
+  const isURLImageInput = (inputAttempt: string) => {
+    var pattern = new RegExp(
+      '^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
+      'i',
+    ); // fragment locator
+    return pattern.test(inputAttempt.split('?')[0]);
   };
 
   return (
@@ -188,6 +193,9 @@ const Search = (props: any) => {
           </Button>
           <Button id="search-surprise" onClick={surpriseMe}>
             {t('searchPage.surprise')}
+          </Button>
+          <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+            {t('searchPage.visualize')}
           </Button>
         </Box>
       </Container>

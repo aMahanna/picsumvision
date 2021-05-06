@@ -54,11 +54,11 @@ const History = (props: any) => {
   //const [t] = useTranslation();
   //const classes = useStyles();
   const [makeHistory, setMakeHistory] = useState('');
-  const [persistedData] = useState(() => {
+  const [history] = useState(() => {
     const persistedState = localStorage.getItem('data');
-    return persistedState ? JSON.parse(persistedState) : {};
+    const persistedData = persistedState ? JSON.parse(persistedState) : {};
+    return Object.keys(persistedData).length === 0 ? undefined : Object.entries(persistedData).map(e => ({ [e[0]]: e[1] }));
   });
-  const history = Object.keys(persistedData).length === 0 ? undefined : Object.entries(persistedData).map(e => ({ [e[0]]: e[1] }));
 
   useEffect(() => {
     if (!history) {

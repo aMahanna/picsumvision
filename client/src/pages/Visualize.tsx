@@ -39,7 +39,7 @@ const Visualize = (props: any) => {
   const [graph, setGraph]: any = useState(undefined);
   const [lastSearch] = useState(() => {
     const persistedState = localStorage.getItem('lastSearch');
-    return persistedState ? JSON.parse(persistedState.split('_').join(' ')) : {};
+    return persistedState ? JSON.parse(persistedState) : {};
   });
   const events = {
     select: ({ nodes, edges }: { nodes: any; edges: any }) => {

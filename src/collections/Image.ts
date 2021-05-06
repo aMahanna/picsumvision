@@ -194,13 +194,11 @@ class ImageObject {
           WITH Labels, Authors
           LET vertices = (
             FOR i IN ${collection}
-              LIMIT 3
               FOR v IN 1..1 INBOUND i._id LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
                 RETURN DISTINCT v
           ) 
           LET connections = (
             FOR i IN ${collection}
-              LIMIT 3
               LET edges = (
                 FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
                 RETURN e

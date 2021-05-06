@@ -4,7 +4,7 @@
 
 import db from '../../database';
 
-export interface labelOfModel {
+interface labelOfModel {
   _from: string;
   _to: string;
   _score: number;

@@ -1,33 +1,27 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // Allows for website bilingualism
 
 // Import React Components
 import NavBar from '../components/NavBar';
-import LandingPage from './LandingPage';
+import Landing from './Landing';
 import Search from './Search';
+import Visualize from './Visualize';
+import History from './History';
 import Info from './Info';
-// import Login from './Login';
-// import Candidates from './Candidates';
 
 /**
  * The Main React Component
  * @returns The render of what the React DOM should look like
  */
 const App = () => {
-  const [t] = useTranslation();
-
-  //Set website title on startup
-  useEffect(() => {
-    document.title = t('general.title');
-  }, [t]);
-
   return (
     <div className="App">
       <NavBar />
       <Switch>
-        <Route exact path="/" component={LandingPage} />
-        <Route exact path="/search" component={Search} />
+        <Route exact path="/" component={Landing} />
+        <Route exact path="/search" render={props => <Search {...props} />} />
+        <Route exact path="/visualize" component={Visualize} />
+        <Route exact path="/history" component={History} />
         <Route exact path="/info/:id" component={Info} />
         <Route render={() => <Redirect to={{ pathname: '/' }} />} />
       </Switch>

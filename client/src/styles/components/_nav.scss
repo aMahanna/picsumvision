@@ -14,7 +14,16 @@
           width: 75%;
         }
 
-        &:first-of-type {
+        font-weight: 500;
+        color: #2f2d2e;
+
+        &:hover {
+          transition: 0.3s ease-in;
+          background-color: #2f2d2e;
+          color: white;
+        }
+
+        &:nth-of-type(1) {
           font-weight: 500;
           background-color: #2f2d2e;
           color: white;

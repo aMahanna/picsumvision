@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { imageObject } from '../../../collections/Image';
 
 namespace InsertController {
   export async function upload(req: Request, res: Response): Promise<void> {

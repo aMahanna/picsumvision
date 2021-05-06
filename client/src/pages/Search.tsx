@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
@@ -17,6 +18,8 @@ import {
 } from '@material-ui/core';
 
 import Alert from '../components/Alert';
+import Gallery from '../components/Gallery';
+import usePersistedState from '../hooks/usePersistedState';
 
 /**
  * CreateStyles allows us to style MUI components
@@ -31,70 +34,173 @@ const useStyles = makeStyles((theme: Theme) =>
       margin: 'auto',
     },
     image: {
-      height: '50%',
-      width: '50%',
-      borderRadius: '1cm',
+      height: '100%',
+      width: '100%',
     },
     button: {
       '& > *': {
+        color: '#2f2d2e',
         margin: theme.spacing(1),
+        '&:hover': {
+          transition: '0.3s ease-in',
+          backgroundColor: '#2f2d2e',
+          color: 'white',
+        },
       },
     },
   }),
 );
 
-const Search = () => {
-  const [t, i18n] = useTranslation();
+/**
+ * The page responsible for image search functionality
+ *
+ * @param props Used to accept searches from the History page
+ * @returns
+ */
+const Search = (props: { location: any }) => {
+  const [t, i18n] = useTranslation(); // Translation use
   const classes = useStyles();
-  const [input, setInput] = useState('');
-  const [results, setResults] = useState([]);
-  const [isStrict, setIsStrict] = useState(false);
-  const [inputPlaceholder, setInputPlaceholder] = useState('');
 
-  const [suggestInput, setSuggestInput] = useState(false);
-  const [frenchWarning, setFrenchWarning] = useState(true);
+  const [textFieldInput, setTextFieldInput] = useState(''); // The input of the search bar
+  const [searchResult, setSearchResult] = useState([]); // The results of the search
+  const [isStrict, setIsStrict] = useState(false); // The nature of the search
+  const [inputPlaceholder, setInputPlaceholder] = useState(''); // The placeholder of the search bar
 
+  const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
+  const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
+  const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
+
+  const [persistedData, setPersistedData] = usePersistedState('data', {}); // Persist previous results to use for search history
+  const [lastSearch, setLastSearch] = usePersistedState('lastSearch', ''); // Persist last search to use for visualization
+
+  /**
+   * @useEffect Determines whether to:
+   * - Render search results based on previous history (if the user has requested to do so)
+   * - Render search results based on the user's last search (if the user has exited the Search tab)
+   * - Set random labels as the input placeholder for search inspiration
+   */
   useEffect(() => {
-    fetch('/api/search/randomkeys')
-      .then(result => result.json())
-      .then(response => {
-        setInputPlaceholder(response.labels.join(' ').toLowerCase());
-      });
+    const historyIndex: string = props.location.state?.fromHistory;
+    if (historyIndex) {
+      if (persistedData[historyIndex]) {
+        setTextFieldInput(historyIndex);
+        setSearchResult(persistedData[historyIndex].data);
+      } else {
+        setTextFieldInput(historyIndex);
+        query(historyIndex);
+      }
+    } else if (lastSearch !== '') {
+      setTextFieldInput(lastSearch);
+      setSearchResult(persistedData[lastSearch]?.data || []);
+    } else {
+      fetch('/api/info/randomkeys')
+        .then(result => result.json())
+        .then(response => {
+          setInputPlaceholder(response.labels.join(' '));
+        });
+    }
   }, []);
 
+  // Handles the change of any MUI component that isn't the Checkbox (so currently just the search bar)
   const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setState(event.target.value);
   };
 
+  // Sets the value of the Strict Mode checkbox
   const handleCheckboxChange = (setCheckedState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setCheckedState(event.target.checked);
   };
 
-  const query = async () => {
-    const labels = input.trim(); /** @todo Figure our more "cleanup" features to add in order to refine the search */
-    if (labels === '') {
-      fetch('/api/search/randomkeys')
-        .then(result => result.json())
-        .then(response => {
-          setSuggestInput(true);
-          setInputPlaceholder(response.labels.join(' ').toLowerCase());
-        });
+  /**
+   * Handles behaviour when user clicks on the @button QUERY
+   * - If the input is blank, suggest something to the user
+   * - If the input already exists in client cache, render result from there
+   * - Else, search by API
+   *  - If the input is a URL, hit a different endpoint than normal
+   * - Update cache with new search results
+   * @param forceInput A forced label value, only used when the user has requested to see a previous search history result
+   */
+  const query = async (forceInput?: string) => {
+    const input: string = (forceInput || textFieldInput).trim();
+    const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
+    if (input === '') {
+      suggestUser();
+    } else if (persistedData[index] && !isStrict) {
+      setSearchResult(persistedData[index].data);
     } else {
-      const result = await fetch(`/api/search/mixed?labels=${labels.toUpperCase()}${isStrict ? '&isStrict=true' : ''}`);
-      if (result.status === 200) {
-        const response = await result.json();
-        setResults(response.result[0]);
+      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
+      const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
+      if (response.status === 200) {
+        const result = await response.json();
+        setSearchResult(result.data);
+        setResultIsEmpty(result.data.length === 0);
+        updateCache(result.labels.join(' '), result.data);
       }
     }
   };
 
+  /**
+   * Handles behaviour when user clicks on the @button SURPRISE ME
+   * - Hits the /surpriseme endpoint
+   * - Update cache with new search results
+   */
   const surpriseMe = async () => {
-    const result = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
-    if (result.status === 200) {
-      const response = await result.json();
-      setInput(response.labels.join(' ').toLowerCase());
-      setResults(response.result[0]);
+    const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
+    if (response.status === 200) {
+      const result = await response.json();
+      setTextFieldInput(result.labels.join(' '));
+      setSearchResult(result.data);
+      setResultIsEmpty(result.data.length === 0);
+      updateCache(result.labels.join(' '), result.data);
     }
+  };
+
+  // Fetches random labels to user for search inspiration
+  const suggestUser = async () => {
+    const response = await fetch('/api/info/randomkeys');
+    const result = await response.json();
+    setSuggestInput(true);
+    setInputPlaceholder(result.labels.join(' '));
+  };
+
+  /**
+   * Updates the cache with new search results
+   * This way, users don't need make another API call to re-render previous search results
+   *
+   * @param index The index of the cache
+   * @param data  The data to store
+   */
+  const updateCache = async (index: string, data: {}[]) => {
+    if (data.length !== 0 && !isStrict) {
+      /** @todo Figure out behaviour for isStrict requests */
+      setPersistedData({
+        ...persistedData,
+        [index]: {
+          data,
+          date: Date(),
+        },
+      });
+      setLastSearch(index);
+    }
+  };
+
+  /**
+   * Returns whether the string is a url or not
+   * - Removes the query parameter when comparing for easier Regex matching
+   * @param inputAttempt The url attempt
+   * @returns boolean
+   */
+  const isURLImageInput = (inputAttempt: string) => {
+    var pattern = new RegExp(
+      '^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
+      'i',
+    ); // fragment locator
+    return pattern.test(inputAttempt.split('?')[0]);
   };
 
   return (
@@ -109,11 +215,12 @@ const Search = () => {
             id="search-input"
             autoComplete="off"
             spellCheck
-            value={input}
+            value={textFieldInput}
             label={t('searchPage.inputLabel')}
             placeholder={inputPlaceholder}
-            onChange={handleChange(setInput)}
+            onChange={handleChange(setTextFieldInput)}
             fullWidth
+            variant="standard"
           />
           <FormControlLabel
             value={isStrict}
@@ -122,26 +229,22 @@ const Search = () => {
             labelPlacement="end"
           />
         </Box>
-        <div></div>
         <Box mt={2} className={classes.button}>
-          <Button id="search-submit" onClick={query} variant="outlined">
+          <Button id="search-submit" onClick={() => query()}>
             {t('searchPage.query')}
           </Button>
-          <Button id="search-surprise" onClick={surpriseMe} variant="outlined">
+          <Button id="search-surprise" onClick={surpriseMe}>
             {t('searchPage.surprise')}
+          </Button>
+          <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+            {t('searchPage.visualize')}
           </Button>
         </Box>
       </Container>
-      {results.length !== 0 && (
+      {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
+      {resultIsEmpty && (
         <Box mt={3}>
-          {results.map((data: { author: string; url: string }) => (
-            <Box key={data.url} mt={3}>
-              <h4>{data.author}</h4>
-              <a href={`/info/${data.url.split('/')[4]}`}>
-                <img alt={data.author} className={classes.image} src={data.url} />
-              </a>
-            </Box>
-          ))}
+          <h5>Shoot, no results found</h5>
         </Box>
       )}
       <Alert
@@ -155,7 +258,7 @@ const Search = () => {
       ></Alert>
       <Alert
         open={suggestInput}
-        message={`${t('searchPage.suggestAlert')}${inputPlaceholder}'?`}
+        message={`${t('searchPage.suggestAlert')}${inputPlaceholder}`}
         severity="info"
         onSnackbarClose={(e, r) => {
           return r === 'clickaway' ? undefined : setSuggestInput(false);

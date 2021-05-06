@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
 import { Container, CssBaseline, Box, makeStyles, Avatar, createStyles } from '@material-ui/core';
@@ -27,22 +27,31 @@ const useStyles = makeStyles(() =>
 );
 
 const Info = (props: any) => {
-  const [t] = useTranslation();
+  //const [t] = useTranslation();
   const classes = useStyles();
-  const imageID = props.match.params.id;
+  const [imageID] = useState(props.match.params.id);
   const [imageURL, setImageURL] = useState('');
   const [imageAuthor, setImageAuthor] = useState('');
   const [imageLabels, setImageLabels] = useState([]);
 
+  /**
+   *
+   * @useEffect Fetches & sets the information of an image
+   * If no image is found, redirect to landing page
+   */
   useEffect(() => {
-    fetch(`/api/search/image?id=${imageID}`)
-      .then(result => result.json())
-      .then(response => {
-        setImageURL(response.result[0].image.url);
-        setImageAuthor(response.result[0].image.author);
-        setImageLabels(response.result[0].labels);
+    fetch(`/api/info/image?id=${imageID}`)
+      .then(response => response.json())
+      .then(result => {
+        if (result.data.image) {
+          setImageURL(result.data.image.url);
+          setImageAuthor(result.data.image.author);
+          setImageLabels(result.data.labels);
+        } else {
+          props.history.push('/');
+        }
       });
-  }, []);
+  }, [imageID, props.history]);
 
   return (
     <Container component="main" maxWidth="md">

@@ -1,5 +1,9 @@
-// 91 labels, 43 unique labels
-const GCP_TEST_LABELS: {
+/**
+ * Sample Vision Metadata to test ArangoDB functionalities with.
+ * This avoids having to call the API on every test
+ * 91 labels, 43 unique labels
+ */
+const VISION_TEST_LABELS: {
   mid: string;
   description?: string;
   name?: string;
@@ -595,4 +599,4 @@ const GCP_TEST_LABELS: {
   ],
 ];
 
-export default GCP_TEST_LABELS;
+export default VISION_TEST_LABELS;

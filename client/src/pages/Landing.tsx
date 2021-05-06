@@ -26,9 +26,9 @@ const useStyles = makeStyles(() =>
 );
 
 /**
- * The LandingPage holds basic voting instructions, and the current election status (i.e not open, open, ended)
+ * Home page (@todo)
  */
-const LandingPage = () => {
+const Landing = () => {
   const [t] = useTranslation();
   const classes = useStyles();
 
@@ -52,4 +52,4 @@ const LandingPage = () => {
     </Container>
   );
 };
-export default LandingPage;
+export default Landing;

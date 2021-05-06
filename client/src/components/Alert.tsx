@@ -1,3 +1,7 @@
+/**
+ * @component used as a popup alert system to notify users of some info
+ */
+
 import React from 'react';
 import { Snackbar, SnackbarCloseReason } from '@material-ui/core';
 import MuiAlert, { Color } from '@material-ui/lab/Alert';

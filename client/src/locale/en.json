@@ -5,6 +5,7 @@
     "general": {
       "title": "Picsum Vision",
       "searchButton": "Search",
+      "historyButton": "History",
       "aboutButton": "About",
       "contact": "Inquiries? Contact ",
       "errors": {
@@ -18,10 +19,11 @@
       "query": "Query",
       "attention": "Attention! Cette fonctionnalité ne supporte pas encore des mots clés en français",
       "surprise": "Surprise Me",
-      "inputLabel": "Search by keywords",
+      "visualize": "Visualize",
+      "inputLabel": "Search by keywords / image url",
       "inputPlaceholder": "Cloud Mountain Rain",
       "strictMode": "Strict Mode",
-      "suggestAlert": "May I suggest '"
+      "suggestAlert": "Suggestion: "
     }
   }
 }

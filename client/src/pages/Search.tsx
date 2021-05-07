@@ -152,7 +152,7 @@ const Search = (props: { location: any }) => {
    * @param index The index of the cache
    * @param data  The data to store
    */
-  const updateCache = async (index: string, data: {}[]) => {
+  const updateCache = async (index: string, data: any[]) => {
     if (data.length !== 0) {
       setPersistedData({
         ...persistedData,
@@ -172,7 +172,7 @@ const Search = (props: { location: any }) => {
    * @returns boolean
    */
   const isURLImageInput = (inputAttempt: string) => {
-    var pattern = new RegExp(
+    const pattern = new RegExp(
       '^(https?:\\/\\/)?' + // protocol
         '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
         '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { imageObject } from '../../../collections/Image';
+import { ArangoImageInfo } from '../../../interfaces';
 
 /**
  * The @namespace for orchestrating Info operations
@@ -15,7 +16,7 @@ namespace InfoController {
    */
   export async function fetch_image(req: Request, res: Response): Promise<void> {
     const id: string = typeof req.query.id === 'string' ? req.query.id : '0';
-    const data: {}[] | undefined = await imageObject.fetch_image_info(id);
+    const data: ArangoImageInfo[] | undefined = await imageObject.fetch_image_info(id);
     res.status(200).json({ data });
   }
 

@@ -3,7 +3,7 @@
  * * @todo Add typing to parameter & return values
  */
 
-import { Vertice, Connection } from '../interfaces';
+import { Vertice, Connection, ArangoImage, ArangoImageInfo } from '../interfaces';
 import db from '../database';
 import { aql } from 'arangojs';
 
@@ -46,7 +46,7 @@ class ImageObject {
    *
    * @param targetLabels An array of targetted words
    */
-  public async query_mixed_keys(targetLabels: string): Promise<{}[] | undefined> {
+  public async query_mixed_keys(targetLabels: string): Promise<ArangoImage[] | undefined> {
     try {
       //BOOST(doc.data IN TOKENS(FIRST(t), 'text_en'), 5) ||
       const matches = await (
@@ -102,7 +102,7 @@ class ImageObject {
   /**
    * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
    */
-  public async fetch_image_info(id: string): Promise<{}[] | undefined> {
+  public async fetch_image_info(id: string): Promise<ArangoImageInfo[] | undefined> {
     try {
       const result = await (
         await db.query(aql`
@@ -137,7 +137,9 @@ class ImageObject {
   /**
    * WORK IN PRGORESS: @method Returns vertices & edges for visualization tool
    */
-  public async fetch_visualizer_info(collection: {}[]): Promise<{ vertices: Vertice[]; connections: Connection[] } | undefined> {
+  public async fetch_visualizer_info(
+    collection: ArangoImage[],
+  ): Promise<{ vertices: Vertice[]; connections: Connection[] } | undefined> {
     try {
       return (
         await (

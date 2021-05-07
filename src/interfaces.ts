@@ -47,3 +47,21 @@ export interface PicsumImage {
   url: string; // Image original URL (source site)
   download_url: string; // Image direct URL for download
 }
+
+export interface ArangoImage {
+  _key: string;
+  _id: string;
+  _rev: string;
+  author: string;
+  url: string;
+  data: string;
+}
+
+export interface ArangoImageInfo {
+  image: ArangoImage;
+  labels: {
+    score: number;
+    data: string;
+  }[];
+  bestGuess: string[];
+}

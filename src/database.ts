@@ -5,6 +5,7 @@
 import { Database } from 'arangojs';
 
 if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
 }
 
@@ -28,6 +29,6 @@ db.version().then(
 
 export const documentCollections: string[] = ['Images', 'Authors', 'Labels', 'BestGuess'];
 export const edgeCollections: string[] = ['LabelOf', 'AuthorOf', 'BestGuessOf'];
-export const view: string = 'searchview';
+export const view = 'searchview';
 
 export default db;

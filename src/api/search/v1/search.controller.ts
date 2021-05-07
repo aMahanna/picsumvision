@@ -1,7 +1,33 @@
 import { Request, Response } from 'express';
 import { imageObject } from '../../../collections/Image';
 import fetchVisionMetadata from '../../../vision';
-import { Vertice, Connection, VisionAnnotation } from '../../../interfaces';
+import { Vertice, Connection, VisionAnnotation, ArangoImage } from '../../../interfaces';
+
+/**
+ * Builds an array of nodes & edges, to provide formatted data to the React Graph Visualizer tool
+ *
+ * @param info An array of vertices, and an array of connections
+ * @returns {nodes, edges}
+ */
+function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }) {
+  let nodes: { id: string; label: string; color: string }[] = [];
+  let edges: { id: string; from: string; to: string; label: string }[] = [];
+  for (let i = 0; i < info.vertices.length; i++) {
+    const vertice: Vertice = info.vertices[i];
+    nodes = nodes.concat([{ id: vertice._id, label: (vertice.label || vertice.name || vertice.bestGuess)!, color: '#41BBD9' }]);
+  }
+
+  for (let j = 0; j < info.connections.length; j++) {
+    const connect: Connection = info.connections[j];
+    nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: '#F18F01' }]);
+    for (let t = 0; t < connect.edges.length; t++) {
+      const edge = connect.edges[t];
+      edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to, label: String(edge._score) }]);
+    }
+  }
+
+  return { nodes, edges };
+}
 
 /**
  * The @namespace for orchestrating Search operations
@@ -18,7 +44,7 @@ namespace SearchController {
    */
   export async function from_mixed_keys(req: Request, res: Response): Promise<void> {
     const labels: string = typeof req.query.labels === 'string' ? req.query.labels : '';
-    let data: {}[] | undefined = await imageObject.query_mixed_keys(labels);
+    const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
     if (!data) {
       res.status(500).json('Error searching from mixed keys');
     } else if (!req.query.isVisualizeRequest) {
@@ -45,7 +71,7 @@ namespace SearchController {
     const labels: string | undefined = await imageObject.fetch_surprise_keys();
     if (!labels) res.status(500).json('Error fetching surprise keys');
     else {
-      const data: {}[] | undefined = await imageObject.query_mixed_keys(labels);
+      const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
       res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
     }
   }
@@ -65,36 +91,10 @@ namespace SearchController {
       const labels: string | undefined = await parseVisionData(url);
       if (!labels) res.status(500).json('Error fetching surprise keys');
       else {
-        const data: {}[] | undefined = await imageObject.query_mixed_keys(labels);
+        const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
         res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
       }
     }
-  }
-
-  /**
-   * Builds an array of nodes & edges, to provide formatted data to the React Graph Visualizer tool
-   *
-   * @param info An array of vertices, and an array of connections
-   * @returns {nodes, edges}
-   */
-  function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }) {
-    let nodes: { id: string; label: string; color: string }[] = [];
-    let edges: { id: string; from: string; to: string; label: string }[] = [];
-    for (let i = 0; i < info.vertices.length; i++) {
-      const vertice: Vertice = info.vertices[i];
-      nodes = nodes.concat([{ id: vertice._id, label: (vertice.label || vertice.name || vertice.bestGuess)!, color: '#41BBD9' }]);
-    }
-
-    for (let j = 0; j < info.connections.length; j++) {
-      const connect: Connection = info.connections[j];
-      nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: '#F18F01' }]);
-      for (let t = 0; t < connect.edges.length; t++) {
-        const edge = connect.edges[t];
-        edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to, label: String(edge._score) }]);
-      }
-    }
-
-    return { nodes, edges };
   }
 
   /**
@@ -119,7 +119,7 @@ namespace SearchController {
     ];
 
     // Iterate through the Unique Labels array the labels
-    let labelsObject: string[] = [];
+    const labelsObject: string[] = [];
     for (let t = 0; t < UNIQUE_LABELS.length; t++) {
       const elem: VisionAnnotation = UNIQUE_LABELS[t];
       labelsObject.push((elem.description || elem.name)!.toLowerCase());

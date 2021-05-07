@@ -24,6 +24,7 @@ import { authorObject, authorOfObject } from '../collections/Author';
 import { bestGuessObject, bestGuessOfObject } from '../collections/BestGuess';
 
 if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
 }
 
@@ -35,7 +36,7 @@ if (process.env.NODE_ENV !== 'production') {
  * @returns the string in ASCII code
  */
 function stringToASCII(data: string): string {
-  let _key: string = '';
+  let _key = '';
   data.split('').forEach(char => {
     _key += char.charCodeAt(0);
   });
@@ -44,8 +45,8 @@ function stringToASCII(data: string): string {
 
 async function populateDB() {
   // number of picsum images: ~1000
-  const limit: number = 50;
-  const maxResults: number = 2;
+  const limit = 50;
+  const maxResults = 2;
 
   let PICSUM_LIST: PicsumImage[] = [];
   let PICSUM_RESULT: PicsumImage[] = [];

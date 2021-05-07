@@ -2,3 +2,5 @@ node_modules
 dist
 # Ignore eslint config.
 .eslintrc
+# Ignore client (has its own config)
+client

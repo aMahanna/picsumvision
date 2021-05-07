@@ -8,6 +8,7 @@ import info_routes from './src/api/info/v1/info.router';
 const app = express();
 
 if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
 }
 const port = process.env.PORT || 5000;
@@ -21,8 +22,8 @@ search_routes(app);
 info_routes(app);
 
 // Route build files from client.
-app.get("/*", function (req, res) {
-   res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
-})
+app.get('/*', function (req, res) {
+  res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+});
 
 http.createServer(app).listen(port, () => console.log(`Listening on port ${port}`)); // eslint-disable-line no-console

@@ -33,7 +33,7 @@ const Info = (props: any) => {
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
   const [labels, setLabels] = useState([]);
-  const [bestGuess, setBestGuess] = useState('');
+  const [bestGuess, setBestGuess] = useState([]);
 
   /**
    *
@@ -48,7 +48,7 @@ const Info = (props: any) => {
           setURL(result.data.image.url);
           setAuthor(result.data.image.author);
           setLabels(result.data.labels);
-          setBestGuess(result.data.bestGuess[0].bestGuess);
+          setBestGuess(result.data.bestGuess);
         } else {
           props.history.push('/');
         }
@@ -66,7 +66,9 @@ const Info = (props: any) => {
           <Box>
             <img alt={author} className={classes.image} src={url} />
             <h3>{author}</h3>
-            <h4>{`« ${bestGuess} »`}</h4>
+            {bestGuess.map((guess: string) => (
+              <h4>{`« ${bestGuess} »`}</h4>
+            ))}
             <h5>{url}</h5>
             {labels.map((label: { data: string; score: number }) => (
               <Box key={label.data} mt={1}>

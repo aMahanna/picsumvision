@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
 }
 

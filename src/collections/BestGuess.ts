@@ -28,7 +28,7 @@ class BestGuessObject {
    */
   public async insertBestGuess(document: bestGuessModel): Promise<string> {
     const bestGuessAlreadyExists = await BestGuessCollection.document({ _key: document._key }, true);
-    if (bestGuessAlreadyExists) /** @todo remove */ console.log('Duplicate BEST GUESS found: ', bestGuessAlreadyExists._id);
+    console.log(`BEST GUESS: ${document._key} : ${document.bestGuess}`);
     return bestGuessAlreadyExists
       ? bestGuessAlreadyExists._id
       : (await BestGuessCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;

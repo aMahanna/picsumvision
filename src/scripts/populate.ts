@@ -69,7 +69,7 @@ async function populateDB() {
       // Exit early if Vision does not find anything
       console.log('VISION API UNCOOPERATIVE; SKIPPING...');
       console.log(VISION_DATA);
-      return undefined;
+      continue;
     }
 
     // console.log(`URL: ${PICSUM_URL}`);

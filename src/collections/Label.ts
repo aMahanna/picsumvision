@@ -38,9 +38,9 @@ class LabelObject {
   public async insertLabel(document: labelModel): Promise<string> {
     const labelAlreadyExists = await LabelCollection.document({ _key: document._key }, true);
     if (labelAlreadyExists) {
-      console.log('Duplicate LABEL found: ', labelAlreadyExists._id); /** @todo remove */
       return labelAlreadyExists._id;
     }
+    console.log(`LABEL: ${document._key} : ${document.label}`);
     document.data = await this.generateLabelData(document.label.trim());
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }

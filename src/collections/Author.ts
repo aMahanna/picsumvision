@@ -28,7 +28,7 @@ class AuthorObject {
    */
   public async insertAuthor(document: authorModel): Promise<string> {
     const authorAlreadyExists = await AuthorCollection.document({ _key: document._key }, true);
-    if (authorAlreadyExists) /** @todo remove */ console.log('Duplicate AUTHOR found: ', authorAlreadyExists._id);
+    console.log(`LABEL: ${document._key} : ${document.name}`);
     return authorAlreadyExists
       ? authorAlreadyExists._id
       : (await AuthorCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;

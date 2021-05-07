@@ -3,14 +3,14 @@
  * @interface Vertice represents a Label
  * @interface Connection represents an Image, and its Edge links to labels or an author
  * @interface VisionAnnotation represents the metadata returned by the Vision API
+ * @interface ArangoImage represents the Image structure stored in Arango
+ * @interface ArangoImageInfo represents the result of an Image Info query (WIP)
  */
 export interface Vertice {
   _id: string; // ArangoDB-generated ID
   _key: string; // The number section of ArangoDB-generated ID
-  label?: string; // The Vision label assigned (strictly for Label vertices)
-  name?: string; // The author name assigned (strictly for Author vertices)
-  bestGuess?: string; // The author name assigned (strictly for BestGuess vertices)
-  data: string; // The data it holds
+  data: string; // The data it holds (label, author name, or best guess)
+  color: string; // The color assigned to the vertice
 }
 
 export interface Connection {
@@ -49,12 +49,9 @@ export interface PicsumImage {
 }
 
 export interface ArangoImage {
-  _key: string;
-  _id: string;
-  _rev: string;
-  author: string;
-  url: string;
-  data: string;
+  author: string; // Author
+  url: string; // Image url
+  date: Date; // Insertion date
 }
 
 export interface ArangoImageInfo {

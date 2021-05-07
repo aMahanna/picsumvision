@@ -23,6 +23,8 @@ import { labelObject } from '../collections/Label/Label';
 import { labelOfObject } from '../collections/Label/LabelOf';
 import { authorObject } from '../collections/Author/Author';
 import { authorOfObject } from '../collections/Author/AuthorOf';
+import { bestGuessObject } from '../collections/BestGuess/BestGuess';
+import { bestGuessOfObject } from '../collections/BestGuess/BestGuessOf';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -45,8 +47,8 @@ function stringToASCII(data: string): string {
 
 async function populateDB() {
   // number of picsum images: ~1000
-  const limit: number = 100;
-  const maxResults: number = 6;
+  const limit: number = 50;
+  const maxResults: number = 2;
 
   let PICSUM_LIST: PicsumImage[] = [];
   let PICSUM_RESULT: PicsumImage[] = [];
@@ -58,7 +60,7 @@ async function populateDB() {
 
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
     pageCount++;
-  } while (PICSUM_RESULT.length !== 0); // pageCount !== 2 --> Generates only the first 100 images
+  } while (pageCount !== 2); // pageCount !== 2 --> Generates only the first LIMIT images
 
   for (let j = 0; j < PICSUM_LIST.length; j++) {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
@@ -98,7 +100,6 @@ async function populateDB() {
     const authorID: string = await authorObject.insertAuthor({
       _key: stringToASCII(PICSUM_IMAGE.author),
       name: PICSUM_IMAGE.author,
-      data: PICSUM_IMAGE.author,
     });
     await authorOfObject.insertAuthorOf({
       _from: authorID,
@@ -111,29 +112,52 @@ async function populateDB() {
      * @returns "LABEL" IDs
      */
     // Parse, sort & unify the metadata to ensure there are no conflicting values
-    const VISION_LABEL_OBJECT_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
-      ?.concat(VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [])
-      .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
+    const VISION_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
+      ?.concat(
+        VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [],
+        VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
+      )
+      .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1));
     const UNIQUE_LABELS: VisionAnnotation[] = [
-      ...new Map(VISION_LABEL_OBJECT_ANNOTATIONS.map((elem: VisionAnnotation) => [elem.mid, elem])).values(),
+      ...new Map(VISION_ANNOTATIONS.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values(),
     ];
 
     for (let t = 0; t < UNIQUE_LABELS.length; t++) {
       const elem: VisionAnnotation = UNIQUE_LABELS[t];
-      const label = (elem.description || elem.name)!;
-      const labelID: string = await labelObject.insertLabel({
-        _key: stringToASCII(elem.mid),
-        mid: elem.mid,
-        label,
+      if (elem.score > 0.7) {
+        const id: string = (elem.mid || elem.entityId)!;
+        const label: string = (elem.description || elem.name)!;
+        const labelID: string = await labelObject.insertLabel({
+          _key: stringToASCII(id),
+          mid: id,
+          label,
+        });
+        await labelOfObject.insertLabelOf({
+          _from: labelID,
+          _to: imageID,
+          _score: elem.score,
+        });
+      }
+    }
+    /**
+     * @this Inserts the Best Guess documents, and links the image using BestGuessOf edges
+     * @returns "BestGuess" IDs
+     */
+    const BEST_GUESSES: { label: string; languageCode: string }[] = VISION_DATA.webDetection?.bestGuessLabels;
+    for (let y = 0; y < BEST_GUESSES.length; y++) {
+      const elem = BEST_GUESSES[y];
+      const bestGuessID: string = await bestGuessObject.insertBestGuess({
+        _key: stringToASCII(elem.label),
+        bestGuess: elem.label,
       });
-      await labelOfObject.insertLabelOf({
-        _from: labelID,
+      await bestGuessOfObject.insertBestGuessOf({
+        _from: bestGuessID,
         _to: imageID,
-        _score: elem.score,
+        _score: 1,
       });
     }
 
-    console.log(`Round #${imageID} complete`);
+    console.log(`${imageID} complete`);
   }
 
   console.log('Success: Populating DB complete.');

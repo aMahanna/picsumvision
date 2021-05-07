@@ -13,14 +13,14 @@ async function onboardDB() {
     console.log(`Configuring ${documentCollections[i]} collection...`);
     const documentCollection = db.collection(documentCollections[i]);
     (await documentCollection.exists()) ? await documentCollection.drop() : '';
-    await documentCollection.create({ waitForSync: true, type: CollectionType.DOCUMENT_COLLECTION });
+    await documentCollection.create({ type: CollectionType.DOCUMENT_COLLECTION });
   }
 
   for (let j = 0; j < edgeCollections.length; j++) {
     console.log(`Configuring ${edgeCollections[j]} collection...`);
     const edgeCollection = db.collection(edgeCollections[j]);
     (await edgeCollection.exists()) ? await edgeCollection.drop() : '';
-    await edgeCollection.create({ waitForSync: true, type: CollectionType.EDGE_COLLECTION });
+    await edgeCollection.create({ type: CollectionType.EDGE_COLLECTION });
   }
 
   console.log(`Configuring ${view}...`);
@@ -30,13 +30,9 @@ async function onboardDB() {
   await searchView.updateProperties({
     links: {
       Authors: {
-        // Connect the Author connection to the View
+        // Connect the Author vertices to the View
         analyzers: ['identity'],
         fields: {
-          data: {
-            // Enable English search analyzer for .data field
-            analyzers: ['text_en'],
-          },
           name: {
             // Enable English search analyzer for .name field
             analyzers: ['text_en'],
@@ -47,7 +43,7 @@ async function onboardDB() {
         trackListPositions: false,
       },
       Labels: {
-        // Connect the Label connection to the View
+        // Connect the Label vertices to the View
         analyzers: ['identity'],
         fields: {
           label: {
@@ -56,6 +52,19 @@ async function onboardDB() {
           },
           data: {
             // Enable English search analyzer for .data field
+            analyzers: ['text_en'],
+          },
+        },
+        includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)
+        storeValues: 'none',
+        trackListPositions: false,
+      },
+      BestGuess: {
+        // Connect the BestGuess vertices to the View
+        analyzers: ['identity'],
+        fields: {
+          bestGuess: {
+            // Enable English search analyzer for .bestGuess field
             analyzers: ['text_en'],
           },
         },

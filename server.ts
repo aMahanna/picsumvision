@@ -5,7 +5,6 @@ import path from 'path';
 import search_routes from './src/api/search/v1/search.router';
 import info_routes from './src/api/info/v1/info.router';
 
-
 const app = express();
 
 if (process.env.NODE_ENV !== 'production') {

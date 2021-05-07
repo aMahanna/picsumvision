@@ -1,0 +1,38 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "project":"./tsconfig.json"
+  },
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "prettier",
+    "react"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"  
+  ],
+  "rules": {
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "no-console": 1, // Means warning
+    "prettier/prettier": 2 // Means error
+  },
+  "settings": {
+    "react": {
+      "version": "latest"
+    }
+  }
+}
+

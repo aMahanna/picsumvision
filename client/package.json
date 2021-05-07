@@ -30,14 +30,19 @@
   },
   "devDependencies": {
     "prettier": "^2.2.1",
-    "sass": "^1.32.0"
+    "sass": "^1.32.0",
+    "eslint": "^7.22.0",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "prettier": "prettier --write src/**/*.ts{,x}"
+    "prettier": "prettier --write src/**/*.ts{,x}",
+    "lint": "tsc --noEmit && eslint src/**/*.ts{,x}",
+    "lint:fix": "tsc --noEmit && eslint --fix src/**/*.ts{,x}"
   },
   "eslintConfig": {
     "extends": [

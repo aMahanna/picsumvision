@@ -12,20 +12,20 @@ import { Vertice, Connection, VisionAnnotation, ArangoImage } from '../../../int
 function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }) {
   let nodes: { id: string; label: string; color: string }[] = [];
   let edges: { id: string; from: string; to: string; label: string }[] = [];
+
   for (let i = 0; i < info.vertices.length; i++) {
     const vertice: Vertice = info.vertices[i];
-    nodes = nodes.concat([{ id: vertice._id, label: (vertice.label || vertice.name || vertice.bestGuess)!, color: '#41BBD9' }]);
+    nodes = nodes.concat([{ id: vertice._id, label: vertice.data!, color: vertice.color }]);
   }
 
   for (let j = 0; j < info.connections.length; j++) {
     const connect: Connection = info.connections[j];
-    nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: '#F18F01' }]);
+    nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: '#399E5A' }]);
     for (let t = 0; t < connect.edges.length; t++) {
       const edge = connect.edges[t];
       edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to, label: String(edge._score) }]);
     }
   }
-
   return { nodes, edges };
 }
 
@@ -50,7 +50,8 @@ namespace SearchController {
     } else if (!req.query.isVisualizeRequest) {
       res.status(200).json({ data, labels: labels.split(' ').sort().join(' ') });
     } else {
-      const visualizationInfo = await imageObject.fetch_visualizer_info(data);
+      console.log(labels);
+      const visualizationInfo = await imageObject.fetch_visualizer_info(data, labels);
       if (!visualizationInfo) {
         res.status(500).json('Error visualizing from mixed keys');
       } else {

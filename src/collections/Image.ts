@@ -48,17 +48,21 @@ class ImageObject {
    */
   public async query_mixed_keys(targetLabels: string): Promise<ArangoImage[] | undefined> {
     try {
-      //BOOST(doc.data IN TOKENS(FIRST(t), 'text_en'), 5) ||
+      /**
+       * @todo
+       * Add back the following ANALYZER query: doc.data IN t
+       * It is currently removed because the .data field of Labels is not populated with the best synonyms
+       * (Cause: DataMuse API)
+       */
       const matches = await (
         await db.query(aql`
           WITH Labels, Authors, Images, BestGuess
           LET t = TOKENS(${targetLabels}, 'text_en')
           FOR doc IN searchview 
             SEARCH ANALYZER(
-              doc.data IN t || 
-              BOOST(doc.label IN t, 3) ||
-              BOOST(doc.name IN t, 4) ||
-              BOOST(doc.bestGuess IN t, 5)
+              doc.label IN t ||
+              BOOST(doc.name IN t, 2) ||
+              BOOST(doc.bestGuess IN t, 3)
             , 'text_en') 
             SORT BM25(doc, 1.2, 0) DESC 
             FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
@@ -121,7 +125,7 @@ class ImageObject {
             )
             LET bestGuess = (
               FOR v IN 1..1 INBOUND image BestGuessOf
-              RETURN v
+              RETURN v.bestGuess
             )
             RETURN {image, labels, bestGuess}
         `)
@@ -136,32 +140,68 @@ class ImageObject {
 
   /**
    * WORK IN PRGORESS: @method Returns vertices & edges for visualization tool
+   * Color-codes the vertices using the ArangoSearch BM25 Ranking Algorithm
    */
   public async fetch_visualizer_info(
     collection: ArangoImage[],
+    labels: string,
   ): Promise<{ vertices: Vertice[]; connections: Connection[] } | undefined> {
     try {
-      return (
-        await (
-          await db.query(aql`
-            WITH Labels, Authors, BestGuess
-            LET vertices = (
-              FOR i IN ${collection}
-                FOR v IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                  RETURN DISTINCT v
-            ) 
-            LET connections = (
-              FOR i IN ${collection}
-                LET edges = (
-                  FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                  RETURN e
-                )
-                RETURN {i, edges}
+      /**
+       * @todo
+       * Add back the following ANALYZER query: doc.data IN t
+       * It is currently removed because the .data field of Labels is not populated with the best synonyms
+       * (Cause: DataMuse API)
+       */
+      const result = await (
+        await db.query(aql`
+        WITH Labels, Authors, BestGuess
+        LET vertices = FIRST(
+          LET similar = (
+            LET t = TOKENS(${labels}, 'text_en')
+            FOR doc IN searchview 
+                SEARCH ANALYZER(
+                  doc.label IN t ||
+                  BOOST(doc.name IN t, 2) ||
+                  BOOST(doc.bestGuess IN t, 3)
+                , 'text_en') 
+                LET score = BM25(doc, 1.2, 0)
+                SORT score DESC
+                RETURN {
+                    _key: doc._key,
+                    _id: doc._id,
+                    data: doc.label OR doc.name OR doc.bestGuess,
+                    color: '#FC7753'
+                }
+          ) 
+          LET unsimilar = (
+            FOR i IN ${collection}
+            FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              LET isNewVertice = (FOR sV IN similar RETURN v._key != sV._key)
+              FILTER false NOT IN isNewVertice
+              COLLECT uV = v
+              RETURN {
+                _key: uV._key,
+                _id: uV._id,
+                data: uV.label OR uV.name OR uV.bestGuess,
+                color: '#66D7D1'
+              }
+          )
+          RETURN APPEND(similar, unsimilar)
+        )
+        LET connections = (
+          FOR i IN ${collection}
+            LET edges = (
+              FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              RETURN e
             )
-            RETURN {vertices, connections}
-          `)
-        ).all()
-      )[0];
+            RETURN {i, edges}
+        )
+        RETURN {vertices, connections} 
+      `)
+      ).all();
+
+      return result[0];
     } catch (error) {
       console.error(error);
       return undefined;

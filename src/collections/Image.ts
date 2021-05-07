@@ -36,7 +36,7 @@ class ImageObject {
               url: document.url,
               date: document.date,
             },
-            { waitForSync: true, overwriteMode: 'ignore' },
+            { overwriteMode: 'ignore' },
           )
         )._id;
   }
@@ -48,21 +48,22 @@ class ImageObject {
    */
   public async query_mixed_keys(targetLabels: string): Promise<{}[] | undefined> {
     try {
+      //BOOST(doc.data IN TOKENS(FIRST(t), 'text_en'), 5) ||
       const matches = await (
         await db.query(aql`
-        WITH Labels, Authors, Images
-        LET t = TOKENS(${targetLabels}, 'text_en')
-        FOR doc IN searchview 
-          SEARCH ANALYZER(
-            doc.data IN t || 
-            BOOST(doc.data IN TOKENS(FIRST(t), 'text_en'), 5) || 
-            BOOST(doc.label IN t, 4) ||
-            BOOST(doc.name IN t, 3)
-          , 'text_en') 
-          SORT BM25(doc, 1.2, 0) DESC 
-          FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            RETURN DISTINCT v
-      `)
+          WITH Labels, Authors, Images, BestGuess
+          LET t = TOKENS(${targetLabels}, 'text_en')
+          FOR doc IN searchview 
+            SEARCH ANALYZER(
+              doc.data IN t || 
+              BOOST(doc.label IN t, 3) ||
+              BOOST(doc.name IN t, 4) ||
+              BOOST(doc.bestGuess IN t, 5)
+            , 'text_en') 
+            SORT BM25(doc, 1.2, 0) DESC 
+            FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              RETURN DISTINCT v
+        `)
       ).all();
 
       return matches;
@@ -79,17 +80,16 @@ class ImageObject {
     try {
       const result = await (
         await db.query(aql`
-        With Labels, Authors
-        FOR i IN Images
-          SORT RAND()
-          LIMIT 1
-          FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          With Labels, Authors
+          FOR i IN Images
             SORT RAND()
-            LIMIT 3
-            LET label= SPLIT(v.data, " ")
-            SORT RAND()
-            RETURN FIRST(label)
-      `)
+            LIMIT 1
+            FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              SORT RAND()
+              LIMIT 4
+              FILTER v.name != null OR v.label != null
+              RETURN v.name != null ? v.name : v.label
+        `)
       ).all();
 
       return result.join(' ');
@@ -106,21 +106,25 @@ class ImageObject {
     try {
       const result = await (
         await db.query(aql`
-        WITH Labels
-        Let image = FIRST((
-          FOR i IN Images
-          FILTER i._key == ${id}
-          LIMIT 1
-          RETURN i
-        ))
-        Let labels = (
-          FOR v, e, p IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-          FILTER e._from == v._id
-          SORT e._score DESC
-          RETURN {score: e._score, data: v.label}
-        )
-        RETURN {image, labels}
-      `)
+          WITH Labels, BestGuess
+            Let image = FIRST((
+              FOR i IN Images
+              FILTER i._key == ${id}
+              LIMIT 1
+              RETURN i
+            ))
+            Let labels = (
+              FOR v, e IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              FILTER e._from == v._id
+              SORT e._score DESC
+              RETURN {score: e._score, data: v.label}
+            )
+            LET bestGuess = (
+              FOR v IN 1..1 INBOUND image BestGuessOf
+              RETURN v
+            )
+            RETURN {image, labels, bestGuess}
+        `)
       ).all();
 
       return result[0];
@@ -138,22 +142,22 @@ class ImageObject {
       return (
         await (
           await db.query(aql`
-          WITH Labels, Authors
-          LET vertices = (
-            FOR i IN ${collection}
-              FOR v IN 1..1 INBOUND i._id LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                RETURN DISTINCT v
-          ) 
-          LET connections = (
-            FOR i IN ${collection}
-              LET edges = (
-                FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                RETURN e
-              )
-              RETURN {i, edges}
-          )
-          RETURN {vertices, connections}
-        `)
+            WITH Labels, Authors, BestGuess
+            LET vertices = (
+              FOR i IN ${collection}
+                FOR v IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+                  RETURN DISTINCT v
+            ) 
+            LET connections = (
+              FOR i IN ${collection}
+                LET edges = (
+                  FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+                  RETURN e
+                )
+                RETURN {i, edges}
+            )
+            RETURN {vertices, connections}
+          `)
         ).all()
       )[0];
     } catch (error) {

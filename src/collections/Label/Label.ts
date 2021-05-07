@@ -9,10 +9,10 @@ interface labelModel {
   _key: string;
   mid: string;
   label: string;
-  data?: any; // @todo update
+  data?: string;
 }
 
-interface datamuseModel {
+interface museModel {
   word: string;
   score?: number;
   tags?: string[];
@@ -34,7 +34,7 @@ class LabelObject {
       console.log('Duplicate LABEL found: ', labelAlreadyExists._id); /** @todo remove */
       return labelAlreadyExists._id;
     }
-    document.data = await this.generateLabelData(document.label);
+    document.data = await this.generateLabelData(document.label.trim());
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 
@@ -43,7 +43,7 @@ class LabelObject {
    * This ideally helps refine searching, but is currently unstable
    * - The contents of the metadata returned do not always match the target word
    * - Currently debating on whether to remove this or not, @todo
-   *
+   * - Currently using the arbitrary DataMuse 'scoring' mecanism to filter out responses
    *
    * - mlResult: Matches around "means like" results  (e.g person -> someone)
    * - trgResult: Matches around "trigger" (e.g cow -> milking)
@@ -52,16 +52,22 @@ class LabelObject {
    * @returns
    */
   public async generateLabelData(word: string) {
-    const mlResult: datamuseModel[] = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=1`)).json();
-    const trgResult: datamuseModel[] = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=1`)).json();
-    const gnResult: datamuseModel[] = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=1`)).json();
-    const labelData: datamuseModel[] = mlResult.concat(trgResult, gnResult);
+    const mlResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=1`)).json();
+    const gnResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=1`)).json();
+    const trgResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=1`)).json();
+    const labelData: museModel[] = (mlResult[mlResult.length - 1] && mlResult[mlResult.length - 1].score! > 40000
+      ? mlResult
+      : []
+    ).concat(
+      gnResult[gnResult.length - 1] && gnResult[gnResult.length - 1].score! > 4000 ? gnResult : [],
+      trgResult[trgResult.length - 1] && trgResult[trgResult.length - 1].score! > 1500 ? trgResult : [],
+    );
     return [...new Map(labelData.map(elem => [elem.word, elem.word])).values()].join(' ');
   }
 }
 
 export const labelObject: LabelObject = new LabelObject();
 // (async () => {
-//   const labelData = await labelObject.generateLabelData('plant');
+//   const labelData = await labelObject.generateLabelData('MacBook Air');
 //   console.log(labelData);
 // })();

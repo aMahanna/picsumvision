@@ -9,6 +9,7 @@ export interface Vertice {
   _key: string; // The number section of ArangoDB-generated ID
   label?: string; // The Vision label assigned (strictly for Label vertices)
   name?: string; // The author name assigned (strictly for Author vertices)
+  bestGuess?: string; // The author name assigned (strictly for BestGuess vertices)
   data: string; // The data it holds
 }
 
@@ -31,7 +32,8 @@ export interface Connection {
 }
 
 export interface VisionAnnotation {
-  mid: string; // A machine generated ID
+  mid?: string; // A machine generated ID, used in OBJECT_LOCALIZATION & LABEL_DETECTION
+  entityId?: string; // An ID designated to a Web Entity, used in WEB_DETECTION
   name?: string; // The name of the metadata, used in OBJECT_LOCALIZATION
   description?: string; // The description of the metadata, used in LABEL_DETECTION
   score: number; // The confidence score

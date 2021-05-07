@@ -82,7 +82,7 @@ namespace SearchController {
     let edges: { id: string; from: string; to: string; label: string }[] = [];
     for (let i = 0; i < info.vertices.length; i++) {
       const vertice: Vertice = info.vertices[i];
-      nodes = nodes.concat([{ id: vertice._id, label: (vertice.label || vertice.name)!, color: '#41BBD9' }]);
+      nodes = nodes.concat([{ id: vertice._id, label: (vertice.label || vertice.name || vertice.bestGuess)!, color: '#41BBD9' }]);
     }
 
     for (let j = 0; j < info.connections.length; j++) {

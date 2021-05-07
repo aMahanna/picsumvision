@@ -23,6 +23,18 @@ export default async function fetchVisionMetadata(url: string, maxResults: numbe
             maxResults,
             type: 'OBJECT_LOCALIZATION',
           },
+          {
+            maxResults,
+            type: 'WEB_DETECTION',
+          },
+          // {
+          //   maxResults,
+          //   type: 'IMAGE_PROPERTIES',
+          // },
+          // {
+          //   maxResults,
+          //   type: 'LANDMARK_DETECTION',
+          // },
           // {
           //   maxResults,
           //   type: 'FACE_DETECTION',
@@ -34,18 +46,6 @@ export default async function fetchVisionMetadata(url: string, maxResults: numbe
           /**
            * @todo Prepare ArangoDB for the rest of these features:
            */
-          // {
-          //   maxResults,
-          //   type: 'WEB_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'IMAGE_PROPERTIES',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'LANDMARK_DETECTION',
-          // },
           // {
           //   maxResults,
           //   typeclear: 'LOGO_DETECTION',

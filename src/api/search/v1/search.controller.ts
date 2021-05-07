@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { imageObject } from '../../../collections/Image';
-import parseVisionData from '../../../vision';
-import { Vertice, Connection } from '../../../interfaces';
+import fetchVisionMetadata from '../../../vision';
+import { Vertice, Connection, VisionAnnotation } from '../../../interfaces';
 
 /**
  * The @namespace for orchestrating Search operations
@@ -95,6 +95,36 @@ namespace SearchController {
     }
 
     return { nodes, edges };
+  }
+
+  /**
+   *
+   * @param url The url to pass to the Vision API
+   * @returns An array of labels representing the image in question
+   */
+  export async function parseVisionData(url: string): Promise<string | undefined> {
+    const VISION_DATA = await fetchVisionMetadata(url, 3); // Set max results to 3 for now
+    if (!VISION_DATA || VISION_DATA.error) {
+      // Exit early if Vision does not find anything
+      console.log(VISION_DATA);
+      return undefined;
+    }
+
+    // Parse, sort & unify the metadata to ensure there are no conflicting values
+    const VISION_LABEL_OBJECT_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
+      ?.concat(VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [])
+      .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
+    const UNIQUE_LABELS: VisionAnnotation[] = [
+      ...new Map(VISION_LABEL_OBJECT_ANNOTATIONS.map((elem: VisionAnnotation) => [elem.mid, elem])).values(),
+    ];
+
+    // Iterate through the Unique Labels array the labels
+    let labelsObject: string[] = [];
+    for (let t = 0; t < UNIQUE_LABELS.length; t++) {
+      const elem: VisionAnnotation = UNIQUE_LABELS[t];
+      labelsObject.push((elem.description || elem.name)!.toLowerCase());
+    }
+    return labelsObject.join(' ');
   }
 }
 

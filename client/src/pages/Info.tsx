@@ -29,10 +29,11 @@ const useStyles = makeStyles(() =>
 const Info = (props: any) => {
   //const [t] = useTranslation();
   const classes = useStyles();
-  const [imageID] = useState(props.match.params.id);
-  const [imageURL, setImageURL] = useState('');
-  const [imageAuthor, setImageAuthor] = useState('');
-  const [imageLabels, setImageLabels] = useState([]);
+  const [id] = useState(props.match.params.id);
+  const [url, setURL] = useState('');
+  const [author, setAuthor] = useState('');
+  const [labels, setLabels] = useState([]);
+  const [bestGuess, setBestGuess] = useState('');
 
   /**
    *
@@ -40,18 +41,19 @@ const Info = (props: any) => {
    * If no image is found, redirect to landing page
    */
   useEffect(() => {
-    fetch(`/api/info/image?id=${imageID}`)
+    fetch(`/api/info/image?id=${id}`)
       .then(response => response.json())
       .then(result => {
         if (result.data.image) {
-          setImageURL(result.data.image.url);
-          setImageAuthor(result.data.image.author);
-          setImageLabels(result.data.labels);
+          setURL(result.data.image.url);
+          setAuthor(result.data.image.author);
+          setLabels(result.data.labels);
+          setBestGuess(result.data.bestGuess[0].bestGuess);
         } else {
           props.history.push('/');
         }
       });
-  }, [imageID, props.history]);
+  }, [id, props.history]);
 
   return (
     <Container component="main" maxWidth="md">
@@ -60,12 +62,13 @@ const Info = (props: any) => {
         <WhereToVoteOutlinedIcon fontSize="large" />
       </Avatar>
       <Box mt={4}>
-        {imageURL !== '' && imageAuthor !== '' && imageLabels.length !== 0 && (
+        {url !== '' && author !== '' && labels.length !== 0 && (
           <Box>
-            <img alt={imageAuthor} className={classes.image} src={imageURL} />
-            <h3>{imageAuthor}</h3>
-            <h5>{imageURL}</h5>
-            {imageLabels.map((label: { data: string; score: number }) => (
+            <img alt={author} className={classes.image} src={url} />
+            <h3>{author}</h3>
+            <h4>{`« ${bestGuess} »`}</h4>
+            <h5>{url}</h5>
+            {labels.map((label: { data: string; score: number }) => (
               <Box key={label.data} mt={1}>
                 <span>
                   <b>{label.data}</b>: {label.score.toFixed(2)}%

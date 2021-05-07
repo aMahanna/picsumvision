@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Graph from 'react-graph-vis';
-import { Container, CssBaseline } from '@material-ui/core';
+import { CircularProgress, Container, CssBaseline } from '@material-ui/core';
+import { useTranslation } from 'react-i18next';
 
 const options = {
   layout: {
@@ -15,7 +16,7 @@ const options = {
     hover: true,
     hideEdgesOnDrag: true,
     hideEdgesOnZoom: true,
-    zoomSpeed: 0.6,
+    zoomSpeed: 0.8,
   },
 };
 
@@ -25,6 +26,7 @@ const options = {
  *
  */
 const Visualize = () => {
+  const [t] = useTranslation();
   const [graph, setGraph]: any = useState(undefined); // The main Graph object
   const events = {
     // The events that the Graph object listens to
@@ -57,12 +59,13 @@ const Visualize = () => {
   }, []);
 
   return (
-    <Container>
+    <Container maxWidth="lg">
       <CssBaseline />
-      <h4>Last search: {lastSearch}</h4>
+      <h4>{t('visualizerPage.lastSearch')} "{lastSearch}"</h4>
       {graph !== undefined && (
-        <Graph graph={graph} options={options} events={events} style={{ border: 'solid', borderRadius: '1cm', height: '600px' }} />
+        <Graph graph={graph} options={options} events={events} style={{ border: 'solid', borderRadius: '1cm', height: '70vh' }} />
       )}
+      {graph === undefined && <CircularProgress />}
     </Container>
   );
 };

@@ -67,7 +67,9 @@ const Info = (props: any) => {
             <img alt={author} className={classes.image} src={url} />
             <h3>{author}</h3>
             {bestGuess.map((guess: string) => (
-              <h4>{`« ${bestGuess} »`}</h4>
+              <div key={guess}>
+                <h4>{`« ${guess} »`}</h4>
+              </div>
             ))}
             <h5>{url}</h5>
             {labels.map((label: { data: string; score: number }) => (

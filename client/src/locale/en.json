@@ -25,7 +25,15 @@
       "suggestAlert": "Suggestion: "
     },
     "historyPage": {
-      "clear": "Clear History"
+      "clear": "Clear",
+      "search": "Search",
+      "results": "Results",
+      "date": "Date",
+      "view": "View",
+      "makehistory": "Make History"
+    },
+    "visualizerPage": {
+      "lastSearch": "Last Search: "
     }
   }
 }

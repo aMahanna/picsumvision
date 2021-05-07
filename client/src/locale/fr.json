@@ -25,7 +25,15 @@
       "suggestAlert": "Suggestion: "
     },
     "historyPage": {
-      "clear": "Effacer l'historique"
+      "clear": "Effacer",
+      "search": "Recherche",
+      "results": "Résultats",
+      "date": "Date",
+      "view": "Voir",
+      "makehistory": "Écrivez l'historique"
+    },
+    "visualizerPage": {
+      "lastSearch": "Dernière recherche: "
     }
   }
 }

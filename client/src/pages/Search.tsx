@@ -3,7 +3,18 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
-import { Container, CssBaseline, makeStyles, createStyles, Theme, Avatar, TextField, Button, Box } from '@material-ui/core';
+import {
+  Container,
+  CssBaseline,
+  makeStyles,
+  createStyles,
+  Theme,
+  Avatar,
+  TextField,
+  Button,
+  Box,
+  CircularProgress,
+} from '@material-ui/core';
 
 import Alert from '../components/Alert';
 import Gallery from '../components/Gallery';
@@ -53,6 +64,7 @@ const Search = (props: { location: any }) => {
   const [searchResult, setSearchResult] = useState([]); // The results of the search
   const [inputPlaceholder, setInputPlaceholder] = useState(''); // The placeholder of the search bar
 
+  const [isLoading, setIsLoading] = useState(false);
   const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
   const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
   const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
@@ -103,6 +115,8 @@ const Search = (props: { location: any }) => {
    * @param forceInput A forced label value, only used when the user has requested to see a previous search history result
    */
   const query = async (forceInput?: string) => {
+    setIsLoading(true);
+
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
     if (input === '') {
@@ -117,6 +131,7 @@ const Search = (props: { location: any }) => {
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
         updateCache(result.labels, result.data);
+        setIsLoading(false);
       }
     }
   };
@@ -127,6 +142,8 @@ const Search = (props: { location: any }) => {
    * - Update cache with new search results
    */
   const surpriseMe = async () => {
+    setIsLoading(true);
+
     const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
       const result = await response.json();
@@ -134,6 +151,7 @@ const Search = (props: { location: any }) => {
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
       updateCache(result.labels, result.data);
+      setIsLoading(false);
     }
   };
 
@@ -204,18 +222,23 @@ const Search = (props: { location: any }) => {
             variant="standard"
           />
         </Box>
-        <Box mt={2} className={classes.button}>
-          <Button id="search-submit" onClick={() => query()}>
-            {t('searchPage.query')}
-          </Button>
-          <Button id="search-surprise" onClick={surpriseMe}>
-            {t('searchPage.surprise')}
-          </Button>
-          <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
-            {t('searchPage.visualize')}
-          </Button>
+        <Box mt={2}>
+          {!isLoading && (
+            <div className={classes.button}>
+              <Button id="search-submit" onClick={() => query()}>
+                {t('searchPage.query')}
+              </Button>
+              <Button id="search-surprise" onClick={surpriseMe}>
+                {t('searchPage.surprise')}
+              </Button>
+              <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+                {t('searchPage.visualize')}
+              </Button>
+            </div>
+          )}
         </Box>
       </Container>
+      {isLoading && <CircularProgress></CircularProgress>}
       {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
       {resultIsEmpty && (
         <Box mt={3}>

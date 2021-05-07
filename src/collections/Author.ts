@@ -1,15 +1,22 @@
 /**
- * This @file manages the Labels Document Collection in our ArangoDB
+ * This @file manages the Author & AuthorOf Collections in ArangoDB
  */
 
-import db from '../../database';
+import db from '../database';
 
 interface authorModel {
   _key: string;
   name: string;
 }
 
+interface authorOfModel {
+  _from: string;
+  _to: string;
+  _score: number;
+}
+
 const AuthorCollection = db.collection('Authors');
+const AuthorOfCollection = db.collection('AuthorOf');
 
 class AuthorObject {
   /**
@@ -28,4 +35,17 @@ class AuthorObject {
   }
 }
 
+class AuthorOfObject {
+  /**
+   * @method inserts the AuthorOf Edge linking an Image and an Author
+   *
+   * @param edge implements the authorOfModel interface
+   * @returns The ArangoID of the inserted AuthorOf edge
+   */
+  async insertAuthorOf(edge: authorOfModel): Promise<void> {
+    await AuthorOfCollection.save(edge, { silent: true });
+  }
+}
+
 export const authorObject: AuthorObject = new AuthorObject();
+export const authorOfObject: AuthorOfObject = new AuthorOfObject();

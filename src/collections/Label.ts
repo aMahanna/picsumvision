@@ -1,8 +1,8 @@
 /**
- * This @file manages the Labels Document Collection in our ArangoDB
+ * This @file manages the Label & LabelOf Collections in our ArangoDB
  */
 
-import db from '../../database';
+import db from '../database';
 import fetch from 'node-fetch';
 
 interface labelModel {
@@ -18,7 +18,14 @@ interface museModel {
   tags?: string[];
 }
 
+interface labelOfModel {
+  _from: string;
+  _to: string;
+  _score: number;
+}
+
 const LabelCollection = db.collection('Labels');
+const LabelOfCollection = db.collection('LabelOf');
 
 class LabelObject {
   /**
@@ -51,7 +58,7 @@ class LabelObject {
    * @param word The word to generate more metadata from
    * @returns
    */
-  public async generateLabelData(word: string) {
+  private async generateLabelData(word: string) {
     const mlResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=1`)).json();
     const gnResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=1`)).json();
     const trgResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=1`)).json();
@@ -66,7 +73,22 @@ class LabelObject {
   }
 }
 
+class LabelOfObject {
+  /**
+   * @method inserts the LabelOf Edge linking an Image and a Label metadata
+   *
+   * @param edge implements the labelOfModel interface
+   * @returns The ArangoID of the inserted LabelOf edge
+   */
+  async insertLabelOf(edge: labelOfModel): Promise<void> {
+    await LabelOfCollection.save(edge, { silent: true });
+  }
+}
+
 export const labelObject: LabelObject = new LabelObject();
+export const labelOfObject: LabelOfObject = new LabelOfObject();
+
+// For testing: @todo remove
 // (async () => {
 //   const labelData = await labelObject.generateLabelData('MacBook Air');
 //   console.log(labelData);

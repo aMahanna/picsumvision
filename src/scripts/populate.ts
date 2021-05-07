@@ -19,12 +19,9 @@ import { VisionAnnotation, PicsumImage } from '../interfaces';
 
 // Import the current ArangoDB Collections in-use
 import { imageObject } from '../collections/Image';
-import { labelObject } from '../collections/Label/Label';
-import { labelOfObject } from '../collections/Label/LabelOf';
-import { authorObject } from '../collections/Author/Author';
-import { authorOfObject } from '../collections/Author/AuthorOf';
-import { bestGuessObject } from '../collections/BestGuess/BestGuess';
-import { bestGuessOfObject } from '../collections/BestGuess/BestGuessOf';
+import { labelObject, labelOfObject } from '../collections/Label';
+import { authorObject, authorOfObject } from '../collections/Author';
+import { bestGuessObject, bestGuessOfObject } from '../collections/BestGuess';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();

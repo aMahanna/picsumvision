@@ -1,11 +1,21 @@
 /**
- * @this is a work in progress, as is with the vision.ts @file
+ * @file A script to populare the database
  *
- * Eventually, there will only be one Vision file to use
+ * - Fetches the 993 Picsum images
+ * - Calls the Vision API for each image to create its metadata
+ * - Inserts the image as well as author & label documents / edges into ArrangoDB
+ * - Prints a success message on every iteration if all data is inserted
  */
 
 import '../database';
 import fetch from 'node-fetch';
+
+// Import the Vision API
+import fetchVisionMetadata from '../vision';
+// Import the test data (optional)
+import VISION_TEST_LABELS from './assets/VISION_TEST_LABELS';
+// Import the interfaces used
+import { VisionAnnotation, PicsumImage } from '../interfaces';
 
 // Import the current ArangoDB Collections in-use
 import { imageObject } from '../collections/Image';
@@ -14,102 +24,41 @@ import { labelOfObject } from '../collections/Label/LabelOf';
 import { authorObject } from '../collections/Author/Author';
 import { authorOfObject } from '../collections/Author/AuthorOf';
 
-// Import the test data
-import VISION_TEST_LABELS from './assets/VISION_TEST_LABELS';
-
-// Import the interfaces used
-import { VisionAnnotation, PicsumImage } from '../interfaces';
-
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
 /**
+ * Converts the passed metadata value into ASCII code
+ * Used to create predictable/unique _key values for ArangoDB
  *
- * @param url -- The url to target
- * @param maxResults -- The maximum number of results to get for each feature type
- * @returns An object containing the compiled metadata (@todo add its typing)
+ * @param data A string representing the metadata value
+ * @returns the string in ASCII code
  */
-async function fetchVisionMetadata(url: string, maxResults: number): Promise<any> {
-  const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const body = {
-    requests: [
-      {
-        features: [
-          {
-            maxResults,
-            type: 'LABEL_DETECTION',
-          },
-          {
-            maxResults,
-            type: 'OBJECT_LOCALIZATION',
-          },
-          // {
-          //   maxResults,
-          //   type: 'FACE_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'SAFE_SEARCH_DETECTION',
-          // },
-          /**
-           * @todo Prepare ArangoDB for the rest of these features:
-           */
-          // {
-          //   maxResults,
-          //   type: 'WEB_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'IMAGE_PROPERTIES',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'LANDMARK_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   typeclear: 'LOGO_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'TEXT_DETECTION',
-          // },
-        ],
-        image: {
-          source: {
-            imageUri: url,
-          },
-        },
-      },
-    ],
-  };
-
-  const response = await fetch(uri, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+function stringToASCII(data: string): string {
+  let _key: string = '';
+  data.split('').forEach(char => {
+    _key += char.charCodeAt(0);
   });
-  const result = (await response.json()).responses;
-
-  // Return undefined if no data was found
-  return !result || Object.keys(result[0]).length === 0 ? undefined : result[0];
+  return _key;
 }
 
-async function generateImages() {
+async function populateDB() {
   // number of picsum images: ~1000
   const limit: number = 100;
   const maxResults: number = 6;
 
   let PICSUM_LIST: PicsumImage[] = [];
-  for (let i = 1; i < 11; i++) {
+  let PICSUM_RESULT: PicsumImage[] = [];
+  let pageCount = 1;
+  do {
     // const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/id/1048/info/`); // Used for testing
-    const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${i}&limit=${limit}`);
-    const PICSUM_RESULT = await PICSUM_RESPONSE.json();
+    const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${pageCount}&limit=${limit}`);
+    PICSUM_RESULT = await PICSUM_RESPONSE.json();
+
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
-  }
+    pageCount++;
+  } while (PICSUM_RESULT.length !== 0); // pageCount !== 2 --> Generates only the first 100 images
 
   for (let j = 0; j < PICSUM_LIST.length; j++) {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
@@ -118,6 +67,7 @@ async function generateImages() {
     const VISION_DATA = await fetchVisionMetadata(PICSUM_URL, maxResults);
     if (!VISION_DATA || VISION_DATA.error) {
       // Exit early if Vision does not find anything
+      console.log('VISION API UNCOOPERATIVE; SKIPPING...');
       console.log(VISION_DATA);
       return undefined;
     }
@@ -137,7 +87,7 @@ async function generateImages() {
       date: Date(),
     });
     if (!imageID) {
-      console.log('DUPLICATE IMAGE');
+      console.log('DUPLICATE IMAGE FOUND; SKIPPING...');
       continue;
     }
 
@@ -183,23 +133,10 @@ async function generateImages() {
       });
     }
 
-    console.log(`Success! ${imageID}`);
+    console.log(`Round #${imageID} complete`);
   }
+
+  console.log('Success: Populating DB complete.');
 }
 
-/**
- * Converts the passed metadata value into ASCII code
- * Used to create predictable/unique _key values for ArangoDB
- *
- * @param data A string representing the metadata value
- * @returns
- */
-function stringToASCII(data: string): string {
-  let _key: string = '';
-  data.split('').forEach(char => {
-    _key += char.charCodeAt(0);
-  });
-  return _key;
-}
-
-generateImages();
+populateDB();

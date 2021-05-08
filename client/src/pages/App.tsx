@@ -8,6 +8,7 @@ import Search from './Search';
 import Visualize from './Visualize';
 import History from './History';
 import Info from './Info';
+import About from './About';
 
 /**
  * The Main React Component
@@ -22,6 +23,7 @@ const App = () => {
         <Route exact path="/search" render={props => <Search {...props} />} />
         <Route exact path="/visualize" component={Visualize} />
         <Route exact path="/history" component={History} />
+        <Route exact path="/about" component={About} />
         <Route exact path="/info/:id" component={Info} />
         <Route render={() => <Redirect to={{ pathname: '/' }} />} />
       </Switch>

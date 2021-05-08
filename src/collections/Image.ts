@@ -65,7 +65,9 @@ class ImageObject {
               BOOST(doc.bestGuess IN t, 3)
             , 'text_en') 
             SORT BM25(doc, 1.2, 0) DESC 
+            LIMIT 3
             FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              LIMIT 5
               RETURN DISTINCT v
         `)
       ).all();
@@ -104,30 +106,39 @@ class ImageObject {
   }
 
   /**
-   * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
+   * WORK IN PRGORESS: @method Returns information about an Image
    */
   public async fetch_image_info(id: string): Promise<ArangoImageInfo[] | undefined> {
     try {
       const result = await (
         await db.query(aql`
-          WITH Labels, BestGuess
+          WITH Labels, Authors, BestGuess
             Let image = FIRST((
               FOR i IN Images
               FILTER i._key == ${id}
               LIMIT 1
               RETURN i
             ))
-            Let labels = (
-              FOR v, e IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-              FILTER e._from == v._id
-              SORT e._score DESC
-              RETURN {score: e._score, data: v.label}
-            )
             LET bestGuess = (
               FOR v IN 1..1 INBOUND image BestGuessOf
               RETURN v.bestGuess
             )
-            RETURN {image, labels, bestGuess}
+            Let labels = (
+              FOR v, e IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              FILTER e._from == v._id
+              SORT e._score DESC
+              RETURN {score: e._score, data: v.label, _id: v._id}
+            )
+            LET similar = (
+              FOR l IN labels
+                FOR v,e IN 1..1 OUTBOUND l LabelOf, AuthorOf
+                FILTER v._key !=  ${id}
+                COLLECT img = v WITH COUNT INTO num
+                SORT num DESC
+                LIMIT 3
+                RETURN img
+            )
+            RETURN {image, bestGuess, labels, similar}
         `)
       ).all();
 
@@ -167,6 +178,7 @@ class ImageObject {
                 , 'text_en') 
                 LET score = BM25(doc, 1.2, 0)
                 SORT score DESC
+                LIMIT 5
                 RETURN {
                     _key: doc._key,
                     _id: doc._id,

@@ -21,7 +21,7 @@ const BestGuessOfCollection = db.collection('BestGuessOf');
 class BestGuessObject {
   /**
    * @method used to insert the BestGuess metadata of a particular image
-   * Avoids  duplicates by checking if the guess already exists (highly doubt this will ever happen)
+   * Avoids  duplicates by checking if the guess already exists
    *
    * @param document implements the buestGuessModel interface
    * @returns the ArangoID of the BestGuess inserted

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
+import SearchIcon from '@material-ui/icons/Search';
 import {
   Container,
   CssBaseline,
@@ -14,6 +14,7 @@ import {
   Button,
   Box,
   CircularProgress,
+  Tooltip,
 } from '@material-ui/core';
 
 import Alert from '../components/Alert';
@@ -84,6 +85,7 @@ const Search = (props: { location: any }) => {
       if (persistedData[historyIndex]) {
         setTextFieldInput(historyIndex);
         setSearchResult(persistedData[historyIndex].data);
+        setLastSearch(historyIndex);
       } else {
         setTextFieldInput(historyIndex);
         query(historyIndex);
@@ -120,6 +122,7 @@ const Search = (props: { location: any }) => {
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
     if (input === '') {
+      setIsLoading(false);
       suggestUser();
     } else if (persistedData[index]) {
       setSearchResult(persistedData[index].data);
@@ -150,9 +153,19 @@ const Search = (props: { location: any }) => {
       setTextFieldInput(result.labels);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels, result.data);
+      updateCache(result.labels, result.data); /** @todo Maybe don't include these types of searches in history */
       setIsLoading(false);
     }
+  };
+
+  /**
+   * Handles behaviour when user clicks on the @button DISCOVER
+   * - Hits the /discover endpoint
+   * - Attempts to display relevant results based on the user's previous search history
+   * @todo
+   */
+  const discover = async () => {
+    suggestUser();
   };
 
   // Fetches random labels to user for search inspiration
@@ -207,7 +220,7 @@ const Search = (props: { location: any }) => {
       <Container maxWidth="sm">
         <CssBaseline />
         <Avatar className={classes.avatar}>
-          <WhereToVoteOutlinedIcon fontSize="large" />
+          <SearchIcon fontSize="large" />
         </Avatar>
         <Box mt={2}>
           <TextField
@@ -225,20 +238,31 @@ const Search = (props: { location: any }) => {
         <Box mt={2}>
           {!isLoading && (
             <div className={classes.button}>
-              <Button id="search-submit" onClick={() => query()}>
-                {t('searchPage.query')}
-              </Button>
-              <Button id="search-surprise" onClick={surpriseMe}>
-                {t('searchPage.surprise')}
-              </Button>
-              <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
-                {t('searchPage.visualize')}
-              </Button>
+              <Tooltip title={`${t('searchPage.queryTip')}`} placement="left">
+                <Button id="search-submit" onClick={() => query()}>
+                  {t('searchPage.query')}
+                </Button>
+              </Tooltip>
+              <Tooltip title={`${t('searchPage.surpriseTip')}`} placement="bottom">
+                <Button id="search-surprise" onClick={surpriseMe}>
+                  {t('searchPage.surprise')}
+                </Button>
+              </Tooltip>
+              <Tooltip title={`${t('searchPage.discoverTip')}`} placement="bottom">
+                <Button id="search-surprise" onClick={discover} disabled={lastSearch === ''}>
+                  {t('searchPage.discover')}
+                </Button>
+              </Tooltip>
+              <Tooltip title={`${t('searchPage.visualizeTip')}`} placement="right">
+                <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+                  {t('searchPage.visualize')}
+                </Button>
+              </Tooltip>
             </div>
           )}
         </Box>
       </Container>
-      {isLoading && <CircularProgress></CircularProgress>}
+      {isLoading && <CircularProgress color="inherit" />}
       {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
       {resultIsEmpty && (
         <Box mt={3}>

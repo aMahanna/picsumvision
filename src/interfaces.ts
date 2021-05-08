@@ -36,6 +36,7 @@ export interface VisionAnnotation {
   entityId?: string; // An ID designated to a Web Entity, used in WEB_DETECTION
   name?: string; // The name of the metadata, used in OBJECT_LOCALIZATION
   description?: string; // The description of the metadata, used in LABEL_DETECTION
+  label?: string; // The field of a GCP Best Guess, used in WEB_DETECTION
   score: number; // The confidence score
 }
 
@@ -56,9 +57,10 @@ export interface ArangoImage {
 
 export interface ArangoImageInfo {
   image: ArangoImage;
+  bestGuess: string[];
   labels: {
     score: number;
     data: string;
   }[];
-  bestGuess: string[];
+  similar: ArangoImage[];
 }

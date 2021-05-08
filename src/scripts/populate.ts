@@ -145,7 +145,7 @@ async function populateDB() {
     for (let y = 0; y < BEST_GUESSES.length; y++) {
       const elem = BEST_GUESSES[y];
       const bestGuessID: string = await bestGuessObject.insertBestGuess({
-        _key: stringToASCII(elem.label),
+        _key: stringToASCII(elem.label.toLowerCase()),
         bestGuess: elem.label,
       });
       await bestGuessOfObject.insertBestGuessOf({

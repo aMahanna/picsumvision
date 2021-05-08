@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 // import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
-import { Container, CssBaseline, Box, makeStyles, Avatar, createStyles } from '@material-ui/core';
+import ImageSearchIcon from '@material-ui/icons/ImageSearch';
+import { Container, CssBaseline, Box, makeStyles, Avatar, createStyles, ImageList, ImageListItem } from '@material-ui/core';
 import { default as MUILink } from '@material-ui/core/Link';
-// Import Props interface to define what this component can receive as props
 
 /**
  * CreateStyles allows us to style MUI components
@@ -18,11 +17,6 @@ const useStyles = makeStyles(() =>
       color: '#2F2D2E',
       margin: 'auto',
     },
-    image: {
-      height: '50%',
-      width: '50%',
-      borderRadius: '1cm',
-    },
   }),
 );
 
@@ -32,8 +26,9 @@ const Info = (props: any) => {
   const [id] = useState(props.match.params.id);
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
-  const [labels, setLabels] = useState([]);
   const [bestGuess, setBestGuess] = useState([]);
+  const [labels, setLabels] = useState([]);
+  const [similar, setSimilar] = useState([]);
 
   /**
    *
@@ -47,8 +42,9 @@ const Info = (props: any) => {
         if (result.data.image) {
           setURL(result.data.image.url);
           setAuthor(result.data.image.author);
-          setLabels(result.data.labels);
           setBestGuess(result.data.bestGuess);
+          setLabels(result.data.labels);
+          setSimilar(result.data.similar);
         } else {
           props.history.push('/');
         }
@@ -59,27 +55,49 @@ const Info = (props: any) => {
     <Container component="main" maxWidth="md">
       <CssBaseline />
       <Avatar className={classes.avatar}>
-        <WhereToVoteOutlinedIcon fontSize="large" />
+        <ImageSearchIcon fontSize="large" />
       </Avatar>
       <Box mt={4}>
-        {url !== '' && author !== '' && labels.length !== 0 && (
-          <Box>
-            <img alt={author} className={classes.image} src={url} />
+        {url !== '' && author !== '' && (
+          <div>
+            <img alt={author} style={{ height: '50%', width: '50%', borderRadius: '0.5cm' }} src={url} />
             <h3>{author}</h3>
-            {bestGuess.map((guess: string) => (
-              <div key={guess}>
-                <h4>{`« ${guess} »`}</h4>
-              </div>
-            ))}
             <h5>{url}</h5>
-            {labels.map((label: { data: string; score: number }) => (
-              <Box key={label.data} mt={1}>
-                <span>
-                  <b>{label.data}</b>: {label.score.toFixed(2)}%
-                </span>
-              </Box>
-            ))}
-          </Box>
+          </div>
+        )}
+        {bestGuess.length !== 0 &&
+          bestGuess.map((guess: string) => (
+            <div key={guess}>
+              <h4>{`« ${guess} »`}</h4>
+            </div>
+          ))}
+        {labels.length !== 0 &&
+          labels.map((label: { data: string; score: number }) => (
+            <Box key={label.data} mt={1}>
+              <span>
+                <b>{label.data}</b>: {label.score.toFixed(2)}%
+              </span>
+            </Box>
+          ))}
+        {similar.length !== 0 && (
+          <Container maxWidth="sm">
+            <Box mt={3}>
+              <ImageList variant="standard" style={{ overflowY: 'hidden' }} cols={2}>
+                {similar.map((item: { url: string; _key: string; author: string }) => (
+                  <ImageListItem key={item.url}>
+                    <a href={`/info/${item._key}`}>
+                      <img
+                        src={item.url}
+                        alt={item.author}
+                        style={{ height: '100%', width: '100%', borderRadius: '0.5cm' }}
+                        loading="lazy"
+                      />
+                    </a>
+                  </ImageListItem>
+                ))}
+              </ImageList>
+            </Box>
+          </Container>
         )}
       </Box>
       <Box mt={4}>

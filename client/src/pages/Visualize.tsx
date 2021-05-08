@@ -61,11 +61,13 @@ const Visualize = () => {
   return (
     <Container maxWidth="lg">
       <CssBaseline />
-      <h4>{t('visualizerPage.lastSearch')} "{lastSearch}"</h4>
+      <h4>
+        {t('visualizerPage.lastSearch')} "{lastSearch}"
+      </h4>
       {graph !== undefined && (
         <Graph graph={graph} options={options} events={events} style={{ border: 'solid', borderRadius: '1cm', height: '70vh' }} />
       )}
-      {graph === undefined && <CircularProgress />}
+      {graph === undefined && <CircularProgress color="inherit" />}
     </Container>
   );
 };

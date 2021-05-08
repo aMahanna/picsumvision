@@ -50,7 +50,6 @@ namespace SearchController {
     } else if (!req.query.isVisualizeRequest) {
       res.status(200).json({ data, labels: labels.split(' ').sort().join(' ') });
     } else {
-      console.log(labels);
       const visualizationInfo = await imageObject.fetch_visualizer_info(data, labels);
       if (!visualizationInfo) {
         res.status(500).json('Error visualizing from mixed keys');
@@ -125,7 +124,7 @@ namespace SearchController {
       const elem: VisionAnnotation = UNIQUE_LABELS[t];
       labelsObject.push((elem.description || elem.name)!.toLowerCase());
     }
-    return labelsObject.join(' ');
+    return labelsObject.join(' ') + VISION_DATA.webDetection?.bestGuessLabels[0]?.label;
   }
 }
 

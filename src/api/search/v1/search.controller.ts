@@ -61,22 +61,6 @@ namespace SearchController {
   }
 
   /**
-   * Handles requests to the @endpoint /api/search/surpriseme
-   * Will fetch random labels, and then query the result
-   *
-   * @param req Request
-   * @param res Response
-   */
-  export async function from_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string | undefined = await imageObject.fetch_surprise_keys();
-    if (!labels) res.status(500).json('Error fetching surprise keys');
-    else {
-      const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
-      res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
-    }
-  }
-
-  /**
    * Handles request to the @endpoint /api/search/extImage
    * Using the url provided, fetch the associated Vision metadata
    * Query the Arango DB using the Vision metadata found
@@ -95,6 +79,35 @@ namespace SearchController {
         res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
       }
     }
+  }
+
+  /**
+   * Handles requests to the @endpoint /api/search/surpriseme
+   * Will fetch random labels, and then query the result
+   *
+   * @param req Request
+   * @param res Response
+   */
+  export async function from_surprise_keys(req: Request, res: Response): Promise<void> {
+    const labels: string | undefined = await imageObject.fetch_surprise_keys();
+    if (!labels) res.status(500).json('Error fetching surprise keys');
+    else {
+      const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
+      res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
+    }
+  }
+
+  /**
+   * Handles requests to the @endpoint /api/search/discovery
+   * Will return Images with similar labels to the images that the user has clicked on
+   *
+   * @param req Request
+   * @param res Response
+   */
+  export async function from_discovery(req: Request, res: Response): Promise<void> {
+    const imageIDs: string[] = typeof req.query.IDs === 'string' ? req.query.IDs.split(',') : [];
+    const data: ArangoImage[] | undefined = await imageObject.fetch_discovery(imageIDs, 5);
+    res.status(data ? 200 : 500).json(data ? { data } : 'Error searching from mixed keys');
   }
 
   /**

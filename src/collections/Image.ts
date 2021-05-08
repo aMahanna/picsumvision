@@ -92,7 +92,7 @@ class ImageObject {
             LIMIT 1
             FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
               SORT RAND()
-              LIMIT 4
+              LIMIT 3
               FILTER v.name != null OR v.label != null
               RETURN v.name != null ? v.name : v.label
         `)
@@ -121,25 +121,52 @@ class ImageObject {
             ))
             LET bestGuess = (
               FOR v IN 1..1 INBOUND image BestGuessOf
-              RETURN v.bestGuess
+                RETURN v.bestGuess
             )
             Let labels = (
               FOR v, e IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-              FILTER e._from == v._id
-              SORT e._score DESC
-              RETURN {score: e._score, data: v.label, _id: v._id}
+                FILTER e._from == v._id
+                SORT e._score DESC
+                RETURN {score: e._score, data: v.label, _id: v._id}
             )
-            LET similar = (
-              FOR l IN labels
-                FOR v,e IN 1..1 OUTBOUND l LabelOf, AuthorOf
-                FILTER v._key !=  ${id}
-                COLLECT img = v WITH COUNT INTO num
-                SORT num DESC
-                LIMIT 3
-                RETURN img
-            )
-            RETURN {image, bestGuess, labels, similar}
+            RETURN {image, bestGuess, labels}
         `)
+      ).all();
+      result[0].similar = await this.fetch_discovery([id], 4);
+
+      return result[0];
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  /**
+   * WORK IN PRGORESS: @method Returns images similar to the user's visited Image pages
+   */
+  public async fetch_discovery(clickedImages: string[], resultsLimit: number): Promise<ArangoImage[] | undefined> {
+    try {
+      const result = await (
+        await db.query(aql`
+          WITH Labels
+          FOR i IN Images
+            FILTER i._key IN ${clickedImages}
+            LET labels = (
+              FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+                SORT e._score DESC
+                LIMIT 3
+                RETURN v
+            )
+            Let images = (
+              FOR l IN labels
+                FOR v2, e2 IN 1..1 OUTBOUND l LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+                  FILTER v2._key NOT IN ${clickedImages}
+                  SORT e2._score DESC
+                  LIMIT ${resultsLimit}
+                  RETURN v2
+            )
+            RETURN {images, labels}
+          `)
       ).all();
 
       return result[0];

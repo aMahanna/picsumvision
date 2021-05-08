@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import ImageSearchIcon from '@material-ui/icons/ImageSearch';
 import { Container, CssBaseline, Box, makeStyles, Avatar, createStyles, ImageList, ImageListItem } from '@material-ui/core';
 import { default as MUILink } from '@material-ui/core/Link';
+import usePersistedState from '../hooks/usePersistedState';
 
 /**
  * CreateStyles allows us to style MUI components
@@ -20,6 +21,7 @@ const useStyles = makeStyles(() =>
   }),
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Info = (props: any) => {
   //const [t] = useTranslation();
   const classes = useStyles();
@@ -30,12 +32,20 @@ const Info = (props: any) => {
   const [labels, setLabels] = useState([]);
   const [similar, setSimilar] = useState([]);
 
+  const [imageIDs, setImageIDs] = usePersistedState('clicks', {}); // Persist user clicks to use for Discovery searches
+
   /**
    *
    * @useEffect Fetches & sets the information of an image
    * If no image is found, redirect to landing page
    */
   useEffect(() => {
+    setImageIDs({
+      ...imageIDs,
+      [id]: {
+        date: new Date(),
+      },
+    });
     fetch(`/api/info/image?id=${id}`)
       .then(response => response.json())
       .then(result => {
@@ -44,7 +54,7 @@ const Info = (props: any) => {
           setAuthor(result.data.image.author);
           setBestGuess(result.data.bestGuess);
           setLabels(result.data.labels);
-          setSimilar(result.data.similar);
+          setSimilar(result.data.similar?.images);
         } else {
           props.history.push('/');
         }
@@ -79,7 +89,7 @@ const Info = (props: any) => {
               </span>
             </Box>
           ))}
-        {similar.length !== 0 && (
+        {similar !== undefined && similar.length !== 0 && (
           <Container maxWidth="sm">
             <Box mt={3}>
               <ImageList variant="standard" style={{ overflowY: 'hidden' }} cols={2}>

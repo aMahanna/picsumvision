@@ -26,17 +26,20 @@
       "surprise": "Surprise Me",
       "surpriseTip": "Search with random input",
       "discover": "Discover",
-      "discoverTip": "Discover images similar to history",
+      "discoverTip": "Discover images similar to click history",
       "visualize": "Visualize",
       "visualizeTip": "Visualize results as a graph",
       "inputLabel": "Search by keywords / image url",
       "inputPlaceholder": "Cloud Mountain Rain",
-      "suggestAlert": "Suggestion: "
+      "noResults": "Shoot, we couldn't find anything",
+      "suggestAlert": "Suggestion: ",
+      "sorryAlert": "Apologies, we hit an error"
     },
     "historyPage": {
       "clear": "Clear",
       "searches": "Searches",
       "favourites": "Favourites",
+      "imageClicks": "Image Clicks",
       "search": "Search",
       "results": "Results",
       "date": "Date",

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
  * @param key
  * @param defaultValue
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const usePersistedState = (key: string, defaultValue: any) => {
   const [state, setState] = useState(() => {
     const persistedState = localStorage.getItem(key);

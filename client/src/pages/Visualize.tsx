@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import Graph from 'react-graph-vis';
 import { CircularProgress, Container, CssBaseline } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
+import Alert from '../components/Alert';
 
 const options = {
   layout: {
@@ -27,13 +27,12 @@ const options = {
  */
 const Visualize = () => {
   const [t] = useTranslation();
-  const [graph, setGraph]: any = useState(undefined); // The main Graph object
-  const events = {
-    // The events that the Graph object listens to
-    select: ({ nodes, edges }: { nodes: any; edges: any }) => {
-      if (nodes.length !== 0) alert('Selected node: ' + nodes);
-    },
-  };
+  const [sorryAlert, setSorryAlert] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [graph, setGraph]: any = useState({
+    nodes: [],
+    edges: [],
+  });
 
   const [lastSearch] = useState(() => {
     // Fetch the user's last search
@@ -47,14 +46,18 @@ const Visualize = () => {
    */
   useEffect(() => {
     fetch(`/api/search/mixed?labels=${lastSearch}&isVisualizeRequest=true`)
-      .then(result => result.json())
+      .then(result => (result.status === 200 ? result.json() : undefined))
       .then(response => {
-        const nodes: { id: string; label: string; color: string }[] = response.graphObject.nodes;
-        const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
-        setGraph({
-          nodes,
-          edges,
-        });
+        if (response) {
+          const nodes: { id: string; label: string; color: string }[] = response.graphObject.nodes;
+          const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
+          setGraph({
+            nodes,
+            edges,
+          });
+        } else {
+          setSorryAlert(true);
+        }
       });
   }, []);
 
@@ -64,10 +67,19 @@ const Visualize = () => {
       <h4>
         {t('visualizerPage.lastSearch')} "{lastSearch}"
       </h4>
-      {graph !== undefined && (
-        <Graph graph={graph} options={options} events={events} style={{ border: 'solid', borderRadius: '1cm', height: '70vh' }} />
+      {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
+      {graph.nodes.length !== 0 && (
+        <Graph graph={graph} options={options} events={{}} style={{ border: 'solid', borderRadius: '1cm', height: '70vh' }} />
       )}
-      {graph === undefined && <CircularProgress color="inherit" />}
+      <Alert
+        open={sorryAlert}
+        message={`${t('searchPage.sorryAlert')}`}
+        severity="error"
+        onSnackbarClose={(e, r) => {
+          return r === 'clickaway' ? undefined : setSorryAlert(false);
+        }}
+        onAlertClose={() => setSorryAlert(false)}
+      ></Alert>
     </Container>
   );
 };

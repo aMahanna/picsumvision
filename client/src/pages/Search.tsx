@@ -20,6 +20,7 @@ import {
 import Alert from '../components/Alert';
 import Gallery from '../components/Gallery';
 import usePersistedState from '../hooks/usePersistedState';
+import getPersistedState from '../hooks/getPersistedState';
 
 /**
  * CreateStyles allows us to style MUI components
@@ -57,7 +58,8 @@ const useStyles = makeStyles((theme: Theme) =>
  * @param props Used to accept searches from the History page
  * @returns
  */
-const Search = (props: { location: any }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Search = (props: any) => {
   const [t, i18n] = useTranslation(); // Translation use
   const classes = useStyles();
 
@@ -69,9 +71,11 @@ const Search = (props: { location: any }) => {
   const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
   const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
   const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
+  const [sorryAlert, setSorryAlert] = useState(false); // For times that I want to say apologize
 
   const [persistedData, setPersistedData] = usePersistedState('data', {}); // Persist previous results to use for search history
   const [lastSearch, setLastSearch] = usePersistedState('lastSearch', ''); // Persist last search to use for visualization
+  const [imageClicks] = getPersistedState('clicks');
 
   /**
    * @useEffect Determines whether to:
@@ -103,8 +107,8 @@ const Search = (props: { location: any }) => {
   }, []);
 
   // Handles the change of any MUI component that isn't the Checkbox (so currently just the search bar)
-  const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState(event.target.value);
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTextFieldInput(event.target.value);
   };
 
   /**
@@ -122,7 +126,6 @@ const Search = (props: { location: any }) => {
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
     if (input === '') {
-      setIsLoading(false);
       suggestUser();
     } else if (persistedData[index]) {
       setSearchResult(persistedData[index].data);
@@ -134,9 +137,11 @@ const Search = (props: { location: any }) => {
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
         updateCache(result.labels, result.data);
-        setIsLoading(false);
+      } else {
+        setSorryAlert(true);
       }
     }
+    setIsLoading(false);
   };
 
   /**
@@ -155,17 +160,35 @@ const Search = (props: { location: any }) => {
       setResultIsEmpty(result.data.length === 0);
       updateCache(result.labels, result.data); /** @todo Maybe don't include these types of searches in history */
       setIsLoading(false);
+    } else {
+      setSorryAlert(true);
     }
   };
 
   /**
    * Handles behaviour when user clicks on the @button DISCOVER
    * - Hits the /discover endpoint
-   * - Attempts to display relevant results based on the user's previous search history
+   * - Attempts to display relevant results based on the user's previous click history
    * @todo
    */
   const discover = async () => {
-    suggestUser();
+    if (imageClicks !== undefined) {
+      const imageIDs = Object.keys(imageClicks[0]);
+      const response = await fetch(`/api/search/discovery?IDs=${imageIDs}`);
+      if (response.status === 200) {
+        const result = await response.json();
+        const labels: string = result.data.labels
+          // eslint-disable-line @typescript-eslint/no-explicit-any
+          .map((item: any) => {
+            return item.label;
+          })
+          .join(' ');
+        setSearchResult(result.data.images);
+        setTextFieldInput(labels);
+      } else {
+        setSorryAlert(true);
+      }
+    }
   };
 
   // Fetches random labels to user for search inspiration
@@ -183,6 +206,7 @@ const Search = (props: { location: any }) => {
    * @param index The index of the cache
    * @param data  The data to store
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateCache = async (index: string, data: any[]) => {
     if (data.length !== 0) {
       setPersistedData({
@@ -230,33 +254,41 @@ const Search = (props: { location: any }) => {
             value={textFieldInput}
             label={t('searchPage.inputLabel')}
             placeholder={inputPlaceholder}
-            onChange={handleChange(setTextFieldInput)}
+            onChange={handleTextChange}
             fullWidth
             variant="standard"
           />
         </Box>
         <Box mt={2}>
           {!isLoading && (
-            <div className={classes.button}>
+            <div>
               <Tooltip title={`${t('searchPage.queryTip')}`} placement="left">
-                <Button id="search-submit" onClick={() => query()}>
-                  {t('searchPage.query')}
-                </Button>
+                <span className={classes.button}>
+                  <Button id="search-submit" onClick={() => query()}>
+                    {t('searchPage.query')}
+                  </Button>
+                </span>
               </Tooltip>
               <Tooltip title={`${t('searchPage.surpriseTip')}`} placement="bottom">
-                <Button id="search-surprise" onClick={surpriseMe}>
-                  {t('searchPage.surprise')}
-                </Button>
+                <span className={classes.button}>
+                  <Button id="search-surprise" onClick={surpriseMe}>
+                    {t('searchPage.surprise')}
+                  </Button>
+                </span>
               </Tooltip>
               <Tooltip title={`${t('searchPage.discoverTip')}`} placement="bottom">
-                <Button id="search-surprise" onClick={discover} disabled={lastSearch === ''}>
-                  {t('searchPage.discover')}
-                </Button>
+                <span className={classes.button}>
+                  <Button id="search-surprise" onClick={discover} disabled={imageClicks === undefined}>
+                    {t('searchPage.discover')}
+                  </Button>
+                </span>
               </Tooltip>
               <Tooltip title={`${t('searchPage.visualizeTip')}`} placement="right">
-                <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
-                  {t('searchPage.visualize')}
-                </Button>
+                <span className={classes.button}>
+                  <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+                    {t('searchPage.visualize')}
+                  </Button>
+                </span>
               </Tooltip>
             </div>
           )}
@@ -266,7 +298,7 @@ const Search = (props: { location: any }) => {
       {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
       {resultIsEmpty && (
         <Box mt={3}>
-          <h5>Shoot, no results found</h5>
+          <h5>{t('searchPage.noResults')}</h5>
         </Box>
       )}
       <Alert
@@ -286,6 +318,15 @@ const Search = (props: { location: any }) => {
           return r === 'clickaway' ? undefined : setSuggestInput(false);
         }}
         onAlertClose={() => setSuggestInput(false)}
+      ></Alert>
+      <Alert
+        open={sorryAlert}
+        message={`${t('searchPage.sorryAlert')}`}
+        severity="error"
+        onSnackbarClose={(e, r) => {
+          return r === 'clickaway' ? undefined : setSorryAlert(false);
+        }}
+        onAlertClose={() => setSorryAlert(false)}
       ></Alert>
     </Container>
   );

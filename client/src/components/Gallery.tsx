@@ -2,7 +2,7 @@
  * @component used to render the search results in a grid layout
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Box, ImageList, ImageListItem, ImageListItemBar, IconButton } from '@material-ui/core';
 import StarBorderIcon from '@material-ui/icons/StarBorder';
@@ -10,6 +10,7 @@ import StarIcon from '@material-ui/icons/Star';
 
 import usePersistedState from '../hooks/usePersistedState';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Gallery = (props: any) => {
   const [persistedFavourites, setPersistedFavourites] = usePersistedState('favourites', {}); // Persist previous results to use for search history
   const isFavourite = (id: string) => {

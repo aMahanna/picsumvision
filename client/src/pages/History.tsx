@@ -3,22 +3,15 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import { Container, Button, Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper, Box } from '@material-ui/core';
+import getPersistedState from '../hooks/getPersistedState';
 
 const History = () => {
   const [t, i18n] = useTranslation();
   const [makeHistory, setMakeHistory] = useState(''); // Provide some random labels for a quick search
 
-  const [history] = useState(() => {
-    const persistedState = localStorage.getItem('data');
-    const persistedData = persistedState ? JSON.parse(persistedState) : {};
-    return Object.keys(persistedData).length === 0 ? undefined : Object.entries(persistedData).map(e => ({ [e[0]]: e[1] }));
-  });
-  const [favourites] = useState(() => {
-    // Fetch the history cache values
-    const persistedState = localStorage.getItem('favourites');
-    const persistedData = persistedState ? JSON.parse(persistedState) : {};
-    return Object.keys(persistedData).length === 0 ? undefined : Object.entries(persistedData).map(e => ({ [e[0]]: e[1] }));
-  });
+  const [history] = getPersistedState('data');
+  const [favourites] = getPersistedState('favourites');
+  const [imageClicks] = getPersistedState('clicks');
 
   /**
    * @useEffect Sets some random labels for a quick search
@@ -42,6 +35,7 @@ const History = () => {
     localStorage.removeItem('data');
     localStorage.removeItem('lastSearch');
     localStorage.removeItem('favourites');
+    localStorage.removeItem('clicks');
     window.location.reload();
   };
 
@@ -50,6 +44,7 @@ const History = () => {
    * @param props The current history iteration
    * @returns An MUI TableRow component
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const HistoryRow = (props: { persistedState: any }) => {
     const key: string = Object.keys(props.persistedState)[0];
     const date: Date = new Date(props.persistedState[key].date);
@@ -68,6 +63,7 @@ const History = () => {
     );
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const FavouritesRow = (props: { persistedState: any }) => {
     const key: string = Object.keys(props.persistedState)[0];
     const date: Date = new Date(props.persistedState[key].date);
@@ -78,6 +74,23 @@ const History = () => {
           {key}
         </TableCell>
         <TableCell align="center">{author}</TableCell>
+        <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
+        <TableCell align="center" className="search">
+          <Link to={{ pathname: `/info/${key}` }}>{t('historyPage.view')}</Link>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ClicksRow = (props: { persistedState: any }) => {
+    const key: string = Object.keys(props.persistedState)[0];
+    const date: Date = new Date(props.persistedState[key].date);
+    return (
+      <TableRow key={key}>
+        <TableCell component="th" scope="row">
+          {key}
+        </TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
         <TableCell align="center" className="search">
           <Link to={{ pathname: `/info/${key}` }}>{t('historyPage.view')}</Link>
@@ -136,6 +149,27 @@ const History = () => {
               <TableBody>
                 {favourites.map(elem => (
                   <FavouritesRow key={Object.keys(elem)[0]} persistedState={elem} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+      {imageClicks && (
+        <Box mt={3}>
+          <h3>{t('historyPage.imageClicks')}</h3>
+          <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
+            <Table aria-label="history-table" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('historyPage.imageID')}</TableCell>
+                  <TableCell align="center">{t('historyPage.date')}</TableCell>
+                  <TableCell align="center">{t('historyPage.view')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {imageClicks.map(elem => (
+                  <ClicksRow key={Object.keys(elem)[0]} persistedState={elem} />
                 ))}
               </TableBody>
             </Table>

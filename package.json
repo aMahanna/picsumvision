@@ -52,7 +52,7 @@
     "build": "tsc",
     "test": "jest && cd client && yarn test",
     "heroku-postbuild": "yarn run client:install && yarn run client:build",
-    "postinstall": "tsc",
+    "postinstall": "yarn client:install && tsc",
     "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write && cd client && yarn prettier",
     "lint": "eslint . --ext .ts && cd client && yarn lint:fix",
     "lint:fix": "eslint . --ext .ts --fix && cd client && yarn lint:fix"

@@ -4,7 +4,6 @@ import { ArangoImageInfo, ArangoDBMetrics } from '../../../interfaces';
 
 /**
  * The @namespace for orchestrating Info operations
- * Currently a Work In Progress
  */
 namespace InfoController {
   /**

@@ -12,7 +12,7 @@ interface bestGuessModel {
 interface bestGuessOfModel {
   _from: string;
   _to: string;
-  _score: number; // A best guess always has a confidence score of 1
+  _score: number;
 }
 
 const BestGuessCollection = db.collection('BestGuess');
@@ -39,7 +39,6 @@ class BestGuessOfObject {
    * @method inserts the BestGuessOf Edge linking an Image and a Vision Best Guess
    *
    * @param edge implements the bestGuessOfModel interface
-   * @returns The ArangoID of the inserted BestGuessOf edge
    */
   async insertBestGuessOf(edge: bestGuessOfModel): Promise<void> {
     await BestGuessOfCollection.save(edge, { silent: true });

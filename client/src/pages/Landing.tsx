@@ -31,6 +31,7 @@ const Landing = () => {
   const [t] = useTranslation();
   const classes = useStyles();
 
+  // Store the metrics of each collection
   const [imageCount, setImageCount] = useState('');
   const [labelCount, setLabelCount] = useState('');
   const [edgeCount, setEdgeCount] = useState('');

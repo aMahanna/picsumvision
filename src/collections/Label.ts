@@ -45,7 +45,7 @@ class LabelObject {
   }
 
   /**
-   * A WIP @method that attempts to create similar words to the parameter provided.
+   * @method that attempts to create similar words to the parameter provided.
    * This ideally helps refine searching, but is currently unstable
    * - The contents of the metadata returned do not always match the target word
    * - Currently debating on whether to remove this or not, @todo

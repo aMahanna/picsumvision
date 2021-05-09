@@ -302,33 +302,35 @@ const Search = (props: any) => {
           <h5>{t('searchPage.noResults')}</h5>
         </Box>
       )}
-      <Alert
-        open={i18n.language === 'fr' && frenchWarning}
-        message={t('searchPage.attention')}
-        severity="warning"
-        onSnackbarClose={(e, r) => {
-          return r === 'clickaway' ? undefined : setFrenchWarning(false);
-        }}
-        onAlertClose={() => setFrenchWarning(false)}
-      ></Alert>
-      <Alert
-        open={suggestInput}
-        message={`${t('searchPage.suggestAlert')}${inputPlaceholder}`}
-        severity="info"
-        onSnackbarClose={(e, r) => {
-          return r === 'clickaway' ? undefined : setSuggestInput(false);
-        }}
-        onAlertClose={() => setSuggestInput(false)}
-      ></Alert>
-      <Alert
-        open={sorryAlert}
-        message={`${t('searchPage.sorryAlert')}`}
-        severity="error"
-        onSnackbarClose={(e, r) => {
-          return r === 'clickaway' ? undefined : setSorryAlert(false);
-        }}
-        onAlertClose={() => setSorryAlert(false)}
-      ></Alert>
+      <div role="alert">
+        <Alert
+          open={i18n.language === 'fr' && frenchWarning}
+          message={t('searchPage.attention')}
+          severity="warning"
+          onSnackbarClose={(e, r) => {
+            return r === 'clickaway' ? undefined : setFrenchWarning(false);
+          }}
+          onAlertClose={() => setFrenchWarning(false)}
+        ></Alert>
+        <Alert
+          open={suggestInput}
+          message={`${t('searchPage.suggestAlert')}${inputPlaceholder}`}
+          severity="info"
+          onSnackbarClose={(e, r) => {
+            return r === 'clickaway' ? undefined : setSuggestInput(false);
+          }}
+          onAlertClose={() => setSuggestInput(false)}
+        ></Alert>
+        <Alert
+          open={sorryAlert}
+          message={`${t('searchPage.sorryAlert')}`}
+          severity="error"
+          onSnackbarClose={(e, r) => {
+            return r === 'clickaway' ? undefined : setSorryAlert(false);
+          }}
+          onAlertClose={() => setSorryAlert(false)}
+        ></Alert>
+      </div>
     </Container>
   );
 };

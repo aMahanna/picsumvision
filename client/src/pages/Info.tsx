@@ -83,10 +83,10 @@ const Info = (props: any) => {
             </div>
           ))}
         {labels.length !== 0 &&
-          labels.map((label: { data: string; score: number }) => (
-            <Box key={label.data} mt={1}>
+          labels.map((label: { label: string; score: number }) => (
+            <Box key={label.label} mt={1}>
               <span>
-                <b>{label.data}</b>: {label.score.toFixed(2)}%
+                <b>{label.label}</b>: {label.score.toFixed(2)}%
               </span>
             </Box>
           ))}

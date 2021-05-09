@@ -56,10 +56,10 @@ test('render the search page', async () => {
   const searchTextElement = screen.getByText(/Search by keywords \/ image url/);
   expect(searchTextElement).toBeInTheDocument();
 
-  const visualizeButton : any = screen.getByRole('button', {name: /Visualize/i});
+  const visualizeButton: any = screen.getByRole('button', { name: /Visualize/i });
   expect(visualizeButton.className.split(' ')).toContain('Mui-disabled');
 
-  const discoverButton : any = screen.getByRole('button', {name: /Discover/i});
+  const discoverButton: any = screen.getByRole('button', { name: /Discover/i });
   expect(discoverButton.className.split(' ')).toContain('Mui-disabled');
 });
 
@@ -80,7 +80,7 @@ test('render the info page', async () => {
   render(
     <BrowserRouter>
       <I18nextProvider i18n={i18n}>
-        <Info match={{ params: { id: '0' } }}/>
+        <Info match={{ params: { id: '0' } }} />
       </I18nextProvider>
     </BrowserRouter>,
   );

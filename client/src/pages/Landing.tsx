@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import HomeIcon from '@material-ui/icons/BubbleChart';
@@ -31,6 +31,26 @@ const Landing = () => {
   const [t] = useTranslation();
   const classes = useStyles();
 
+  const [imageCount, setImageCount] = useState('');
+  const [labelCount, setLabelCount] = useState('');
+  const [edgeCount, setEdgeCount] = useState('');
+  const [authorCount, setAuthorCount] = useState('');
+  const [bestGuessCount, setBestGuessCount] = useState('');
+
+  useEffect(() => {
+    fetch('/api/info/metrics')
+      .then(result => (result.status === 200 ? result.json() : undefined))
+      .then(response => {
+        if (response) {
+          setImageCount(response.data.image);
+          setAuthorCount(response.data.author);
+          setLabelCount(response.data.label);
+          setBestGuessCount(response.data.guess);
+          setEdgeCount(response.data.edge);
+        }
+      });
+  });
+
   return (
     <Container component="main" maxWidth="sm">
       <CssBaseline />
@@ -44,6 +64,30 @@ const Landing = () => {
         <p>{t('landingPage.visualize')}</p>
         <p>{t('landingPage.info')}</p>
       </Box>
+      {imageCount !== '' && (
+        <Box mt={4}>
+          <p>
+            {imageCount}
+            {t('landingPage.images')}
+          </p>
+          <p>
+            {authorCount}
+            {t('landingPage.authors')}
+          </p>
+          <p>
+            {labelCount}
+            {t('landingPage.labels')}
+          </p>
+          <p>
+            {bestGuessCount}
+            {t('landingPage.guesses')}
+          </p>
+          <p>
+            {edgeCount}
+            {t('landingPage.edges')}
+          </p>
+        </Box>
+      )}
       <Box mt={4}>
         <p>
           <MUILink color="inherit" href="https://mahanna.dev/">

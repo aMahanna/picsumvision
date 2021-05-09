@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { imageObject } from '../../../collections/Image';
-import { ArangoImageInfo } from '../../../interfaces';
+import { ArangoImageInfo, ArangoDBMetrics } from '../../../interfaces';
 
 /**
  * The @namespace for orchestrating Info operations
@@ -33,8 +33,23 @@ namespace InfoController {
   export async function fetch_surprise_keys(req: Request, res: Response): Promise<void> {
     const labels: string = await imageObject.fetch_surprise_keys();
     if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
-    if (labels) {
+    else {
       res.status(200).json({ labels });
+    }
+  }
+
+  /**
+   * Handles request to the @endpoint /api/info/metrics
+   * Returns collection metrics
+   *
+   * @param req Request
+   * @param res Response
+   */
+  export async function fetch_db_metrics(req: Request, res: Response): Promise<void> {
+    const data = await imageObject.fetch_db_metrics();
+    if (!data.image) res.status(500).json('Error fetching metrics');
+    else {
+      res.status(200).json({ data });
     }
   }
 }

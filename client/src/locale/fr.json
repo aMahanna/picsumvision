@@ -17,7 +17,12 @@
       "description": "Recherchez des images de la collection Lorem Picsum à l'aide de données générées par Google Vision.",
       "discover": "Découvrez des images qui correspondent à votre historique",
       "visualize": "Visualisez vos résultats de recherche sous forme de réseau pour comprendre les relations d'images.",
-      "info": "Propulsé par Lorem Picsum, Google Vision et ArangoDB."
+      "info": "Propulsé par Lorem Picsum, Google Vision et ArangoDB.",
+      "images": " images visibles",
+      "authors": " auteurs distingués",
+      "labels": " étiquettes recherchables",
+      "guesses": " meilleures suppositions",
+      "edges": " arêtes de connexion"
     },
     "searchPage": {
       "query": "Réaliser",

@@ -40,7 +40,7 @@ class LabelObject {
     if (labelAlreadyExists) {
       return labelAlreadyExists._id;
     }
-    document.data = await this.generateLabelData(document.label.trim());
+    //document.data = await this.generateLabelData(document.label.trim()); Datamuse API is currently uncooperative
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 

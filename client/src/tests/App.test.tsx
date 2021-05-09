@@ -1,60 +1,89 @@
 /* eslint-disable */
 import React from 'react';
-import { BrowserRouter, Redirect } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../i18n';
-import { render, screen, fireEvent, queryByAttribute } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { render, screen } from '@testing-library/react';
 
-import App from '../pages/App';
 import History from '../pages/History';
 import Search from '../pages/Search';
 import NavBar from '../components/NavBar';
+import Info from '../pages/Info';
+import Landing from '../pages/Landing';
 
-const whenStable = async () =>
-  await act(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0));
-  });
-
-const getById = queryByAttribute.bind(null, 'id');
-test('render the react navbar', () => {
+test('render the react navbar component', () => {
   render(
     <BrowserRouter>
-      <NavBar />
+      <I18nextProvider i18n={i18n}>
+        <NavBar />
+      </I18nextProvider>
     </BrowserRouter>,
   );
-  const titleElement = screen.getByText(/general.title/i);
+  const titleElement = screen.getByText(/Picsum Vision/);
   expect(titleElement).toBeInTheDocument();
 
-  const historyElement = screen.getByText(/general.historyButton/i);
+  const searchElement = screen.getByText(/Search/);
+  expect(searchElement).toBeInTheDocument();
+
+  const historyElement = screen.getByText(/History/);
   expect(historyElement).toBeInTheDocument();
 
-  const aboutElement = screen.getByText(/general.aboutButton/i);
+  const aboutElement = screen.getByText(/About/);
   expect(aboutElement).toBeInTheDocument();
 });
 
-test('renders the search tab', async () => {
-  const dom = render(
-    <BrowserRouter>
-      <Search />
-    </BrowserRouter>,
-  );
-
-  const searchTextElement = screen.getByText(/searchPage.inputLabel/i);
-  expect(searchTextElement).toBeInTheDocument();
-
-  const queryButton = getById(dom.container, 'search-submit');
-  expect(queryButton).toBeInTheDocument();
-  fireEvent.click(queryButton!);
-});
-
-test('renders the history tab', () => {
+test('render the react landing page', () => {
   render(
     <BrowserRouter>
-      <History />
+      <I18nextProvider i18n={i18n}>
+        <Landing />
+      </I18nextProvider>
+    </BrowserRouter>,
+  );
+  const titleElement = screen.getByText(/Lorem Picsum \+ Google Vision/);
+  expect(titleElement).toBeInTheDocument();
+});
+
+test('render the search page', async () => {
+  render(
+    <BrowserRouter>
+      <I18nextProvider i18n={i18n}>
+        <Search />
+      </I18nextProvider>
     </BrowserRouter>,
   );
 
-  const makeHistoryElement = screen.getByText(/historyPage.makehistory/i);
+  const searchTextElement = screen.getByText(/Search by keywords \/ image url/);
+  expect(searchTextElement).toBeInTheDocument();
+
+  const visualizeButton: any = screen.getByRole('button', { name: /Visualize/i });
+  expect(visualizeButton.className.split(' ')).toContain('Mui-disabled');
+
+  const discoverButton: any = screen.getByRole('button', { name: /Discover/i });
+  expect(discoverButton.className.split(' ')).toContain('Mui-disabled');
+});
+
+test('render the history page', () => {
+  render(
+    <BrowserRouter>
+      <I18nextProvider i18n={i18n}>
+        <History />
+      </I18nextProvider>
+    </BrowserRouter>,
+  );
+
+  const makeHistoryElement = screen.getByText(/Make History/);
   expect(makeHistoryElement).toBeInTheDocument();
+});
+
+test('render the info page', async () => {
+  render(
+    <BrowserRouter>
+      <I18nextProvider i18n={i18n}>
+        <Info match={{ params: { id: '0' } }} />
+      </I18nextProvider>
+    </BrowserRouter>,
+  );
+
+  expect(screen.getByText('aMahanna')).toBeInTheDocument();
 });

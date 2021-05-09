@@ -125,7 +125,7 @@ class ImageObject {
             Let labels = (
               FOR v, e IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
                 SORT e._score DESC
-                RETURN {score: e._score, data: v.label, _id: v._id}
+                RETURN {score: e._score, label: v.label, _id: v._id}
             )
             RETURN {image, bestGuess, labels}
         `)
@@ -154,7 +154,7 @@ class ImageObject {
             FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
               SORT e._score DESC
               LIMIT 4
-              RETURN v
+              RETURN {label: v.label, _id: v._id}
           )
           Let images = (
             FOR l IN labels

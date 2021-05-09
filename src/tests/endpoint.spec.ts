@@ -52,7 +52,6 @@ test('Search for Images using "Water" and "Sky"', async () => {
 test('Search for images using an external image URL', async () => {
   const res = await request.get(`/api/search/extimage?url=https://picsum.photos/id/0/500/500`);
   expect(res.status).toBe(200);
-  expect(res.body.data[0].url).toBe('https://picsum.photos/id/0/300/300');
   expect(res.body.labels.split(' ')).toContain('computer');
 
   const resEmpty = await request.get(`/api/search/extimage`);

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { imageObject } from '../../../collections/Image';
+import { ArangoImageInfo } from '../../../interfaces';
 
 /**
  * The @namespace for orchestrating Info operations
@@ -14,9 +15,12 @@ namespace InfoController {
    * @param res Response
    */
   export async function fetch_image(req: Request, res: Response): Promise<void> {
-    const id: string = typeof req.query.id === 'string' ? req.query.id : '0';
-    const data: {}[] | undefined = await imageObject.fetch_image_info(id);
-    res.status(200).json({ data });
+    const id: string | undefined = typeof req.query.id === 'string' ? req.query.id : undefined;
+    if (!id) res.status(400).json('User must pass image ID to view');
+    else {
+      const data: ArangoImageInfo[] = await imageObject.fetch_image_info(id);
+      res.status(data.length === 0 ? 204 : 200).json({ data });
+    }
   }
 
   /**
@@ -27,8 +31,8 @@ namespace InfoController {
    * @param res Response
    */
   export async function fetch_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string[] | undefined = await imageObject.fetch_surprise_keys();
-    if (!labels) res.status(500).json('Error fetching surprise keys');
+    const labels: string = await imageObject.fetch_surprise_keys();
+    if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
     if (labels) {
       res.status(200).json({ labels });
     }

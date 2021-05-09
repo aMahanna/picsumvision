@@ -1,0 +1,7 @@
+node_modules
+build
+# Ignore eslint config.
+.eslintrc
+
+./src/reportWebVitals.ts
+reportWebVitals.ts

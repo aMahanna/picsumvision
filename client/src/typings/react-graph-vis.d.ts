@@ -1,3 +1,4 @@
+/* eslint-disable */
 //You must first install the vis and react types 'npm install --save-dev @types/vis @types/react'
 declare module 'react-graph-vis' {
   import { Network, NetworkEvents, Options, Node, Edge, DataSet } from 'vis';

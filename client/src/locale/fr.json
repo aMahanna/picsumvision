@@ -13,17 +13,45 @@
       }
     },
     "landingPage": {
-      "heading": "heading"
+      "heading": "Lorem Picsum + Google Vision",
+      "description": "Recherchez des images de la collection Lorem Picsum à l'aide de données générées par Google Vision.",
+      "discover": "Découvrez des images qui correspondent à votre historique",
+      "visualize": "Visualisez vos résultats de recherche sous forme de réseau pour comprendre les relations d'images.",
+      "info": "Propulsé par Lorem Picsum, Google Vision et ArangoDB."
     },
     "searchPage": {
       "query": "Réaliser",
+      "queryTip": "Réaliser avec l'entrée de l'utilisateur",
       "attention": "Attention! Cette fonctionnalité ne supporte pas encore des mots clés en français",
       "surprise": "Surprends-moi",
+      "surpriseTip": "Réaliser avec une entrée aléatoire",
+      "discover": "Découvrer",
+      "discoverTip": "Découvrez des images similaires aux images inspectées",
       "visualize": "Visualizer",
+      "visualizeTip": "Visualisez les résultats sous forme de graphique",
+      "noResults": "Oop, nous avons rien trouvé",
       "inputLabel": "Rechercher par mots clés / par une URL",
       "inputPlaceholder": "Cloud Mountain Rain",
-      "strictMode": "Mode strict",
       "suggestAlert": "Suggestion: "
+    },
+    "historyPage": {
+      "clear": "Effacer",
+      "searches": "Recherches",
+      "favourites": "Favoris",
+      "imageClicks": "Images inspectées",
+      "search": "Recherche",
+      "results": "Résultats",
+      "date": "Date",
+      "view": "Voir",
+      "makehistory": "Écrivez l'historique",
+      "imageID": "Identifiant",
+      "author": "Auteur(e)"
+    },
+    "aboutPage": {
+      "heading": "About"
+    },
+    "visualizerPage": {
+      "lastSearch": "Dernière recherche: "
     }
   }
 }

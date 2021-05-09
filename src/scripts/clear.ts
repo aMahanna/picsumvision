@@ -1,11 +1,24 @@
+/* eslint-disable no-console */
 /**
  * This @file clears all currently used ArangoDB collections because I'm lazy
  */
 
-import db from '../database';
+import db, { documentCollections, edgeCollections } from '../database';
 
-db.collection('Authors').truncate();
-db.collection('AuthorOf').truncate();
-db.collection('Labels').truncate();
-db.collection('LabelOf').truncate();
-db.collection('Images').truncate();
+async function clearDB() {
+  for (let i = 0; i < documentCollections.length; i++) {
+    console.log(`Clearing ${documentCollections[i]} collection...`);
+    const documentCollection = db.collection(documentCollections[i]);
+    (await documentCollection.exists()) ? await documentCollection.truncate() : '';
+  }
+
+  for (let j = 0; j < edgeCollections.length; j++) {
+    console.log(`Clearing ${edgeCollections[j]} collection...`);
+    const edgeCollection = db.collection(edgeCollections[j]);
+    (await edgeCollection.exists()) ? await edgeCollection.truncate() : '';
+  }
+
+  console.log('Success: Collection clearing complete.');
+}
+
+clearDB();

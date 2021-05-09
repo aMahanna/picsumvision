@@ -1,64 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container } from '@material-ui/core';
+import { Container, Button, Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper, Box } from '@material-ui/core';
+import getPersistedState from '../hooks/getPersistedState';
 
-// Import Props interface to define what this component can receive as props
-/**
- * CreateStyles allows us to style MUI components
- * This @var is passed as a paramater in the export of the component
- * @see https://material-ui.com/styles/basics/
- */
-// const useStyles = makeStyles(() =>
-//   createStyles({
-//     avatar: {
-//       backgroundColor: 'inherit',
-//       color: '#2F2D2E',
-//       margin: 'auto',
-//     },
-//     image: {
-//       height: '50%',
-//       width: '50%',
-//       borderRadius: '1cm',
-//     },
-//   }),
-// );
-
-function HistoryComponent(props: { persistedState: any }) {
-  const key: string = Object.keys(props.persistedState)[0];
-  const search: string = key;
-  const date: Date = props.persistedState[key].date;
-  const results: number = props.persistedState[key].data.length;
-  return (
-    <div className="history">
-      <h4>
-        {' '}
-        {search}: {date} ({results} results){' '}
-      </h4>
-      <Link
-        to={{
-          pathname: '/search',
-          state: {
-            fromHistory: key,
-          },
-        }}
-      >
-        View
-      </Link>
-    </div>
-  );
-}
-
-const History = (props: any) => {
-  //const [t] = useTranslation();
-  //const classes = useStyles();
+const History = () => {
+  const [t, i18n] = useTranslation();
   const [makeHistory, setMakeHistory] = useState(''); // Provide some random labels for a quick search
-  const [history] = useState(() => {
-    const persistedState = localStorage.getItem('data');
-    const persistedData = persistedState ? JSON.parse(persistedState) : {};
-    return Object.keys(persistedData).length === 0 ? undefined : Object.entries(persistedData).map(e => ({ [e[0]]: e[1] }));
-  });
+
+  const [history] = getPersistedState('data');
+  const [favourites] = getPersistedState('favourites');
+  const [imageClicks] = getPersistedState('clicks');
 
   /**
    * @useEffect Sets some random labels for a quick search
@@ -69,28 +22,160 @@ const History = (props: any) => {
       fetch('/api/info/randomkeys')
         .then(result => result.json())
         .then(response => {
-          setMakeHistory(response.labels.join(' '));
+          setMakeHistory(response.labels);
         });
     }
   }, [history]);
 
+  /**
+   * Removes the history cache from the user's session
+   * Forces a reload to clear up the table
+   */
+  const clearCache = async () => {
+    localStorage.removeItem('data');
+    localStorage.removeItem('lastSearch');
+    localStorage.removeItem('favourites');
+    localStorage.removeItem('clicks');
+    window.location.reload();
+  };
+
+  /**
+   * Renders the table row of each history stored in the cache
+   * @param props The current history iteration
+   * @returns An MUI TableRow component
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const HistoryRow = (props: { persistedState: any }) => {
+    const key: string = Object.keys(props.persistedState)[0];
+    const date: Date = new Date(props.persistedState[key].date);
+    const results: number = props.persistedState[key].data.length;
+    return (
+      <TableRow key={key}>
+        <TableCell component="th" scope="row">
+          {key}
+        </TableCell>
+        <TableCell align="center">{results}</TableCell>
+        <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
+        <TableCell align="center" className="search">
+          <Link to={{ pathname: '/search', state: { fromHistory: key } }}>{t('historyPage.view')}</Link>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const FavouritesRow = (props: { persistedState: any }) => {
+    const key: string = Object.keys(props.persistedState)[0];
+    const date: Date = new Date(props.persistedState[key].date);
+    const author: string = props.persistedState[key].author;
+    return (
+      <TableRow key={key}>
+        <TableCell component="th" scope="row">
+          {key}
+        </TableCell>
+        <TableCell align="center">{author}</TableCell>
+        <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
+        <TableCell align="center" className="search">
+          <Link to={{ pathname: `/info/${key}` }}>{t('historyPage.view')}</Link>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ClicksRow = (props: { persistedState: any }) => {
+    const key: string = Object.keys(props.persistedState)[0];
+    const date: Date = new Date(props.persistedState[key].date);
+    return (
+      <TableRow key={key}>
+        <TableCell component="th" scope="row">
+          {key}
+        </TableCell>
+        <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
+        <TableCell align="center" className="search">
+          <Link to={{ pathname: `/info/${key}` }}>{t('historyPage.view')}</Link>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
   return (
     <Container component="main" maxWidth="md">
       {!history && (
-        <div className="history">
-          <Link
-            to={{
-              pathname: '/search',
-              state: {
-                fromHistory: makeHistory,
-              },
-            }}
-          >
-            Make history!
-          </Link>
+        <div className="search">
+          <Link to={{ pathname: '/search', state: { fromHistory: makeHistory } }}>{t('historyPage.makehistory')}</Link>
         </div>
       )}
-      {history && history.map((elem: any) => <HistoryComponent key={Object.keys(elem)[0]} persistedState={elem}></HistoryComponent>)}
+      {(history || favourites) && (
+        <Button id="history-clear" style={{ color: '#2f2d2e' }} onClick={clearCache}>
+          {t('historyPage.clear')}
+        </Button>
+      )}
+      {history && (
+        <Box mt={3}>
+          <h3>{t('historyPage.searches')}</h3>
+          <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
+            <Table aria-label="history-table" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('historyPage.search')}</TableCell>
+                  <TableCell align="center">{t('historyPage.results')}</TableCell>
+                  <TableCell align="center">{t('historyPage.date')}</TableCell>
+                  <TableCell align="center">{t('historyPage.view')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {history.map(elem => (
+                  <HistoryRow key={Object.keys(elem)[0]} persistedState={elem} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+      {favourites && (
+        <Box mt={3}>
+          <h3>{t('historyPage.favourites')}</h3>
+          <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
+            <Table aria-label="history-table" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('historyPage.imageID')}</TableCell>
+                  <TableCell align="center">{t('historyPage.author')}</TableCell>
+                  <TableCell align="center">{t('historyPage.date')}</TableCell>
+                  <TableCell align="center">{t('historyPage.view')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {favourites.map(elem => (
+                  <FavouritesRow key={Object.keys(elem)[0]} persistedState={elem} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+      {imageClicks && (
+        <Box mt={3}>
+          <h3>{t('historyPage.imageClicks')}</h3>
+          <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
+            <Table aria-label="history-table" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('historyPage.imageID')}</TableCell>
+                  <TableCell align="center">{t('historyPage.date')}</TableCell>
+                  <TableCell align="center">{t('historyPage.view')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {imageClicks.map(elem => (
+                  <ClicksRow key={Object.keys(elem)[0]} persistedState={elem} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
     </Container>
   );
 };

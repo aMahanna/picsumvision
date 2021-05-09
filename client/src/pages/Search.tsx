@@ -2,31 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import WhereToVoteOutlinedIcon from '@material-ui/icons/WhereToVoteOutlined';
-import {
-  Container,
-  CssBaseline,
-  makeStyles,
-  createStyles,
-  Theme,
-  Avatar,
-  TextField,
-  Button,
-  Box,
-  Checkbox,
-  FormControlLabel,
-} from '@material-ui/core';
+import SearchIcon from '@material-ui/icons/Search';
+import { Container, CssBaseline, Avatar, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
+import { makeStyles, createStyles } from '@material-ui/styles';
 
 import Alert from '../components/Alert';
 import Gallery from '../components/Gallery';
 import usePersistedState from '../hooks/usePersistedState';
+import getPersistedState from '../hooks/getPersistedState';
 
 /**
  * CreateStyles allows us to style MUI components
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',
@@ -40,7 +30,7 @@ const useStyles = makeStyles((theme: Theme) =>
     button: {
       '& > *': {
         color: '#2f2d2e',
-        margin: theme.spacing(1),
+        margin: '8px',
         '&:hover': {
           transition: '0.3s ease-in',
           backgroundColor: '#2f2d2e',
@@ -57,21 +47,24 @@ const useStyles = makeStyles((theme: Theme) =>
  * @param props Used to accept searches from the History page
  * @returns
  */
-const Search = (props: { location: any }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Search = (props: any) => {
   const [t, i18n] = useTranslation(); // Translation use
   const classes = useStyles();
 
   const [textFieldInput, setTextFieldInput] = useState(''); // The input of the search bar
   const [searchResult, setSearchResult] = useState([]); // The results of the search
-  const [isStrict, setIsStrict] = useState(false); // The nature of the search
   const [inputPlaceholder, setInputPlaceholder] = useState(''); // The placeholder of the search bar
 
+  const [isLoading, setIsLoading] = useState(false);
   const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
   const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
   const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
+  const [sorryAlert, setSorryAlert] = useState(false); // For times that I want to say apologize
 
   const [persistedData, setPersistedData] = usePersistedState('data', {}); // Persist previous results to use for search history
   const [lastSearch, setLastSearch] = usePersistedState('lastSearch', ''); // Persist last search to use for visualization
+  const [imageClicks] = getPersistedState('clicks');
 
   /**
    * @useEffect Determines whether to:
@@ -80,11 +73,12 @@ const Search = (props: { location: any }) => {
    * - Set random labels as the input placeholder for search inspiration
    */
   useEffect(() => {
-    const historyIndex: string = props.location.state?.fromHistory;
+    const historyIndex: string = props.location?.state?.fromHistory;
     if (historyIndex) {
       if (persistedData[historyIndex]) {
         setTextFieldInput(historyIndex);
         setSearchResult(persistedData[historyIndex].data);
+        setLastSearch(historyIndex);
       } else {
         setTextFieldInput(historyIndex);
         query(historyIndex);
@@ -94,21 +88,16 @@ const Search = (props: { location: any }) => {
       setSearchResult(persistedData[lastSearch]?.data || []);
     } else {
       fetch('/api/info/randomkeys')
-        .then(result => result.json())
+        .then(result => (result.status === 200 ? result.json() : undefined))
         .then(response => {
-          setInputPlaceholder(response.labels.join(' '));
+          setInputPlaceholder(response ? response.labels : 'cloud sky plant');
         });
     }
   }, []);
 
   // Handles the change of any MUI component that isn't the Checkbox (so currently just the search bar)
-  const handleChange = (setState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState(event.target.value);
-  };
-
-  // Sets the value of the Strict Mode checkbox
-  const handleCheckboxChange = (setCheckedState: any) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCheckedState(event.target.checked);
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTextFieldInput(event.target.value);
   };
 
   /**
@@ -121,22 +110,27 @@ const Search = (props: { location: any }) => {
    * @param forceInput A forced label value, only used when the user has requested to see a previous search history result
    */
   const query = async (forceInput?: string) => {
+    setIsLoading(true);
+
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
     if (input === '') {
       suggestUser();
-    } else if (persistedData[index] && !isStrict) {
+    } else if (persistedData[index]) {
       setSearchResult(persistedData[index].data);
     } else {
       const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
-      const response = await fetch(`${uri}${isStrict ? '&isStrict=true' : ''}`);
-      if (response.status === 200) {
+      const response = await fetch(uri);
+      if (response.status === 200 || response.status === 204) {
         const result = await response.json();
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
-        updateCache(result.labels.join(' '), result.data);
+        updateCache(result.labels, result.data);
+      } else {
+        setSorryAlert(true);
       }
     }
+    setIsLoading(false);
   };
 
   /**
@@ -145,22 +139,65 @@ const Search = (props: { location: any }) => {
    * - Update cache with new search results
    */
   const surpriseMe = async () => {
-    const response = await fetch(`/api/search/surpriseme${isStrict ? '?isStrict=true' : ''}`);
+    setIsLoading(true);
+
+    const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
       const result = await response.json();
-      setTextFieldInput(result.labels.join(' '));
+      setTextFieldInput(result.labels);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels.join(' '), result.data);
+      updateCache(result.labels, result.data);
+    } else {
+      setSorryAlert(true);
     }
+
+    setIsLoading(false);
+  };
+
+  /**
+   * Handles behaviour when user clicks on the @button DISCOVER
+   * - Hits the /discover endpoint
+   * - Attempts to display relevant results based on the user's previous click history
+   * @todo
+   */
+  const discover = async () => {
+    setIsLoading(true);
+
+    if (imageClicks !== undefined) {
+      const response = await fetch(`/api/search/discovery?IDs=${Object.keys(imageClicks[0])}`);
+
+      if (response.status === 200 || response.status === 204) {
+        const result = await response.json();
+        const labels: string = result.data.labels
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((item: any) => {
+            return item.label;
+          })
+          .join(' ');
+        setSearchResult(result.data.images);
+        setTextFieldInput(labels);
+        updateCache(labels, result.data.images);
+      } else {
+        setSorryAlert(true);
+      }
+    }
+
+    setIsLoading(false);
   };
 
   // Fetches random labels to user for search inspiration
   const suggestUser = async () => {
+    setIsLoading(true);
+
     const response = await fetch('/api/info/randomkeys');
-    const result = await response.json();
-    setSuggestInput(true);
-    setInputPlaceholder(result.labels.join(' '));
+    if (response.status === 200) {
+      const result = await response.json();
+      setSuggestInput(true);
+      setInputPlaceholder(result.labels);
+    }
+
+    setIsLoading(false);
   };
 
   /**
@@ -170,9 +207,9 @@ const Search = (props: { location: any }) => {
    * @param index The index of the cache
    * @param data  The data to store
    */
-  const updateCache = async (index: string, data: {}[]) => {
-    if (data.length !== 0 && !isStrict) {
-      /** @todo Figure out behaviour for isStrict requests */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateCache = async (index: string, data: any[]) => {
+    if (data.length !== 0) {
       setPersistedData({
         ...persistedData,
         [index]: {
@@ -191,7 +228,7 @@ const Search = (props: { location: any }) => {
    * @returns boolean
    */
   const isURLImageInput = (inputAttempt: string) => {
-    var pattern = new RegExp(
+    const pattern = new RegExp(
       '^(https?:\\/\\/)?' + // protocol
         '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
         '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
@@ -208,7 +245,7 @@ const Search = (props: { location: any }) => {
       <Container maxWidth="sm">
         <CssBaseline />
         <Avatar className={classes.avatar}>
-          <WhereToVoteOutlinedIcon fontSize="large" />
+          <SearchIcon fontSize="large" />
         </Avatar>
         <Box mt={2}>
           <TextField
@@ -218,33 +255,51 @@ const Search = (props: { location: any }) => {
             value={textFieldInput}
             label={t('searchPage.inputLabel')}
             placeholder={inputPlaceholder}
-            onChange={handleChange(setTextFieldInput)}
+            onChange={handleTextChange}
             fullWidth
             variant="standard"
           />
-          <FormControlLabel
-            value={isStrict}
-            control={<Checkbox checked={isStrict} onChange={handleCheckboxChange(setIsStrict)} color="default" name="isStrict" />}
-            label={t('searchPage.strictMode')}
-            labelPlacement="end"
-          />
         </Box>
-        <Box mt={2} className={classes.button}>
-          <Button id="search-submit" onClick={() => query()}>
-            {t('searchPage.query')}
-          </Button>
-          <Button id="search-surprise" onClick={surpriseMe}>
-            {t('searchPage.surprise')}
-          </Button>
-          <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
-            {t('searchPage.visualize')}
-          </Button>
+        <Box mt={2}>
+          {!isLoading && (
+            <div>
+              <Tooltip title={`${t('searchPage.queryTip')}`} placement="left">
+                <span className={classes.button}>
+                  <Button id="search-submit" onClick={() => query()}>
+                    {t('searchPage.query')}
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip title={`${t('searchPage.surpriseTip')}`} placement="bottom">
+                <span className={classes.button}>
+                  <Button id="search-surprise" onClick={surpriseMe}>
+                    {t('searchPage.surprise')}
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip title={`${t('searchPage.discoverTip')}`} placement="bottom">
+                <span className={classes.button}>
+                  <Button id="search-surprise" onClick={discover} disabled={imageClicks === undefined}>
+                    {t('searchPage.discover')}
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip title={`${t('searchPage.visualizeTip')}`} placement="right">
+                <span className={classes.button}>
+                  <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+                    {t('searchPage.visualize')}
+                  </Button>
+                </span>
+              </Tooltip>
+            </div>
+          )}
         </Box>
       </Container>
+      {isLoading && <CircularProgress color="inherit" />}
       {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
       {resultIsEmpty && (
         <Box mt={3}>
-          <h5>Shoot, no results found</h5>
+          <h5>{t('searchPage.noResults')}</h5>
         </Box>
       )}
       <Alert
@@ -264,6 +319,15 @@ const Search = (props: { location: any }) => {
           return r === 'clickaway' ? undefined : setSuggestInput(false);
         }}
         onAlertClose={() => setSuggestInput(false)}
+      ></Alert>
+      <Alert
+        open={sorryAlert}
+        message={`${t('searchPage.sorryAlert')}`}
+        severity="error"
+        onSnackbarClose={(e, r) => {
+          return r === 'clickaway' ? undefined : setSorryAlert(false);
+        }}
+        onAlertClose={() => setSorryAlert(false)}
       ></Alert>
     </Container>
   );

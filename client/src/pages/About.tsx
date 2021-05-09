@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import HomeIcon from '@material-ui/icons/BubbleChart';
+import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined';
 import { Container, CssBaseline, Box, Avatar, Link as MUILink } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/styles';
 
@@ -25,9 +25,9 @@ const useStyles = makeStyles(() =>
 );
 
 /**
- * Home page (@todo)
+ * About page (@todo)
  */
-const Landing = () => {
+const About = () => {
   const [t] = useTranslation();
   const classes = useStyles();
 
@@ -35,14 +35,10 @@ const Landing = () => {
     <Container component="main" maxWidth="sm">
       <CssBaseline />
       <Avatar className={classes.avatar}>
-        <HomeIcon fontSize="large" />
+        <InfoOutlinedIcon fontSize="large" />
       </Avatar>
       <Box mt={4}>
-        <h2>{t('landingPage.heading')}</h2>
-        <h3>{t('landingPage.description')}</h3>
-        <p>{t('landingPage.discover')}</p>
-        <p>{t('landingPage.visualize')}</p>
-        <p>{t('landingPage.info')}</p>
+        <h2>{t('aboutPage.heading')}</h2>
       </Box>
       <Box mt={4}>
         <p>
@@ -55,4 +51,4 @@ const Landing = () => {
     </Container>
   );
 };
-export default Landing;
+export default About;

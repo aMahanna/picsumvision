@@ -33,8 +33,8 @@ test('perform basic insert/delete for the Image collections', async () => {
   const imageDoc = await ImageCollection.document(image._key, true);
   expect(imageDoc._key).toBe(image._key);
 
-  const imageAlreadyExists = await imageObject.insertImage(image);
-  expect(imageAlreadyExists).toBe(`Images/${image._key}`);
+  const imageInsert = await imageObject.insertImage(image);
+  expect(imageInsert.alreadyExists).toBe(true);
 
   await ImageCollection.remove(image._key, { silent: true });
   expect(await ImageCollection.documentExists(image._key)).toBe(false);
@@ -44,7 +44,7 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
   await authorObject.insertAuthor(author);
   const authorDoc = await AuthorCollection.document(author._key);
   expect(authorDoc._key).toBe(author._key);
-  expect(authorDoc.name).toBe('Alejandro Escamilla');
+  expect(authorDoc.name).toBe('John Doe');
 
   const authorAlreadyExists = await authorObject.insertAuthor(author);
   expect(authorAlreadyExists).toBe(`Authors/${author._key}`);
@@ -82,7 +82,7 @@ test('perform basic insert/delete for the BestGuess & BestGuessOf collections', 
   await bestGuessObject.insertBestGuess(bestGuess);
   const bestGuessDoc = await BestGuessCollection.document(bestGuess._key);
   expect(bestGuessDoc._key).toBe(bestGuess._key);
-  expect(bestGuess.bestGuess).toBe('A macbook air on a table');
+  expect(bestGuess.bestGuess).toBe('A puppy sitting on grass');
 
   const bestGuessAlreadyExists = await bestGuessObject.insertBestGuess(bestGuess);
   expect(bestGuessAlreadyExists).toBe(`BestGuess/${bestGuess._key}`);

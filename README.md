@@ -22,8 +22,8 @@ Picsum Vision requires the following environment variables:
 ## Running
 
 After acquiring these variables, simply run the following scripts to onboard & populate your ArangoDB:
-1. `yarn db:onboard` (root directory)
-2. `yarn db:populate` (root directory)
+1. `yarn db:onboard` (root directory) - Creates your Search View, and Document / Edges collections
+2. `yarn db:populate` (root directory) - Inserts the first 100 Picsum images (see below for how to generate more)
 
 Good to go:
 * Run `yarn dev` (root directory)
@@ -37,4 +37,9 @@ Good to go:
 
 * GET `/api/info/image` - Returns metadata of an image using its ID
 * GET `/api/search/randomkeys` - Returns random labels (generated from ArangoDB)
+
+
+## Extra Information
+
+**Generating more images from `populate.ts`**
 

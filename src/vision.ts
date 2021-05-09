@@ -20,7 +20,7 @@ if (process.env.NODE_ENV !== 'production') {
  * @returns An object containing the compiled metadata (@todo add its typing)
  */
 export default async function fetchVisionMetadata(url: string): Promise<VisionResult> {
-  const maxResults = 3;
+  const maxResults = 5;
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [

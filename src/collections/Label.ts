@@ -40,7 +40,7 @@ class LabelObject {
     if (labelAlreadyExists) {
       return labelAlreadyExists._id;
     }
-    //document.data = await this.generateLabelData(document.label.trim()); Datamuse API is currently uncooperative
+    document.data = await this.generateLabelData(document.label.trim().split(' ').join('+'));
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 
@@ -57,10 +57,17 @@ class LabelObject {
    * @param word The word to generate more metadata from
    * @returns
    */
-  private async generateLabelData(word: string) {
-    const mlResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=10`)).json();
-    const gnResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=10`)).json();
-    const trgResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=10`)).json();
+  public async generateLabelData(word: string) {
+    let mlResult: museModel[] = [];
+    let gnResult: museModel[] = [];
+    let trgResult: museModel[] = [];
+    try {
+      mlResult = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=10`)).json();
+      gnResult = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=10`)).json();
+      trgResult = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=10`)).json();
+    } catch (error: any) {
+      return '';
+    }
 
     const labelData: museModel[] = (mlResult.length !== 0 ? mlResult : []).concat(
       gnResult.length !== 0 ? gnResult : [],
@@ -90,6 +97,6 @@ export const labelOfObject: LabelOfObject = new LabelOfObject();
  * A small function to mess around with the Datamuse API
  */
 // (async () => {
-//   const labelData = await labelObject.generateLabelData('building');
+//   const labelData = await labelObject.generateLabelData('NYC+Horse+Carriage+Rides+EST.1979');
 //   console.log(labelData);
 // })();

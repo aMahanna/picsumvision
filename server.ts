@@ -3,13 +3,6 @@ import express from 'express';
 import path from 'path';
 import search_routes from './src/api/search/v1/search.router';
 import info_routes from './src/api/info/v1/info.router';
-import http from 'http';
-
-if (process.env.NODE_ENV !== 'production') {
-  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-  require('dotenv').config();
-}
-const port = process.env.PORT || 5000;
 
 const app = express();
 
@@ -26,5 +19,4 @@ app.get('/*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 });
 
-
-http.createServer(app).listen(port, () => console.log(`Listening on port ${port}`)); // eslint-disable-line no-console
+export default app;

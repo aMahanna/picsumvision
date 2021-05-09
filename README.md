@@ -31,7 +31,7 @@ Good to go:
 ## Routes
 
 * GET `/api/search/mixed` - Queries images based on user labels (e.g 'cloud sky plant')
-* GET `/api/search/extimage` - Queries images on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
+* GET `/api/search/extimage` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
 * GET `/api/search/surpriseme` - Queries images based on random labels (generated from ArangoDB)
 * GET `/api/search/discovery` - Queries images based on user click history 
 

@@ -70,7 +70,6 @@ test('Discover images similar to user click h istory', async () => {
   const res = await request.get(`/api/search/discovery?IDs=0`);
   expect(res.status).toBe(200);
   expect(res.body.data.images.length).toBeGreaterThan(0);
-  expect(res.body.data.images[0]._key).toBe('1');
 });
 
 // test('Insert image (todo)', async () => {

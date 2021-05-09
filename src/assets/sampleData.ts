@@ -4,14 +4,14 @@
 
 export const image = {
   _key: '525252',
-  author: 'Alejandro Escamilla',
-  url: 'https://picsum.photos/id/0/300/300',
+  author: 'John Doe',
+  url: 'https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg',
   date: new Date().toString(),
 };
 
 export const author = {
   _key: '1',
-  name: 'Alejandro Escamilla',
+  name: 'John Doe',
 };
 
 export const authorOf = {
@@ -36,7 +36,7 @@ export const labelOf = {
 
 export const bestGuess = {
   _key: '1',
-  bestGuess: 'A macbook air on a table',
+  bestGuess: 'A puppy sitting on grass',
 };
 
 export const bestGuessOf = {

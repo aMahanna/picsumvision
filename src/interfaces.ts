@@ -39,7 +39,10 @@ export interface VisionResult {
     bestGuessLabels: { label: string; languageCode: string }[];
   };
   localizedObjectAnnotations: VisionAnnotation[];
-  error?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  error?: {
+    code: number;
+    message: string;
+  };
 }
 
 export interface VisionAnnotation {
@@ -77,4 +80,12 @@ export interface ArangoImageInfo {
     data: string;
   }[];
   similar: ArangoImage[];
+}
+
+export interface ArangoDBMetrics {
+  image: number;
+  author: number;
+  label: number;
+  guess: number;
+  edge: number;
 }

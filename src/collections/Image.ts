@@ -2,7 +2,7 @@
  * This @file manages the Images Document Collection in our ArangoDB
  */
 
-import { Vertice, Connection, ArangoImage, ArangoImageInfo } from '../interfaces';
+import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } from '../interfaces';
 import db from '../database';
 import { aql } from 'arangojs';
 
@@ -23,21 +23,23 @@ class ImageObject {
    * @param document implements the imageModel interface
    * @returns the ArangoID of the Image inserted
    */
-  public async insertImage(document: imageModel): Promise<string> {
+  public async insertImage(document: imageModel): Promise<{ id: string; alreadyExists?: true }> {
     const imageAlreadyExists: ArangoImage = await ImageCollection.document({ _key: document._key }, true);
-    return imageAlreadyExists
-      ? imageAlreadyExists._id
-      : (
-          await ImageCollection.save(
-            {
-              _key: document._key,
-              author: document.author,
-              url: document.url,
-              date: document.date,
-            },
-            { overwriteMode: 'ignore', waitForSync: true },
-          )
-        )._id;
+    if (imageAlreadyExists) return { id: imageAlreadyExists._id, alreadyExists: true };
+    else {
+      const insert = await ImageCollection.save(document, { overwriteMode: 'ignore', waitForSync: true });
+      return { id: insert._id };
+    }
+  }
+
+  /**
+   * @method used to remove an image
+   * This is currently only in use for when the Vision API has returned no metadata for an inserted image
+   *
+   * @param the id of the image
+   */
+  public async removeImage(id: string): Promise<void> {
+    await ImageCollection.remove(id, { waitForSync: true });
   }
 
   /**
@@ -236,6 +238,32 @@ class ImageObject {
             RETURN {i, edges}
         )
         RETURN {vertices, connections} 
+      `)
+    ).all();
+
+    return result[0];
+  }
+
+  /**
+   * @method Returns database metrics for users to see
+
+   * @returns counts for images, labels, edges, authors & guesses
+   */
+  public async fetch_db_metrics(): Promise<ArangoDBMetrics> {
+    const result = await (
+      await db.query(aql`
+        LET image = LENGTH(Images)
+        LET author = LENGTH(Authors)
+        LET label = LENGTH(Labels)
+        LET guess = LENGTH(BestGuess)
+        LET edge = LENGTH(LabelOf) + LENGTH(AuthorOf) + LENGTH(BestGuessOf)
+        RETURN {
+            image,
+            author,
+            label,
+            guess,
+            edge
+        }
       `)
     ).all();
 

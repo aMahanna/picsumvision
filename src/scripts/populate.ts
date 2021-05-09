@@ -62,28 +62,34 @@ async function populateDB() {
 
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
     pageCount++;
-  } while (pageCount !== 2); // pageCount !== 2 --> Generates only the first LIMIT images
+  } while (pageCount !== 2); // set to `pageCount < 12` to get all 993 images
 
   for (let j = 0; j < PICSUM_LIST.length; j++) {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
     const PICSUM_URL = PICSUM_IMAGE.download_url;
 
-    const VISION_DATA = await fetchVisionMetadata(PICSUM_URL);
-    if (!VISION_DATA || VISION_DATA.error) {
-      console.log('Vision uncooperative, skipping...', VISION_DATA?.error);
-      continue; // Exit early if Vision hits an error
-    }
-
     /**
      * @this Inserts the Image document, and returns its ID
      * If the image already exists, return the existing ID
      */
-    const imageID = await imageObject.insertImage({
+    const imageInsert = await imageObject.insertImage({
       _key: String(PICSUM_IMAGE.id),
       author: PICSUM_IMAGE.author,
       url: PICSUM_URL,
       date: Date(),
     });
+    if (imageInsert.alreadyExists) {
+      continue; // Skip the image if it is already inserted
+    }
+
+    const imageID = imageInsert.id;
+    const VISION_DATA = await fetchVisionMetadata(PICSUM_URL);
+    if (!VISION_DATA || VISION_DATA.error) {
+      // Exit early if Vision hits an error
+      await imageObject.removeImage(imageID);
+      console.log('Vision uncooperative, skipping...', VISION_DATA?.error);
+      continue;
+    }
 
     /**
      * @this Inserts an Author document, and links the image using an AuthorOf edge
@@ -117,21 +123,22 @@ async function populateDB() {
 
     for (let t = 0; t < uniqueAnnotations.length; t++) {
       const annot = uniqueAnnotations[t];
-      const id = (annot.mid || annot.entityId)!;
-      const label = (annot.description || annot.name)!;
+      const id = annot.mid || annot.entityId;
+      const label = annot.description || annot.name;
 
-      const labelID = await labelObject.insertLabel({
-        _key: stringToASCII(id),
-        mid: id,
-        label,
-      });
-      await labelOfObject.insertLabelOf({
-        _from: labelID,
-        _to: imageID,
-        _score: annot.score,
-      });
+      if (label && id) {
+        const labelID = await labelObject.insertLabel({
+          _key: stringToASCII(id),
+          mid: id,
+          label,
+        });
+        await labelOfObject.insertLabelOf({
+          _from: labelID,
+          _to: imageID,
+          _score: annot.score,
+        });
+      }
     }
-
     /**
      * @this Inserts the Best Guess documents, and links the image using BestGuessOf edges
      * @returns "BestGuess" IDs

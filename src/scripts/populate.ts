@@ -84,7 +84,8 @@ async function populateDB() {
 
     const imageID = imageInsert.id;
     const VISION_DATA = await fetchVisionMetadata(PICSUM_URL);
-    if (!VISION_DATA || VISION_DATA.error) {  // Exit early if Vision hits an error
+    if (!VISION_DATA || VISION_DATA.error) {
+      // Exit early if Vision hits an error
       await imageObject.removeImage(imageID);
       console.log('Vision uncooperative, skipping...', VISION_DATA?.error);
       continue;

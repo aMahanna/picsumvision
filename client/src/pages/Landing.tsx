@@ -66,26 +66,24 @@ const Landing = () => {
       </Box>
       {imageCount !== '' && (
         <Box mt={4}>
-          <p>
-            {imageCount}
+          <div>
+            <b>{imageCount}</b>
             {t('landingPage.images')}
-          </p>
-          <p>
-            {authorCount}
+          </div>
+          <div>
+            <b>{authorCount}</b>
             {t('landingPage.authors')}
-          </p>
-          <p>
-            {labelCount}
+            {' | '}
+            <b>{labelCount}</b>
             {t('landingPage.labels')}
-          </p>
-          <p>
-            {bestGuessCount}
+          </div>
+          <div>
+            <b>{bestGuessCount}</b>
             {t('landingPage.guesses')}
-          </p>
-          <p>
-            {edgeCount}
+            {' | '}
+            <b>{edgeCount}</b>
             {t('landingPage.edges')}
-          </p>
+          </div>
         </Box>
       )}
       <Box mt={4}>

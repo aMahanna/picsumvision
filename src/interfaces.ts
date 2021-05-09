@@ -82,10 +82,9 @@ export interface ArangoImageInfo {
   similar: ArangoImage[];
 }
 
-
 export interface ArangoDBMetrics {
   image: number;
-  author: number; 
+  author: number;
   label: number;
   guess: number;
   edge: number;

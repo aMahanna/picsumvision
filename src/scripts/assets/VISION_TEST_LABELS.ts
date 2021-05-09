@@ -9,7 +9,7 @@ const VISION_TEST_LABELS: {
   name?: string;
   score: number;
   topicality?: number;
-  boundingPoly?: any;
+  boundingPoly?: { normalizedVertices: [ArrayConstructor] };
 }[][] = [
   [
     {

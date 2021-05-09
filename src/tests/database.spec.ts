@@ -1,6 +1,6 @@
 /**
  * @file covers Collection insertions and deletions
- * Current collections tested: 
+ * Current collections tested:
  * - Image
  * - Author & AuthorOf
  * - Label & LabelOf

@@ -1,4 +1,4 @@
-[![Travis CI](https://travis-ci.com/aMahanna/shopify-F2021-A.svg?token=YaZuDiCeLyXhXEKjjUy2&branch=develop)]()
+[![Travis CI](https://travis-ci.com/aMahanna/shopify-F2021-A.svg?token=YaZuDiCeLyXhXEKjjUy2&branch=main)]()
 
 # Picsum Vision
 Backend & Data Developer Intern Challenge

@@ -1,3 +1,7 @@
+/**
+ * @file stores some fake data to test insert & delete operations
+ */
+
 export const image = {
   _key: '525252',
   author: 'Alejandro Escamilla',

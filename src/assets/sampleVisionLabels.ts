@@ -1,9 +1,10 @@
 /**
- * Sample Vision Metadata to test ArangoDB functionalities with.
- * This avoids having to call the API on every test
+ * Sample Vision Metadata to debug ArangoDB functionalities with.
+ * This avoids having to call the Vision API when debugging
  * 91 labels, 43 unique labels
  */
-const VISION_TEST_LABELS: {
+
+const sampleVisionLabels: {
   mid: string;
   description?: string;
   name?: string;
@@ -599,4 +600,4 @@ const VISION_TEST_LABELS: {
   ],
 ];
 
-export default VISION_TEST_LABELS;
+export default sampleVisionLabels;

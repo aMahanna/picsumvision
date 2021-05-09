@@ -45,4 +45,7 @@ Good to go:
 ## Extra Information
 
 **Generating more images from `populate.ts`**
+https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
+
+To include all +900 Picsum Images in your database population, you can change `pageCount !== 2` to `pageCount < 12`. This will instead fetch all Picsum image lists pages, as opposed to just fetching the first.
 

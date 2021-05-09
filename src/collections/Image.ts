@@ -1,6 +1,5 @@
 /**
  * This @file manages the Images Document Collection in our ArangoDB
- * * @todo Add typing to parameter & return values
  */
 
 import { Vertice, Connection, ArangoImage, ArangoImageInfo } from '../interfaces';
@@ -24,10 +23,10 @@ class ImageObject {
    * @param document implements the imageModel interface
    * @returns the ArangoID of the Image inserted
    */
-  public async insertImage(document: imageModel): Promise<string | undefined> {
-    const imageAlreadyExists = await ImageCollection.document({ _key: document._key }, true);
+  public async insertImage(document: imageModel): Promise<string> {
+    const imageAlreadyExists: ArangoImage = await ImageCollection.document({ _key: document._key }, true);
     return imageAlreadyExists
-      ? undefined
+      ? imageAlreadyExists._id
       : (
           await ImageCollection.save(
             {
@@ -42,76 +41,76 @@ class ImageObject {
   }
 
   /**
-   * WORK IN PRGORESS: @method allows the user to query by multiple keys (e.g author, label, color, face,...)
-   *
+   * @method allows the user to query by multiple keys (e.g author, label, web detection,...)
+   * - Iterates through the searchView, a collection of reverse indexes
+   * - Uses ArangoSearch for text detection
+   * - Sorts results using the BM25 Ranking Algorithm (@see https://en.wikipedia.org/wiki/Okapi_BM25)
+   * - Takes the first 3 highest data matches (label nodes)
+   * - Uses those 3 nodes to find the Images with the highest confidence & count to those nodes
+   * - Returns the top 5 @todo Maybe increase?
+   * - Returns an empty array if nothing is found
    * @param targetLabels An array of targetted words
    */
-  public async query_mixed_keys(targetLabels: string): Promise<ArangoImage[] | undefined> {
-    try {
-      /**
-       * @todo
-       * Add back the following ANALYZER query: doc.data IN t
-       * It is currently removed because the .data field of Labels is not populated with the best synonyms
-       * (Cause: DataMuse API)
-       */
-      const matches = await (
-        await db.query(aql`
-          WITH Labels, Authors, Images, BestGuess
-          LET t = TOKENS(${targetLabels}, 'text_en')
-          FOR doc IN searchview 
-            SEARCH ANALYZER(
-              doc.label IN t ||
-              BOOST(doc.name IN t, 2) ||
-              BOOST(doc.bestGuess IN t, 3)
-            , 'text_en') 
-            SORT BM25(doc, 1.2, 0) DESC 
-            LIMIT 3
-            FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-              LIMIT 5
-              RETURN DISTINCT v
-        `)
-      ).all();
+  public async query_mixed_keys(targetLabels: string): Promise<ArangoImage[]> {
+    const matches = await (
+      await db.query(aql`
+        WITH Labels, Authors, Images, BestGuess
+        LET t = TOKENS(${targetLabels}, 'text_en')
+        FOR doc IN searchview 
+          SEARCH ANALYZER(
+            doc.data IN t ||
+            BOOST(doc.label IN t, 2) ||
+            BOOST(doc.name IN t, 2) ||
+            BOOST(doc.bestGuess IN t, 3)
+          , 'text_en') 
+          SORT BM25(doc, 1.2, 0) DESC 
+          LIMIT 3
+          FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            SORT e._score DESC
+            COLLECT img = v WITH COUNT INTO num
+            SORT num DESC
+            LIMIT 5
+            RETURN img
+      `)
+    ).all();
 
-      return matches;
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
+    return matches;
   }
 
   /**
-   * WORK IN PRGORESS: @method Returns a max of 4 random labels for user input
+   * @method Returns a max of 4 random labels for user input
+   * - Picks a random image
+   * - Iterates through its neighbouring nodes (which are labels)
+   * - Picks 3 of them randomly, and returns them as a string
+   * @returns a random collection of labels (e.g 'mountain blue sky')
    */
-  public async fetch_surprise_keys(): Promise<string | undefined> {
-    try {
-      const result = await (
-        await db.query(aql`
-          With Labels, Authors
-          FOR i IN Images
+  public async fetch_surprise_keys(): Promise<string> {
+    const result = await (
+      await db.query(aql`
+        With Labels, Authors
+        FOR i IN Images
+          SORT RAND()
+          LIMIT 1
+          FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT RAND()
-            LIMIT 1
-            FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-              SORT RAND()
-              LIMIT 3
-              FILTER v.name != null OR v.label != null
-              RETURN v.name != null ? v.name : v.label
-        `)
-      ).all();
+            LIMIT 3
+            FILTER v.name != null OR v.label != null
+            RETURN v.name != null ? v.name : v.label
+      `)
+    ).all();
 
-      return result.join(' ');
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
+    return result.join(' ');
   }
 
   /**
-   * WORK IN PRGORESS: @method Returns information about an Image
+   * @method Returns information about an Image
+   * - Fetches first the Image object (through a simple FILTER query)
+   * - Fetches the image's best guess
+   * - Fetches all the image's labels, containing their confidence score
    */
-  public async fetch_image_info(id: string): Promise<ArangoImageInfo[] | undefined> {
-    try {
-      const result = await (
-        await db.query(aql`
+  public async fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
+    const result = await (
+      await db.query(aql`
           WITH Labels, Authors, BestGuess
             Let image = FIRST((
               FOR i IN Images
@@ -125,87 +124,87 @@ class ImageObject {
             )
             Let labels = (
               FOR v, e IN 1..1 INBOUND image LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                FILTER e._from == v._id
                 SORT e._score DESC
                 RETURN {score: e._score, data: v.label, _id: v._id}
             )
             RETURN {image, bestGuess, labels}
         `)
-      ).all();
-      result[0].similar = await this.fetch_discovery([id], 4);
+    ).all();
+    result[0].similar = await this.fetch_discovery([id], 4);
 
-      return result[0];
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
+    return result[0];
   }
 
   /**
-   * WORK IN PRGORESS: @method Returns images similar to the user's visited Image pages
+   * @method Returns images similar to the user's visited Image pages
+   * @todo Maybe also include favourited images? Or does that become too "vague"
+   *  - A user may click on similar images, but may favourite a collection of completely different ones
+   *  - This would water down the attempt of trying to find a pattern, not sure yet
+   *
+   * - Fetches the top 4 labels that belong to the images that the user has clicked on @todo or should I randomly select?
+   * - Traverses the graphs with those 4 labels to find the images that have those labels the most
    */
-  public async fetch_discovery(clickedImages: string[], resultsLimit: number): Promise<ArangoImage[] | undefined> {
-    try {
-      const result = await (
-        await db.query(aql`
-          WITH Labels
-          FOR i IN Images
-            FILTER i._key IN ${clickedImages}
-            LET labels = (
-              FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                SORT e._score DESC
-                LIMIT 3
-                RETURN v
-            )
-            Let images = (
-              FOR l IN labels
-                FOR v2, e2 IN 1..1 OUTBOUND l LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                  FILTER v2._key NOT IN ${clickedImages}
-                  SORT e2._score DESC
-                  LIMIT ${resultsLimit}
-                  RETURN v2
-            )
-            RETURN {images, labels}
-          `)
-      ).all();
-
-      return result[0];
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
+  public async fetch_discovery(clickedImages: string[], resultsLimit: number): Promise<ArangoImage[]> {
+    const result = await (
+      await db.query(aql`
+        WITH Labels
+        FOR i IN Images
+          FILTER i._key IN ${clickedImages}
+          LET labels = (
+            FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              SORT RAND()
+              LIMIT 4
+              RETURN v
+          )
+          Let images = (
+            FOR l IN labels
+              FOR v2, e2 IN 1..1 OUTBOUND l LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+                FILTER v2._key NOT IN ${clickedImages}
+                SORT e2._score DESC
+                COLLECT img = v2 WITH COUNT INTO num
+                SORT num DESC
+                LIMIT ${resultsLimit}
+                RETURN img
+          )
+          RETURN {images, labels}
+        `)
+    ).all();
+    console.log(result);
+    return result[0];
   }
 
   /**
-   * WORK IN PRGORESS: @method Returns vertices & edges for visualization tool
-   * Color-codes the vertices using the ArangoSearch BM25 Ranking Algorithm
+   * @method Returns vertices & edges of a search result for visualization
+   * - Fetches the vertices similar to the labels provided
+   * - Appends the unsimilar vertices as well
+   *  - Color-codes the vertices using the ArangoSearch BM25 Ranking Algorithm
+   * - Collects the edge documents related to each Image contained in the collection @param
+   *
+   * @param collection - The images to visualize
+   * @param labels - The labels that queried the search results
+   * @returns the nodes & edges for VISJS to use client-side
+   *
    */
   public async fetch_visualizer_info(
     collection: ArangoImage[],
     labels: string,
-  ): Promise<{ vertices: Vertice[]; connections: Connection[] } | undefined> {
-    try {
-      /**
-       * @todo
-       * Add back the following ANALYZER query: doc.data IN t
-       * It is currently removed because the .data field of Labels is not populated with the best synonyms
-       * (Cause: DataMuse API)
-       */
-      const result = await (
-        await db.query(aql`
+  ): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
+    const result = await (
+      await db.query(aql`
         WITH Labels, Authors, BestGuess
         LET vertices = FIRST(
           LET similar = (
             LET t = TOKENS(${labels}, 'text_en')
             FOR doc IN searchview 
-                SEARCH ANALYZER(
-                  doc.label IN t ||
-                  BOOST(doc.name IN t, 2) ||
-                  BOOST(doc.bestGuess IN t, 3)
-                , 'text_en') 
+              SEARCH ANALYZER(
+                doc.data IN t ||
+                BOOST(doc.label IN t, 2) ||
+                BOOST(doc.name IN t, 2) ||
+                BOOST(doc.bestGuess IN t, 3)
+              , 'text_en') 
                 LET score = BM25(doc, 1.2, 0)
                 SORT score DESC
-                LIMIT 5
+                LIMIT 3
                 RETURN {
                     _key: doc._key,
                     _id: doc._id,
@@ -238,13 +237,9 @@ class ImageObject {
         )
         RETURN {vertices, connections} 
       `)
-      ).all();
+    ).all();
 
-      return result[0];
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
+    return result[0];
   }
 }
 

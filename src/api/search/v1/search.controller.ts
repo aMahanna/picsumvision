@@ -43,19 +43,20 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_mixed_keys(req: Request, res: Response): Promise<void> {
-    const labels: string = typeof req.query.labels === 'string' ? req.query.labels : '';
-    const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
-    if (!data) {
-      res.status(500).json('Error searching from mixed keys');
-    } else if (!req.query.isVisualizeRequest) {
-      res.status(200).json({ data, labels: labels.split(' ').sort().join(' ') });
-    } else {
-      const visualizationInfo = await imageObject.fetch_visualizer_info(data, labels);
-      if (!visualizationInfo) {
-        res.status(500).json('Error visualizing from mixed keys');
+    const labels: string | undefined = typeof req.query.labels === 'string' ? req.query.labels : undefined;
+    if (!labels) res.status(400).json('User must pass labels as a string to search');
+    else {
+      const data: ArangoImage[] = await imageObject.query_mixed_keys(labels);
+      if (!req.query.isVisualizeRequest) {
+        res.status(data.length === 0 ? 204 : 200).json({ data, labels: labels.split(' ').sort().join(' ') }); // Return a sorted version of the labels
       } else {
-        const graphObject = parseVisualizationInfo(visualizationInfo);
-        res.status(200).json({ graphObject });
+        const visualizationInfo = await imageObject.fetch_visualizer_info(data, labels);
+        if (visualizationInfo.vertices.length === 0) {
+          res.status(204).json('No visualization info found :/');
+        } else {
+          const graphObject = parseVisualizationInfo(visualizationInfo);
+          res.status(200).json({ graphObject });
+        }
       }
     }
   }
@@ -69,14 +70,14 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_external_image(req: Request, res: Response): Promise<void> {
-    const url: string = typeof req.query.url === 'string' ? req.query.url : '';
-    if (url === '') res.status(400).json('Unacceptable URL');
+    const url: string | undefined = typeof req.query.url === 'string' ? req.query.url : undefined;
+    if (!url) res.status(400).json('Unacceptable URL');
     else {
       const labels: string | undefined = await parseVisionData(url);
       if (!labels) res.status(500).json('Error fetching surprise keys');
       else {
-        const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
-        res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
+        const data: ArangoImage[] = await imageObject.query_mixed_keys(labels);
+        res.status(data.length === 0 ? 204 : 200).json({ data, labels });
       }
     }
   }
@@ -89,11 +90,11 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string | undefined = await imageObject.fetch_surprise_keys();
-    if (!labels) res.status(500).json('Error fetching surprise keys');
+    const labels: string = await imageObject.fetch_surprise_keys();
+    if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
     else {
-      const data: ArangoImage[] | undefined = await imageObject.query_mixed_keys(labels);
-      res.status(data ? 200 : 500).json(data ? { data, labels } : 'Error searching from mixed keys');
+      const data: ArangoImage[] = await imageObject.query_mixed_keys(labels);
+      res.status(200).json({ data, labels });
     }
   }
 
@@ -105,9 +106,12 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_discovery(req: Request, res: Response): Promise<void> {
-    const imageIDs: string[] = typeof req.query.IDs === 'string' ? req.query.IDs.split(',') : [];
-    const data: ArangoImage[] | undefined = await imageObject.fetch_discovery(imageIDs, 5);
-    res.status(data ? 200 : 500).json(data ? { data } : 'Error searching from mixed keys');
+    const imageIDs: string[] | undefined = typeof req.query.IDs === 'string' ? req.query.IDs.split(',') : undefined;
+    if (!imageIDs) res.status(400).json('Unacceptable image IDs format');
+    else {
+      const data: ArangoImage[] = await imageObject.fetch_discovery(imageIDs, 5);
+      res.status(data.length === 0 ? 204 : 200).json({ data });
+    }
   }
 
   /**
@@ -116,11 +120,9 @@ namespace SearchController {
    * @returns An array of labels representing the image in question
    */
   export async function parseVisionData(url: string): Promise<string | undefined> {
-    const VISION_DATA = await fetchVisionMetadata(url, 3); // Set max results to 3 for now
+    const VISION_DATA = await fetchVisionMetadata(url); // Set max results to 3 for now
     if (!VISION_DATA || VISION_DATA.error) {
-      // Exit early if Vision does not find anything
-      console.log(VISION_DATA);
-      return undefined;
+      return undefined; // Exit early if Vision does not find anything
     }
 
     // Parse, sort & unify the metadata to ensure there are no conflicting values

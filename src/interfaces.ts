@@ -2,7 +2,8 @@
  * Interfaces commonly used by API & Collection functions.
  * @interface Vertice represents a Label
  * @interface Connection represents an Image, and its Edge links to labels or an author
- * @interface VisionAnnotation represents the metadata returned by the Vision API
+ * @interface VisionResults represents the metadata structure returned by the Vision API
+ * @interface VisionAnnotation represents certain metadata objects returned by the Vision API
  * @interface ArangoImage represents the Image structure stored in Arango
  * @interface ArangoImageInfo represents the result of an Image Info query (WIP)
  */
@@ -31,6 +32,16 @@ export interface Connection {
   }[];
 }
 
+export interface VisionResult {
+  labelAnnotations: VisionAnnotation[];
+  webDetection: {
+    webEntities: VisionAnnotation[];
+    bestGuessLabels: { label: string; languageCode: string }[];
+  };
+  localizedObjectAnnotations: VisionAnnotation[];
+  error?: any;
+}
+
 export interface VisionAnnotation {
   mid?: string; // A machine generated ID, used in OBJECT_LOCALIZATION & LABEL_DETECTION
   entityId?: string; // An ID designated to a Web Entity, used in WEB_DETECTION
@@ -50,6 +61,9 @@ export interface PicsumImage {
 }
 
 export interface ArangoImage {
+  _id: string;
+  _key: string;
+  _rev: string;
   author: string; // Author
   url: string; // Image url
   date: Date; // Insertion date

@@ -13,7 +13,7 @@ import fetch from 'node-fetch';
 // Import the Vision API
 import fetchVisionMetadata from '../vision';
 // Import the test data (optional)
-import VISION_TEST_LABELS from './assets/VISION_TEST_LABELS';
+import sampleVisionLabels from '../assets/sampleVisionLabels';
 // Import the interfaces used
 import { VisionAnnotation, PicsumImage } from '../interfaces';
 
@@ -43,16 +43,19 @@ function stringToASCII(data: string): string {
   return _key;
 }
 
+/**
+ * @method handles DB data insertion
+ * - Fetches all 993 Picsum Images
+ * - Calls the Vision API on each one of them to create metadata
+ * - Parse through the metadata and insert correspondingly in ArangoDB
+ */
 async function populateDB() {
-  // number of picsum images: ~1000
-  const limit = 50;
-  const maxResults = 2;
+  const limit = 100; // The number of images to return per page (max 100)
 
   let PICSUM_LIST: PicsumImage[] = [];
   let PICSUM_RESULT: PicsumImage[] = [];
   let pageCount = 1;
   do {
-    // const PICSUM_LIST_RESPONSE = await fetch(`https://picsum.photos/id/1048/info/`); // Used for testing
     const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${pageCount}&limit=${limit}`);
     PICSUM_RESULT = await PICSUM_RESPONSE.json();
 
@@ -62,40 +65,30 @@ async function populateDB() {
 
   for (let j = 0; j < PICSUM_LIST.length; j++) {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
-    const PICSUM_URL: string = PICSUM_IMAGE.download_url;
+    const PICSUM_URL = PICSUM_IMAGE.download_url;
 
-    const VISION_DATA = await fetchVisionMetadata(PICSUM_URL, maxResults);
+    const VISION_DATA = await fetchVisionMetadata(PICSUM_URL);
     if (!VISION_DATA || VISION_DATA.error) {
-      // Exit early if Vision does not find anything
-      console.log('VISION API UNCOOPERATIVE; SKIPPING...');
-      console.log(VISION_DATA);
-      continue;
+      console.log('Vision uncooperative, skipping...', VISION_DATA?.error);
+      continue; // Exit early if Vision hits an error
     }
-
-    // console.log(`URL: ${PICSUM_URL}`);
-    // console.dir(VISION_DATA, { depth: null });
 
     /**
      * @this Inserts the Image document, and returns its ID
-     * If the image already exists, it will return UNDEFINED instead, therefore skipping
-     * this iteration of the loop
+     * If the image already exists, return the existing ID
      */
-    const imageID: string | undefined = await imageObject.insertImage({
+    const imageID = await imageObject.insertImage({
       _key: String(PICSUM_IMAGE.id),
       author: PICSUM_IMAGE.author,
       url: PICSUM_URL,
       date: Date(),
     });
-    if (!imageID) {
-      console.log('DUPLICATE IMAGE FOUND; SKIPPING...');
-      continue;
-    }
 
     /**
      * @this Inserts an Author document, and links the image using an AuthorOf edge
      * @returns AUTHOR IDs
      */
-    const authorID: string = await authorObject.insertAuthor({
+    const authorID = await authorObject.insertAuthor({
       _key: stringToASCII(PICSUM_IMAGE.author),
       name: PICSUM_IMAGE.author,
     });
@@ -110,43 +103,45 @@ async function populateDB() {
      * @returns "LABEL" IDs
      */
     // Parse, sort & unify the metadata to ensure there are no conflicting values
-    const VISION_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
+    const visionAnnotations = VISION_DATA.labelAnnotations
       ?.concat(
         VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [],
         VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
       )
       .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1));
-    const UNIQUE_LABELS: VisionAnnotation[] = [
-      ...new Map(VISION_ANNOTATIONS.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values(),
+
+    const uniqueAnnotations = [
+      ...new Map(visionAnnotations.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values(),
     ];
 
-    for (let t = 0; t < UNIQUE_LABELS.length; t++) {
-      const elem: VisionAnnotation = UNIQUE_LABELS[t];
-      if (elem.score > 0.7) {
-        const id: string = (elem.mid || elem.entityId)!;
-        const label: string = (elem.description || elem.name)!;
-        const labelID: string = await labelObject.insertLabel({
-          _key: stringToASCII(id),
-          mid: id,
-          label,
-        });
-        await labelOfObject.insertLabelOf({
-          _from: labelID,
-          _to: imageID,
-          _score: elem.score,
-        });
-      }
+    for (let t = 0; t < uniqueAnnotations.length; t++) {
+      const annot = uniqueAnnotations[t];
+      const id = (annot.mid || annot.entityId)!;
+      const label = (annot.description || annot.name)!;
+
+      const labelID = await labelObject.insertLabel({
+        _key: stringToASCII(id),
+        mid: id,
+        label,
+      });
+      await labelOfObject.insertLabelOf({
+        _from: labelID,
+        _to: imageID,
+        _score: annot.score,
+      });
     }
+
     /**
      * @this Inserts the Best Guess documents, and links the image using BestGuessOf edges
      * @returns "BestGuess" IDs
      */
-    const BEST_GUESSES: { label: string; languageCode: string }[] = VISION_DATA.webDetection?.bestGuessLabels;
-    for (let y = 0; y < BEST_GUESSES.length; y++) {
-      const elem = BEST_GUESSES[y];
+    const bestGuesses = VISION_DATA.webDetection?.bestGuessLabels;
+    for (let y = 0; y < bestGuesses.length; y++) {
+      const guess = bestGuesses[y];
+
       const bestGuessID: string = await bestGuessObject.insertBestGuess({
-        _key: stringToASCII(elem.label.toLowerCase()),
-        bestGuess: elem.label,
+        _key: stringToASCII(guess.label.toLowerCase()),
+        bestGuess: guess.label,
       });
       await bestGuessOfObject.insertBestGuessOf({
         _from: bestGuessID,

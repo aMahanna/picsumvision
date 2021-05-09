@@ -58,15 +58,13 @@ class LabelObject {
    * @returns
    */
   private async generateLabelData(word: string) {
-    const mlResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=1`)).json();
-    const gnResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=1`)).json();
-    const trgResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=1`)).json();
-    const labelData: museModel[] = (mlResult[mlResult.length - 1] && mlResult[mlResult.length - 1].score! > 40000
-      ? mlResult
-      : []
-    ).concat(
-      gnResult[gnResult.length - 1] && gnResult[gnResult.length - 1].score! > 4000 ? gnResult : [],
-      trgResult[trgResult.length - 1] && trgResult[trgResult.length - 1].score! > 1500 ? trgResult : [],
+    const mlResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=10`)).json();
+    const gnResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=10`)).json();
+    const trgResult: museModel[] = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=10`)).json();
+
+    const labelData: museModel[] = (mlResult.length !== 0 ? mlResult : []).concat(
+      gnResult.length !== 0 ? gnResult : [],
+      trgResult.length !== 0 ? trgResult : [],
     );
     return [...new Map(labelData.map(elem => [elem.word, elem.word])).values()].join(' ');
   }
@@ -87,8 +85,11 @@ class LabelOfObject {
 export const labelObject: LabelObject = new LabelObject();
 export const labelOfObject: LabelOfObject = new LabelOfObject();
 
-// For testing: @todo remove
+/**
+ * @todo - remove
+ * A small function to mess around with the Datamuse API
+ */
 // (async () => {
-//   const labelData = await labelObject.generateLabelData('MacBook Air');
+//   const labelData = await labelObject.generateLabelData('building');
 //   console.log(labelData);
 // })();

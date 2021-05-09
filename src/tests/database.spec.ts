@@ -14,7 +14,7 @@ import { authorObject, authorOfObject } from '../collections/Author';
 import { labelObject, labelOfObject } from '../collections/Label';
 import { bestGuessObject, bestGuessOfObject } from '../collections/BestGuess';
 
-import { image, author, authorOf, label, labelOf, bestGuess, bestGuessOf } from './data';
+import { image, author, authorOf, label, labelOf, bestGuess, bestGuessOf } from '../assets/sampleData';
 
 const ImageCollection = db.collection('Images');
 const AuthorCollection = db.collection('Authors');
@@ -34,7 +34,7 @@ test('perform basic insert/delete for the Image collections', async () => {
   expect(imageDoc._key).toBe(image._key);
 
   const imageAlreadyExists = await imageObject.insertImage(image);
-  expect(imageAlreadyExists).toBeUndefined();
+  expect(imageAlreadyExists).toBe(`Images/${image._key}`);
 
   await ImageCollection.remove(image._key, { silent: true });
   expect(await ImageCollection.documentExists(image._key)).toBe(false);

@@ -47,9 +47,9 @@ const Info = (props: any) => {
       },
     });
     fetch(`/api/info/image?id=${id}`)
-      .then(response => response.json())
+      .then(response => (response.status === 200 ? response.json() : undefined))
       .then(result => {
-        if (result.data.image) {
+        if (result) {
           setURL(result.data.image.url);
           setAuthor(result.data.image.author);
           setBestGuess(result.data.bestGuess);

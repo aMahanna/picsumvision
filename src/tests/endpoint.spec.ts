@@ -40,9 +40,8 @@ test('Search for Images using "Water" and "Sky"', async () => {
   expect(res.body.data.length).toBeGreaterThan(0);
 
   const resEmpty = await request.get(`/api/search/mixed`);
-  expect(resEmpty.status).toBe(200);
-  expect(resEmpty.body.labels).toBe('');
-  expect(resEmpty.body.data.length).toBe(0);
+  expect(resEmpty.status).toBe(400);
+  expect(resEmpty.body).toBe('User must pass labels as a string to search');
 
   const resVisualize = await request.get(`/api/search/mixed?labels=cloud&isVisualizeRequest=true`);
   expect(resVisualize.status).toBe(200);

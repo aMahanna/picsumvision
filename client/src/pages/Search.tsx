@@ -99,9 +99,9 @@ const Search = (props: any) => {
       setSearchResult(persistedData[lastSearch]?.data || []);
     } else {
       fetch('/api/info/randomkeys')
-        .then(result => result.json())
+        .then(result => (result.status === 200 ? result.json() : undefined))
         .then(response => {
-          setInputPlaceholder(response.labels);
+          setInputPlaceholder(response ? response.labels : 'cloud sky plant');
         });
     }
   }, []);
@@ -132,7 +132,7 @@ const Search = (props: any) => {
     } else {
       const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
       const response = await fetch(uri);
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 204) {
         const result = await response.json();
         setSearchResult(result.data);
         setResultIsEmpty(result.data.length === 0);
@@ -175,7 +175,7 @@ const Search = (props: any) => {
     if (imageClicks !== undefined) {
       const imageIDs = Object.keys(imageClicks[0]);
       const response = await fetch(`/api/search/discovery?IDs=${imageIDs}`);
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 204) {
         const result = await response.json();
         const labels: string = result.data.labels
           // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -194,9 +194,11 @@ const Search = (props: any) => {
   // Fetches random labels to user for search inspiration
   const suggestUser = async () => {
     const response = await fetch('/api/info/randomkeys');
-    const result = await response.json();
-    setSuggestInput(true);
-    setInputPlaceholder(result.labels);
+    if (response.status === 200) {
+      const result = await response.json();
+      setSuggestInput(true);
+      setInputPlaceholder(result.labels);
+    }
   };
 
   /**

@@ -50,6 +50,7 @@
     "db:clear": "tsc && node dist/src/scripts/clear.js",
     "clean": "rimraf dist",
     "build": "tsc",
+    "postinstall": "tsc",
     "test": "echo 'test'",
     "realTest": "jest && yarn client:install && yarn client:test",
     "heroku-postbuild": "yarn run client:install && yarn run client:build",

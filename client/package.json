@@ -29,11 +29,11 @@
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {
-    "prettier": "^2.2.1",
-    "sass": "^1.32.0",
     "eslint": "^7.22.0",
     "eslint-plugin-react": "^7.22.0",
-    "eslint-plugin-react-hooks": "^4.2.0"
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "prettier": "^2.2.1",
+    "sass": "^1.32.0"
   },
   "scripts": {
     "start": "react-scripts start",

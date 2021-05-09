@@ -84,7 +84,7 @@ const Search = (props: any) => {
    * - Set random labels as the input placeholder for search inspiration
    */
   useEffect(() => {
-    const historyIndex: string = props.location.state?.fromHistory;
+    const historyIndex: string = props.location?.state?.fromHistory;
     if (historyIndex) {
       if (persistedData[historyIndex]) {
         setTextFieldInput(historyIndex);

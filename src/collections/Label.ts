@@ -40,7 +40,6 @@ class LabelObject {
     if (labelAlreadyExists) {
       return labelAlreadyExists._id;
     }
-    console.log(`LABEL: ${document._key} : ${document.label}`);
     document.data = await this.generateLabelData(document.label.trim());
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
@@ -81,7 +80,7 @@ class LabelOfObject {
    * @returns The ArangoID of the inserted LabelOf edge
    */
   async insertLabelOf(edge: labelOfModel): Promise<void> {
-    await LabelOfCollection.save(edge, { silent: true });
+    await LabelOfCollection.save(edge, { silent: true, waitForSync: true });
   }
 }
 

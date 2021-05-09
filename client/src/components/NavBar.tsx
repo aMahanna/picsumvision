@@ -38,13 +38,13 @@ const NavBar = () => {
           <h1 className="nav--title">{t('general.title')}</h1>
         </div>
         <Container component="div" maxWidth="md" className="navbar-nav--items">
-          <Button size="large" to="/search" component={Link}>
+          <Button key="search-button" size="large" to="/search" component={Link}>
             {t('general.searchButton')}
           </Button>
-          <Button size="large" to="/history" component={Link}>
+          <Button key="history-button" size="large" to="/history" component={Link}>
             {t('general.historyButton')}
           </Button>
-          <Button size="large" to="/about" component={Link}>
+          <Button key="about-button" size="large" to="/about" component={Link}>
             {t('general.aboutButton')}
           </Button>
         </Container>

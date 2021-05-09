@@ -12,7 +12,7 @@ interface bestGuessModel {
 interface bestGuessOfModel {
   _from: string;
   _to: string;
-  _score: 1; // A best guess always has a confidence score of 1
+  _score: number; // A best guess always has a confidence score of 1
 }
 
 const BestGuessCollection = db.collection('BestGuess');
@@ -28,7 +28,6 @@ class BestGuessObject {
    */
   public async insertBestGuess(document: bestGuessModel): Promise<string> {
     const bestGuessAlreadyExists = await BestGuessCollection.document({ _key: document._key }, true);
-    console.log(`BEST GUESS: ${document._key} : ${document.bestGuess}`);
     return bestGuessAlreadyExists
       ? bestGuessAlreadyExists._id
       : (await BestGuessCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;

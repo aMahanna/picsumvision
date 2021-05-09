@@ -27,3 +27,5 @@ app.get('/*', function (req, res) {
 });
 
 http.createServer(app).listen(port, () => console.log(`Listening on port ${port}`)); // eslint-disable-line no-console
+
+export default app;

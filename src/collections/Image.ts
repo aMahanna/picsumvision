@@ -36,7 +36,7 @@ class ImageObject {
               url: document.url,
               date: document.date,
             },
-            { overwriteMode: 'ignore' },
+            { overwriteMode: 'ignore', waitForSync: true },
           )
         )._id;
   }

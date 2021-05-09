@@ -39,7 +39,6 @@ class AuthorOfObject {
    * @method inserts the AuthorOf Edge linking an Image and an Author
    *
    * @param edge implements the authorOfModel interface
-   * @returns The ArangoID of the inserted AuthorOf edge
    */
   async insertAuthorOf(edge: authorOfModel): Promise<void> {
     await AuthorOfCollection.save(edge, { silent: true });

@@ -31,7 +31,6 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
 
 /**
  * The @namespace for orchestrating Search operations
- * Currently a Work In Progress
  */
 namespace SearchController {
   /**

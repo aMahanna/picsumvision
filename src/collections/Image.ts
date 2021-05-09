@@ -1,5 +1,5 @@
 /**
- * This @file manages the Images Document Collection in our ArangoDB
+ * This @file manages the Images Document Collection in ArangoDB
  */
 
 import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } from '../interfaces';

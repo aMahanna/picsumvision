@@ -5,7 +5,7 @@
  * @interface VisionResult represents the metadata structure returned by the Vision API
  * @interface VisionAnnotation represents certain metadata objects returned by the Vision API
  * @interface ArangoImage represents the Image structure stored in Arango
- * @interface ArangoImageInfo represents the result of an Image Info query (WIP)
+ * @interface ArangoImageInfo represents the result of an Image Info query
  */
 export interface Vertice {
   _id: string; // ArangoDB-generated ID

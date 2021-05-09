@@ -11,7 +11,8 @@ import usePersistedState from '../hooks/usePersistedState';
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-const useStyles = makeStyles(() =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const useStyles: any = makeStyles(() =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',

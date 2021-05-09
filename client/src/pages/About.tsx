@@ -11,7 +11,8 @@ import { default as MUILink } from '@material-ui/core/Link';
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-const useStyles = makeStyles(() =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const useStyles: any = makeStyles(() =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',
@@ -30,7 +31,7 @@ const useStyles = makeStyles(() =>
  */
 const About = () => {
   const [t] = useTranslation();
-  const classes = useStyles();
+  const classes  = useStyles();
 
   return (
     <Container component="main" maxWidth="sm">

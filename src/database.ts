@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * This @file uses the ArangoJS driver to connect to ArangoOasis
  * - It also defines the list of collections & views currently needed

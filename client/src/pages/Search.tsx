@@ -3,19 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import SearchIcon from '@material-ui/icons/Search';
-import {
-  Container,
-  CssBaseline,
-  makeStyles,
-  createStyles,
-  Theme,
-  Avatar,
-  TextField,
-  Button,
-  Box,
-  CircularProgress,
-  Tooltip,
-} from '@material-ui/core';
+import { Container, CssBaseline, Theme, Avatar, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
+import { makeStyles, createStyles } from '@material-ui/styles';
 
 import Alert from '../components/Alert';
 import Gallery from '../components/Gallery';
@@ -27,8 +16,7 @@ import getPersistedState from '../hooks/getPersistedState';
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const useStyles: any = makeStyles((theme: Theme) =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',
@@ -179,7 +167,7 @@ const Search = (props: any) => {
       if (response.status === 200 || response.status === 204) {
         const result = await response.json();
         const labels: string = result.data.labels
-          // eslint-disable-line @typescript-eslint/no-explicit-any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((item: any) => {
             return item.label;
           })

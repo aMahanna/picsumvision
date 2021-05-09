@@ -53,7 +53,7 @@
     "test": "jest && yarn client:install && yarn client:test",
     "heroku-postbuild": "yarn run client:install && yarn run client:build",
     "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write && cd client && yarn prettier",
-    "lint": "eslint . --ext .ts && cd client && yarn lint:fix",
+    "lint": "eslint . --ext .ts && cd client && yarn lint",
     "lint:fix": "eslint . --ext .ts --fix && cd client && yarn lint:fix"
   },
   "engines": {

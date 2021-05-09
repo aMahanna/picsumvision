@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 // import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import ImageSearchIcon from '@material-ui/icons/ImageSearch';
-import { Container, CssBaseline, Box, makeStyles, Avatar, createStyles, ImageList, ImageListItem } from '@material-ui/core';
-import { default as MUILink } from '@material-ui/core/Link';
+import { Container, CssBaseline, Box, Avatar, ImageList, ImageListItem, Link as MUILink } from '@material-ui/core';
+import { makeStyles, createStyles } from '@material-ui/styles';
+// Import hooks
 import usePersistedState from '../hooks/usePersistedState';
 
 /**
@@ -11,8 +12,7 @@ import usePersistedState from '../hooks/usePersistedState';
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const useStyles: any = makeStyles(() =>
+const useStyles = makeStyles(() =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',

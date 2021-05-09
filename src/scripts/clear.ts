@@ -1,8 +1,9 @@
+/* eslint-disable no-console */
 /**
  * This @file clears all currently used ArangoDB collections because I'm lazy
  */
 
-import db, { documentCollections, edgeCollections, view } from '../database';
+import db, { documentCollections, edgeCollections } from '../database';
 
 async function clearDB() {
   for (let i = 0; i < documentCollections.length; i++) {

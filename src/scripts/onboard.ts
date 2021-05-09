@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * This @file onboards your ArangoDB.
  *

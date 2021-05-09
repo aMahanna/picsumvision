@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * @file A script to populare the database
  *
@@ -13,7 +14,7 @@ import fetch from 'node-fetch';
 // Import the Vision API
 import fetchVisionMetadata from '../vision';
 // Import the test data (optional)
-import sampleVisionLabels from '../assets/sampleVisionLabels';
+// import sampleVisionLabels from '../assets/sampleVisionLabels';
 // Import the interfaces used
 import { VisionAnnotation, PicsumImage } from '../interfaces';
 

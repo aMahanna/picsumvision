@@ -169,7 +169,7 @@ class ImageObject {
           RETURN {images, labels}
         `)
     ).all();
-    console.log(result);
+
     return result[0];
   }
 

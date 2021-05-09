@@ -5,7 +5,7 @@ Backend & Data Developer Intern Challenge
 
 Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
 
-**[Show, don't tell](https://picsumvision.herokuapp.com/)**
+**[Show, don't tell](https://picsumvision.mahanna.dev/)**
 
 ## Configuration
 

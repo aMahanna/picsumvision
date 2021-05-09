@@ -141,7 +141,7 @@ class ImageObject {
    *  - A user may click on similar images, but may favourite a collection of completely different ones
    *  - This would water down the attempt of trying to find a pattern, not sure yet
    *
-   * - Fetches the top 4 labels that belong to the images that the user has clicked on @todo or should I randomly select?
+   * - Fetches the top 4 labels that belong to the images that the user has clicked on
    * - Traverses the graphs with those 4 labels to find the images that have those labels the most
    */
   public async fetch_discovery(clickedImages: string[], resultsLimit: number): Promise<ArangoImage[]> {
@@ -152,7 +152,7 @@ class ImageObject {
           FILTER i._key IN ${clickedImages}
           LET labels = (
             FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-              SORT RAND()
+              SORT e._score DESC
               LIMIT 4
               RETURN v
           )

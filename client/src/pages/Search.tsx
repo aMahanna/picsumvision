@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import SearchIcon from '@material-ui/icons/Search';
-import { Container, CssBaseline, Theme, Avatar, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
+import { Container, CssBaseline, Avatar, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/styles';
 
 import Alert from '../components/Alert';
@@ -16,7 +16,7 @@ import getPersistedState from '../hooks/getPersistedState';
  * This @var is passed as a paramater in the export of the component
  * @see https://material-ui.com/styles/basics/
  */
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     avatar: {
       backgroundColor: 'inherit',
@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme: Theme) =>
     button: {
       '& > *': {
         color: '#2f2d2e',
-        margin: theme.spacing(1),
+        margin: '8px',
         '&:hover': {
           transition: '0.3s ease-in',
           backgroundColor: '#2f2d2e',
@@ -147,11 +147,12 @@ const Search = (props: any) => {
       setTextFieldInput(result.labels);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels, result.data); /** @todo Maybe don't include these types of searches in history */
-      setIsLoading(false);
+      updateCache(result.labels, result.data);
     } else {
       setSorryAlert(true);
     }
+
+    setIsLoading(false);
   };
 
   /**
@@ -161,9 +162,11 @@ const Search = (props: any) => {
    * @todo
    */
   const discover = async () => {
+    setIsLoading(true);
+
     if (imageClicks !== undefined) {
-      const imageIDs = Object.keys(imageClicks[0]);
-      const response = await fetch(`/api/search/discovery?IDs=${imageIDs}`);
+      const response = await fetch(`/api/search/discovery?IDs=${Object.keys(imageClicks[0])}`);
+
       if (response.status === 200 || response.status === 204) {
         const result = await response.json();
         const labels: string = result.data.labels
@@ -174,20 +177,27 @@ const Search = (props: any) => {
           .join(' ');
         setSearchResult(result.data.images);
         setTextFieldInput(labels);
+        updateCache(labels, result.data.images);
       } else {
         setSorryAlert(true);
       }
     }
+
+    setIsLoading(false);
   };
 
   // Fetches random labels to user for search inspiration
   const suggestUser = async () => {
+    setIsLoading(true);
+
     const response = await fetch('/api/info/randomkeys');
     if (response.status === 200) {
       const result = await response.json();
       setSuggestInput(true);
       setInputPlaceholder(result.labels);
     }
+
+    setIsLoading(false);
   };
 
   /**

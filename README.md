@@ -45,7 +45,17 @@ Good to go:
 ## Extra Information
 
 **Generating more images from `populate.ts`**
-https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
 
-To include all +900 Picsum Images in your database population, you can change `pageCount !== 2` to `pageCount < 12`. This will instead fetch all Picsum image lists pages, as opposed to just fetching the first.
+```typescript
+do {
+    const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${pageCount}&limit=${limit}`);
+    PICSUM_RESULT = await PICSUM_RESPONSE.json();
+
+    PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
+    pageCount++;
+  } while (pageCount !== 2); // set to `pageCount < 12` to get all 993 images
+```
+
+([Source](https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
+)) To include all +900 Picsum Images in your database population, you can change `pageCount !== 2` to `pageCount < 12`. This will instead fetch all Picsum image lists pages, as opposed to just fetching the first.
 

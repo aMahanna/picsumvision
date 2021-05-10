@@ -10,6 +10,8 @@ Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
 
 **[Show, don't tell](https://picsumvision.mahanna.dev/)**
 
+**[View the tech stack on the About page](https://picsumvision.mahanna.dev/about)**
+
 ## Configuration
 
 Picsum Vision requires the following environment variables:
@@ -61,12 +63,11 @@ do {
 
 ### An idea of what the ArangoDB graph looks like:
 
+_Note: This image is a snapshot of the DB at only 40 images. As it stands, there are about 977 images_
+
 * Black nodes: images
 * Blue nodes: labels
 * Purple nodes: author
-* Previous image node count: 40
-* Current image node count: 977
-
 
 <img src="https://user-images.githubusercontent.com/43019056/116952828-aaa5ee00-ac59-11eb-8244-6f4154a958d0.png"  width="400"/>
 

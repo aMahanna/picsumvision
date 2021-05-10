@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import SearchIcon from '@material-ui/icons/Search';
-import { Container, CssBaseline, Avatar, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
+import { Container, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/styles';
 
 import Alert from '../components/Alert';
@@ -243,10 +242,6 @@ const Search = (props: any) => {
   return (
     <Container maxWidth="lg">
       <Container maxWidth="sm">
-        <CssBaseline />
-        <Avatar className={classes.avatar}>
-          <SearchIcon fontSize="large" />
-        </Avatar>
         <Box mt={2}>
           <TextField
             id="search-input"

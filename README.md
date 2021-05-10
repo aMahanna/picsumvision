@@ -59,3 +59,15 @@ do {
 ([Source](https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
 )) To include all +900 Picsum Images in your database population, you can change `pageCount !== 2` to `pageCount < 12`. This will instead fetch all Picsum image lists pages, as opposed to just fetching the first.
 
+### An idea of what the ArangoDB graph looks like:
+
+* Black nodes: images
+* Blue nodes: labels
+* Purple nodes: author
+* Previous image node count: 40
+* Current image node count: 977
+
+
+<img src="https://user-images.githubusercontent.com/43019056/116952828-aaa5ee00-ac59-11eb-8244-6f4154a958d0.png"  width="400"/>
+
+

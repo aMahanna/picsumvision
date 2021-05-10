@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import ImageSearchIcon from '@material-ui/icons/ImageSearch';
-import { Container, CssBaseline, Box, Avatar, ImageList, ImageListItem, Link as MUILink } from '@material-ui/core';
+import { Container, Box, ImageList, ImageListItem, Link as MUILink } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/styles';
 // Import hooks
 import usePersistedState from '../hooks/usePersistedState';
@@ -64,10 +63,6 @@ const Info = (props: any) => {
 
   return (
     <Container component="main" maxWidth="md">
-      <CssBaseline />
-      <Avatar className={classes.avatar}>
-        <ImageSearchIcon fontSize="large" />
-      </Avatar>
       <Box mt={4}>
         {url !== '' && author !== '' && (
           <div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Graph from 'react-graph-vis';
-import { CircularProgress, Container, CssBaseline } from '@material-ui/core';
+import { CircularProgress, Container } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
 import Alert from '../components/Alert';
 
@@ -63,7 +63,6 @@ const Visualize = () => {
 
   return (
     <Container maxWidth="lg">
-      <CssBaseline />
       <h4>
         {t('visualizerPage.lastSearch')} "{lastSearch}"
       </h4>

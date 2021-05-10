@@ -93,7 +93,7 @@ class ImageObject {
         FOR i IN Images
           SORT RAND()
           LIMIT 1
-          FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FOR v,e IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT e._score DESC
             LIMIT 6
             SORT RAND()

@@ -89,6 +89,9 @@ const About = () => {
           <b>History</b>: Use client-side caching (i.e local storage) to keep track of user clicks, searches & favourites
         </div>
       </Box>
+      <Box>
+        <img alt="Picsum Vision stack" src='/stack.png' style={{ height: '100%', width: '100%' }}></img>
+      </Box>
       <Box mt={3}>
         <h4>More documentation... coming soon</h4>
       </Box>

@@ -100,15 +100,17 @@ namespace SearchController {
   /**
    * Handles requests to the @endpoint /api/search/discovery
    * Will return Images with similar labels to the images that the user has clicked on
+   * - Also takes into account the user's search history, as this provides better context
    *
    * @param req Request
    * @param res Response
    */
   export async function from_discovery(req: Request, res: Response): Promise<void> {
     const imageIDs: string[] | undefined = typeof req.query.IDs === 'string' ? req.query.IDs.split(',') : undefined;
+    const searches: string | undefined = typeof req.query.searches === 'string' ? req.query.searches : undefined;
     if (!imageIDs) res.status(400).json('Unacceptable image IDs format');
     else {
-      const data: ArangoImage[] = await imageObject.fetch_discovery(imageIDs, 5);
+      const data: ArangoImage[] = await imageObject.fetch_discovery(imageIDs, searches);
       res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }

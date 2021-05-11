@@ -111,8 +111,9 @@ class ImageObject {
    * - Fetches first the Image object (through a simple FILTER query)
    * - Fetches the image's best guess
    * - Fetches all the image's labels, containing their confidence score
+   * - Calls fetch_discovery for this image to look for visually similar results
    */
-  public async fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
+  public async fetch_image_info(id: string, searches: string | undefined): Promise<ArangoImageInfo[]> {
     const result = await (
       await db.query(aql`
           WITH Labels, Authors, BestGuess
@@ -134,47 +135,53 @@ class ImageObject {
             RETURN {image, bestGuess, labels}
         `)
     ).all();
-    result[0].similar = await this.fetch_discovery([id], 4);
+
+    /**
+     * If the last search is undefined (i.e user has navigated to an image, but not through the results panel),
+     * then use the current image's top three labels to perform a discovery
+    */
+    const topThreeLabels = result[0].labels.map((object : any) => object.label);
+    const search = searches === undefined ? topThreeLabels : searches;
+    result[0].similar = await this.fetch_discovery([id], search);
 
     return result[0];
   }
 
   /**
-   * @method Returns images similar to the user's visited Image pages
+   * @method Returns images similar to the user's visited Images & the user's recent search history
+   * - Fetches the labels that match the user's recent search hsitor
+   * - Traverses the graphs starting from these labels to find any colliding images 
+   * - Returns the images that have the most "collisions" to those labels 
+   * 
    * @todo Maybe also include favourited images? Or does that become too "vague"
    *  - A user may click on similar images, but may favourite a collection of completely different ones
    *  - This would water down the attempt of trying to find a pattern, not sure yet
-   *
-   * - Fetches the top 4 labels that belong to the images that the user has clicked on
-   * - Traverses the graphs with those 4 labels to find the images that have those labels the most
+   * 
+   * @param clickedImages The images the user has viewed
+   * @param searches The topics that the user has previously searched
+   * @returns An array of images
    */
-  public async fetch_discovery(clickedImages: string[], resultsLimit: number): Promise<ArangoImage[]> {
+  public async fetch_discovery(clickedImages: string[], searches?: string): Promise<ArangoImage[]> {
     const result = await (
       await db.query(aql`
-        WITH Labels
+        WITH Labels, Authors
         FOR i IN Images
           FILTER i._key IN ${clickedImages}
-          LET labels = (
-            FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          LET searchTokens = TOKENS(${searches}, 'text_en')
+          FOR keyword IN searchTokens
+            FOR v, e IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              FILTER CONTAINS(LOWER(v.label), keyword) OR CONTAINS(LOWER(v.data), keyword) OR CONTAINS(LOWER(v.name), keyword)
               SORT e._score DESC
-              LIMIT 4
-              RETURN {label: v.label, _id: v._id}
-          )
-          Let images = (
-            FOR l IN labels
-              FOR v2, e2 IN 1..1 OUTBOUND l LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              FOR v2, e2 IN 1..1 OUTBOUND v LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
                 FILTER v2._key NOT IN ${clickedImages}
-                SORT e2._score DESC
+                SORT e._score DESC
                 COLLECT img = v2 WITH COUNT INTO num
                 SORT num DESC
-                LIMIT ${resultsLimit}
+                LIMIT 4
                 RETURN img
-          )
-          RETURN {images, labels}
         `)
     ).all();
-
-    return result[0];
+    return result;
   }
 
   /**

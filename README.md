@@ -16,7 +16,6 @@ _Disclaimer: Searching is far from being optimized; generating the metadata is n
 
 _What you see here is about 10 days worth of progress, as of May 10th._
 
-
 ## Configuration
 
 Picsum Vision requires the following environment variables:

@@ -139,9 +139,9 @@ class ImageObject {
     /**
      * If the last search is undefined (i.e user has navigated to an image, but not through the results panel),
      * then use the current image's top three labels to perform a discovery
-    */
-    const topThreeLabels = result[0].labels.map((object : any) => object.label);
-    const search = searches === undefined ? topThreeLabels : searches;
+     */
+    const topThreeLabels = result[0].labels.map((object: any) => object.label).slice(0, 3);
+    const search = searches === undefined ? topThreeLabels.join(' ') : searches;
     result[0].similar = await this.fetch_discovery([id], search);
 
     return result[0];
@@ -150,13 +150,13 @@ class ImageObject {
   /**
    * @method Returns images similar to the user's visited Images & the user's recent search history
    * - Fetches the labels that match the user's recent search hsitor
-   * - Traverses the graphs starting from these labels to find any colliding images 
-   * - Returns the images that have the most "collisions" to those labels 
-   * 
+   * - Traverses the graphs starting from these labels to find any colliding images
+   * - Returns the images that have the most "collisions" to those labels
+   *
    * @todo Maybe also include favourited images? Or does that become too "vague"
    *  - A user may click on similar images, but may favourite a collection of completely different ones
    *  - This would water down the attempt of trying to find a pattern, not sure yet
-   * 
+   *
    * @param clickedImages The images the user has viewed
    * @param searches The topics that the user has previously searched
    * @returns An array of images

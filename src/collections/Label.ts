@@ -51,26 +51,26 @@ class LabelObject {
    * - Currently debating on whether to remove this or not, @todo
    * - Currently using the arbitrary DataMuse 'scoring' mecanism to filter out responses
    *
-   * - mlResult: Matches around "means like" results  (e.g person -> someone)
+   * - mlResult: Matches around "means like" results  (e.g ocean -> see)
+   * - synResult: Matches around synonyms (e.g boat -> gondola)
    * - trgResult: Matches around "trigger" (e.g cow -> milking)
-   * - gnResult: Matches around "more general than" (e.g boat -> gondola)
    * @param word The word to generate more metadata from
    * @returns
    */
   public async generateLabelData(word: string) {
     let mlResult: museModel[] = [];
-    let gnResult: museModel[] = [];
+    let synResult: museModel[] = [];
     let trgResult: museModel[] = [];
     try {
       mlResult = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=10`)).json();
-      gnResult = await (await fetch(`https://api.datamuse.com/words?rel_gen=${word}&max=10`)).json();
+      synResult = await (await fetch(`https://api.datamuse.com/words?rel_syn=${word}&max=10`)).json();
       trgResult = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=10`)).json();
     } catch (error: any) {
       return '';
     }
 
     const labelData: museModel[] = (mlResult.length !== 0 ? mlResult : []).concat(
-      gnResult.length !== 0 ? gnResult : [],
+      synResult.length !== 0 ? synResult : [],
       trgResult.length !== 0 ? trgResult : [],
     );
     return [...new Map(labelData.map(elem => [elem.word, elem.word])).values()].join(' ');

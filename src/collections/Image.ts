@@ -71,7 +71,7 @@ class ImageObject {
             SORT e._score DESC
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
-            LIMIT 7
+            LIMIT 9
             RETURN img
       `)
     ).all();

@@ -12,6 +12,11 @@ Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
 
 **[View the tech stack on the About page](https://picsumvision.mahanna.dev/about)**
 
+_Disclaimer: Searching is far from being optimized; generating the metadata is not the issue, the challenge comes with parsing & indexing it effectively._
+
+_What you see here is about 10 days worth of progress, as of May 10th._
+
+
 ## Configuration
 
 Picsum Vision requires the following environment variables:
@@ -41,7 +46,8 @@ Good to go:
 * GET `/api/search/discovery` - Queries images based on user click history 
 
 * GET `/api/info/image` - Returns metadata of an image using its ID
-* GET `/api/search/randomkeys` - Returns random labels (generated from ArangoDB)
+* GET `/api/info/randomkeys` - Returns random labels (generated from ArangoDB)
+* GET `/api/info/metrics` - Returns database collection counts
 
 
 ## Extra Information
@@ -62,13 +68,5 @@ do {
 )) To include all +900 Picsum Images in your database population, you can change `pageCount !== 2` to `pageCount < 12`. This will instead fetch all Picsum image lists pages, as opposed to just fetching the first.
 
 ### An idea of what the ArangoDB graph looks like:
-
-_Note: This image is a snapshot of the DB at only 40 images. As it stands, there are about 977 images_
-
-* Black nodes: images
-* Blue nodes: labels
-* Purple nodes: author
-
-<img src="https://user-images.githubusercontent.com/43019056/116952828-aaa5ee00-ac59-11eb-8244-6f4154a958d0.png"  width="400"/>
-
-
+<img src="https://user-images.githubusercontent.com/43019056/117744883-78573c00-b1d7-11eb-9a8f-6cf332d154a2.png"  width="400"/>
+<img src="https://user-images.githubusercontent.com/43019056/117744933-9886fb00-b1d7-11eb-95f2-98874027311d.png"  width="400"/>

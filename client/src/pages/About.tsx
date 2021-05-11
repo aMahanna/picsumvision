@@ -1,35 +1,11 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import { Container, Box, Link as MUILink } from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/styles';
-
-/**
- * CreateStyles allows us to style MUI components
- * This @var is passed as a paramater in the export of the component
- * @see https://material-ui.com/styles/basics/
- */
-const useStyles = makeStyles(() =>
-  createStyles({
-    avatar: {
-      backgroundColor: 'inherit',
-      color: '#2F2D2E',
-      margin: 'auto',
-    },
-    image: {
-      height: '100%',
-      width: '100%',
-    },
-  }),
-);
 
 /**
  * About page (@todo)
  */
 const About = () => {
-  const [t] = useTranslation();
-  const classes = useStyles();
-
   return (
     <Container component="main" maxWidth="md">
       {/** @todo - Time permitted, move descriptions to locale */}
@@ -90,7 +66,7 @@ const About = () => {
         </div>
       </Box>
       <Box>
-        <img alt="Picsum Vision stack" src='/stack.png' style={{ height: '100%', width: '100%' }}></img>
+        <img alt="Picsum Vision stack" src="/stack.png" style={{ height: '100%', width: '100%' }}></img>
       </Box>
       <Box mt={3}>
         <h4>More documentation... coming soon</h4>

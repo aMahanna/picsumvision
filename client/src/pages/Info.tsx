@@ -1,30 +1,11 @@
 import React, { useEffect, useState } from 'react';
-// import { useTranslation } from 'react-i18next';
 // Import MUI Components
 import { Container, Box, ImageList, ImageListItem, Link as MUILink } from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/styles';
 // Import hooks
 import usePersistedState from '../hooks/usePersistedState';
 
-/**
- * CreateStyles allows us to style MUI components
- * This @var is passed as a paramater in the export of the component
- * @see https://material-ui.com/styles/basics/
- */
-const useStyles = makeStyles(() =>
-  createStyles({
-    avatar: {
-      backgroundColor: 'inherit',
-      color: '#2F2D2E',
-      margin: 'auto',
-    },
-  }),
-);
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Info = (props: any) => {
-  //const [t] = useTranslation();
-  const classes = useStyles();
   const [id] = useState(props.match.params.id);
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
@@ -40,13 +21,15 @@ const Info = (props: any) => {
    * If no image is found, redirect to landing page
    */
   useEffect(() => {
+    const fromSearch: string | undefined = props.location?.state?.fromSearch;
     setImageIDs({
       ...imageIDs,
       [id]: {
+        fromSearch,
         date: new Date(),
       },
     });
-    fetch(`/api/info/image?id=${id}`)
+    fetch(`/api/info/image?id=${id}${fromSearch ? `&searches=${fromSearch?.trim()}` : ''}`)
       .then(response => (response.status === 200 ? response.json() : undefined))
       .then(result => {
         if (result) {
@@ -54,7 +37,7 @@ const Info = (props: any) => {
           setAuthor(result.data.image.author);
           setBestGuess(result.data.bestGuess);
           setLabels(result.data.labels);
-          setSimilar(result.data.similar?.images);
+          setSimilar(result.data.similar);
         } else {
           props.history.push('/');
         }

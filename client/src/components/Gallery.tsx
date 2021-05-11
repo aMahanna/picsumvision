@@ -41,7 +41,7 @@ const Gallery = (props: any) => {
         <ImageList variant="masonry" style={{ overflowY: 'hidden' }} cols={props.data.length <= 2 ? 1 : 2}>
           {props.data.map((item: { url: string; author: string; _key: string }) => (
             <ImageListItem key={item.url}>
-              <Link to={`/info/${item._key}`}>
+              <Link to={{ pathname: `/info/${item._key}`, state: { fromSearch: props.fromSearch } }}>
                 <img className={props.imageClass} src={item.url} alt={item.author} loading="lazy" />
               </Link>
               <ImageListItemBar

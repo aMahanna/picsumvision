@@ -79,6 +79,7 @@ async function populateDB() {
       date: Date(),
     });
     if (imageInsert.alreadyExists) {
+      console.log('Duplicate image, skipping...');
       continue; // Skip the image if it is already inserted
     }
 

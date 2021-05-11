@@ -22,8 +22,7 @@ test('Fetch Image information about Image/0', async () => {
   expect(res.body.data.image._id).toBe('Images/0');
   expect(res.body.data.bestGuess.length).toBeGreaterThan(0);
   expect(res.body.data.labels.length).toBeGreaterThan(0);
-  expect(res.body.data.similar.images.length).toBeGreaterThan(0);
-  expect(res.body.data.similar.labels.length).toBeGreaterThan(0);
+  expect(res.body.data.similar.length).toBeGreaterThan(0);
 });
 
 test('Return random labels from ArangoDB', async () => {
@@ -66,10 +65,10 @@ test('Search for an image using labels randomly selected from ArangoDB', async (
   expect(res.body.labels.split(' ').length).toBeGreaterThan(1);
 });
 
-test('Discover images similar to user click h istory', async () => {
-  const res = await request.get(`/api/search/discovery?IDs=0`);
+test('Discover images similar to user search & click history', async () => {
+  const res = await request.get(`/api/search/discovery?IDs=0&searches=computer`);
   expect(res.status).toBe(200);
-  expect(res.body.data.images.length).toBeGreaterThan(0);
+  expect(res.body.data.length).toBeGreaterThan(0);
 });
 
 // test('Insert image (todo)', async () => {

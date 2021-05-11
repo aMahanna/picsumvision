@@ -17,11 +17,6 @@ import getPersistedState from '../hooks/getPersistedState';
  */
 const useStyles = makeStyles(() =>
   createStyles({
-    avatar: {
-      backgroundColor: 'inherit',
-      color: '#2F2D2E',
-      margin: 'auto',
-    },
     image: {
       height: '100%',
       width: '100%',
@@ -160,27 +155,26 @@ const Search = (props: any) => {
   /**
    * Handles behaviour when user clicks on the @button DISCOVER
    * - Hits the /discover endpoint
-   * - Attempts to display relevant results based on the user's previous click history
-   * @todo
+   * - Attempts to display relevant results based on the user's recent activityy
+   * - Currently relies on:
+   *    - User click history
+   *    - User search history
    */
   const discover = async () => {
     setIsLoading(true);
     setResultIsEmpty(false);
 
     if (imageClicks !== undefined) {
-      const response = await fetch(`/api/search/discovery?IDs=${Object.keys(imageClicks[0])}`);
+      const IDs = imageClicks.map(elem => Object.keys(elem)[0]);
+      const fromSearches: any = imageClicks.map((elem: any) => (Object.values(elem)[0] as any).fromSearch);
+      const discoverySearches = fromSearches.join(' ').trim();
+      const response = await fetch(`/api/search/discovery?IDs=${IDs}&searches=${discoverySearches}`);
 
       if (response.status === 200) {
         const result = await response.json();
-        const labels: string = result.data.labels
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((item: any) => {
-            return item.label;
-          })
-          .join(' ');
-        setSearchResult(result.data.images);
-        setTextFieldInput(labels);
-        updateCache(labels, result.data.images);
+        setSearchResult(result.data);
+        setTextFieldInput(discoverySearches);
+        updateCache(discoverySearches, result.data);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -297,7 +291,9 @@ const Search = (props: any) => {
         </Box>
       </Container>
       {isLoading && <CircularProgress color="inherit" />}
-      {searchResult.length !== 0 && !resultIsEmpty && <Gallery data={searchResult} imageClass={classes.image} />}
+      {searchResult.length !== 0 && !resultIsEmpty && (
+        <Gallery data={searchResult} imageClass={classes.image} fromSearch={textFieldInput} />
+      )}
       {resultIsEmpty && (
         <Box mt={3}>
           <h5>{t('searchPage.noResults')}</h5>

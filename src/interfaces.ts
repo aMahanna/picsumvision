@@ -76,8 +76,9 @@ export interface ArangoImageInfo {
   image: ArangoImage;
   bestGuess: string[];
   labels: {
+    _id: number;
     score: number;
-    data: string;
+    label: string;
   }[];
   similar: ArangoImage[];
 }

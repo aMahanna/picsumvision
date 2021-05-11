@@ -16,11 +16,10 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  *
  * @param url -- The url to target
- * @param maxResults -- The maximum number of results to get for each feature type
- * @returns An object containing the compiled metadata (@todo add its typing)
+ * @returns An object containing the compiled metadata
  */
 export default async function fetchVisionMetadata(url: string): Promise<VisionResult> {
-  const maxResults = 5;
+  const maxResults = 4; // The maximum number of results to get for each feature type
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [

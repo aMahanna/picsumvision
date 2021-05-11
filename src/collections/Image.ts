@@ -47,9 +47,9 @@ class ImageObject {
    * - Iterates through the searchView, a collection of reverse indexes
    * - Uses ArangoSearch for text detection
    * - Sorts results using the BM25 Ranking Algorithm (@see https://en.wikipedia.org/wiki/Okapi_BM25)
-   * - Takes the first 3 highest data matches (label nodes)
-   * - Uses those 3 nodes to find the Images with the highest confidence & count to those nodes
-   * - Returns the top 5 @todo Maybe increase?
+   * - Takes the first 10 highest data matches (label nodes)
+   * - Uses those 10 matches to find the Images with the highest confidence & count to those matches
+   * - Returns the top 7 @todo Maybe increase?
    * - Returns an empty array if nothing is found
    * @param targetLabels An array of targetted words
    */
@@ -66,12 +66,12 @@ class ImageObject {
             BOOST(doc.bestGuess IN t, 3)
           , 'text_en') 
           SORT BM25(doc, 1.2, 0) DESC 
-          LIMIT 3
+          LIMIT 10
           FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT e._score DESC
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
-            LIMIT 5
+            LIMIT 9
             RETURN img
       `)
     ).all();
@@ -83,7 +83,7 @@ class ImageObject {
    * @method Returns a max of 4 random labels for user input
    * - Picks a random image
    * - Iterates through its neighbouring nodes (which are labels)
-   * - Picks 3 of them randomly, and returns them as a string
+   * - Picks 3 of them randomly (among the higher confidence labels), and returns them as a string
    * @returns a random collection of labels (e.g 'mountain blue sky')
    */
   public async fetch_surprise_keys(): Promise<string> {
@@ -93,7 +93,9 @@ class ImageObject {
         FOR i IN Images
           SORT RAND()
           LIMIT 1
-          FOR v IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FOR v,e IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            SORT e._score DESC
+            LIMIT 6
             SORT RAND()
             LIMIT 3
             FILTER v.name != null OR v.label != null
@@ -206,7 +208,7 @@ class ImageObject {
               , 'text_en') 
                 LET score = BM25(doc, 1.2, 0)
                 SORT score DESC
-                LIMIT 3
+                LIMIT 10
                 RETURN {
                     _key: doc._key,
                     _id: doc._id,

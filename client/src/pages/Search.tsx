@@ -110,6 +110,7 @@ const Search = (props: any) => {
    */
   const query = async (forceInput?: string) => {
     setIsLoading(true);
+    setResultIsEmpty(false);
 
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
@@ -120,11 +121,12 @@ const Search = (props: any) => {
     } else {
       const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
       const response = await fetch(uri);
-      if (response.status === 200 || response.status === 204) {
+      if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        setResultIsEmpty(result.data.length === 0);
         updateCache(result.labels, result.data);
+      } else if (response.status === 204) {
+        setResultIsEmpty(true);
       } else {
         setSorryAlert(true);
       }
@@ -139,6 +141,7 @@ const Search = (props: any) => {
    */
   const surpriseMe = async () => {
     setIsLoading(true);
+    setResultIsEmpty(false);
 
     const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
@@ -162,11 +165,12 @@ const Search = (props: any) => {
    */
   const discover = async () => {
     setIsLoading(true);
+    setResultIsEmpty(false);
 
     if (imageClicks !== undefined) {
       const response = await fetch(`/api/search/discovery?IDs=${Object.keys(imageClicks[0])}`);
 
-      if (response.status === 200 || response.status === 204) {
+      if (response.status === 200) {
         const result = await response.json();
         const labels: string = result.data.labels
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,6 +181,8 @@ const Search = (props: any) => {
         setSearchResult(result.data.images);
         setTextFieldInput(labels);
         updateCache(labels, result.data.images);
+      } else if (response.status === 204) {
+        setResultIsEmpty(true);
       } else {
         setSorryAlert(true);
       }

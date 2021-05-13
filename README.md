@@ -1,4 +1,4 @@
-[![Travis CI](https://travis-ci.com/aMahanna/shopify-F2021-A.svg?token=YaZuDiCeLyXhXEKjjUy2&branch=main)]()
+[![Travis CI](https://travis-ci.com/aMahanna/picsumvision.svg?branch=main)]()
 [![dependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg)](https://david-dm.org/aMahanna/picsumvision)
 [![devDependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg?type=dev)](https://david-dm.org/aMahanna/picsumvision?type=dev)
 [![peerDependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg?type=peer)](https://david-dm.org/aMahanna/picsumvision?type=peer)

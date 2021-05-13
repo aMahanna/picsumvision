@@ -174,7 +174,7 @@ const Search = (props: any) => {
         const result = await response.json();
         setSearchResult(result.data);
         setTextFieldInput(t('searchPage.discover'));
-        updateCache(t('searchPage.discover'), result.data);
+        updateCache(discoverySearches, result.data);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {

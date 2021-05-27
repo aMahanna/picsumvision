@@ -126,6 +126,8 @@ async function populateDB() {
       const annot = uniqueAnnotations[t];
       const id = annot.mid || annot.entityId;
       const label = annot.description || annot.name;
+      // Keep Label scores from going over 1 to distinguish from AuthorOf and BestGuessOf scores
+      const _score = annot.score > 1 ? 0.99999 : annot.score;
 
       if (label && id) {
         const labelID = await labelObject.insertLabel({
@@ -133,10 +135,11 @@ async function populateDB() {
           mid: id,
           label,
         });
+
         await labelOfObject.insertLabelOf({
           _from: labelID,
           _to: imageID,
-          _score: annot.score,
+          _score,
         });
       }
     }

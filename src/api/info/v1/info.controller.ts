@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { imageObject } from '../../../collections/Image';
 import { ArangoImageInfo } from '../../../interfaces';
+import { fetch_image_info, fetch_surprise_keys, fetch_db_metrics } from '../../../queries';
 
 /**
  * The @namespace for orchestrating Info operations
@@ -19,7 +19,7 @@ namespace InfoController {
     const searches: string | undefined = typeof req.query.searches === 'string' ? req.query.searches : undefined;
     if (!id) res.status(400).json('User must pass image ID & previous search to view');
     else {
-      const data: ArangoImageInfo[] = await imageObject.fetch_image_info(id, searches);
+      const data: ArangoImageInfo[] = await fetch_image_info(id, searches);
       res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }
@@ -31,8 +31,8 @@ namespace InfoController {
    * @param req Request
    * @param res Response
    */
-  export async function fetch_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string = await imageObject.fetch_surprise_keys();
+  export async function fetch_surprise(req: Request, res: Response): Promise<void> {
+    const labels: string = await fetch_surprise_keys();
     if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
     else {
       res.status(200).json({ labels });
@@ -46,8 +46,8 @@ namespace InfoController {
    * @param req Request
    * @param res Response
    */
-  export async function fetch_db_metrics(req: Request, res: Response): Promise<void> {
-    const data = await imageObject.fetch_db_metrics();
+  export async function fetch_metrics(req: Request, res: Response): Promise<void> {
+    const data = await fetch_db_metrics();
     if (!data.image) res.status(500).json('Error fetching metrics');
     else {
       res.status(200).json({ data });

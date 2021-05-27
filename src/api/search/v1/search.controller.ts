@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { imageObject } from '../../../collections/Image';
 import fetchVisionMetadata from '../../../vision';
 import { Vertice, Connection, VisionAnnotation, ArangoImage } from '../../../interfaces';
+import { query_mixed_keys, fetch_visualizer_info, fetch_surprise_keys, fetch_discovery } from '../../../queries';
 
 /**
  * Builds an array of nodes & edges, to provide formatted data to the React Graph Visualizer tool
@@ -45,11 +45,11 @@ namespace SearchController {
     const labels: string | undefined = typeof req.query.labels === 'string' ? req.query.labels : undefined;
     if (!labels) res.status(400).json('User must pass labels as a string to search');
     else {
-      const data: ArangoImage[] = await imageObject.query_mixed_keys(labels);
+      const data: ArangoImage[] = await query_mixed_keys(labels);
       if (!req.query.isVisualizeRequest) {
         res.status(data.length === 0 ? 204 : 200).json({ data, labels: labels.split(' ').sort().join(' ') }); // Return a sorted version of the labels
       } else {
-        const visualizationInfo = await imageObject.fetch_visualizer_info(data, labels);
+        const visualizationInfo = await fetch_visualizer_info(data, labels);
         if (visualizationInfo.vertices.length === 0) {
           res.status(204).json('No visualization info found :/');
         } else {
@@ -75,7 +75,7 @@ namespace SearchController {
       const labels: string | undefined = await parseVisionData(url);
       if (!labels) res.status(500).json('Error fetching surprise keys');
       else {
-        const data: ArangoImage[] = await imageObject.query_mixed_keys(labels);
+        const data: ArangoImage[] = await query_mixed_keys(labels);
         res.status(data.length === 0 ? 204 : 200).json({ data, labels });
       }
     }
@@ -89,10 +89,10 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_surprise_keys(req: Request, res: Response): Promise<void> {
-    const labels: string = await imageObject.fetch_surprise_keys();
+    const labels: string = await fetch_surprise_keys();
     if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
     else {
-      const data: ArangoImage[] = await imageObject.query_mixed_keys(labels);
+      const data: ArangoImage[] = await query_mixed_keys(labels);
       res.status(200).json({ data, labels });
     }
   }
@@ -110,7 +110,7 @@ namespace SearchController {
     const searches: string | undefined = typeof req.query.searches === 'string' ? req.query.searches : undefined;
     if (!imageIDs) res.status(400).json('Unacceptable image IDs format');
     else {
-      const data: ArangoImage[] = await imageObject.fetch_discovery(imageIDs, searches);
+      const data: ArangoImage[] = await fetch_discovery(imageIDs, searches);
       res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }

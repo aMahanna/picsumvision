@@ -23,8 +23,8 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
         FOR doc IN searchview 
           SEARCH ANALYZER(
             BOOST(doc.label IN t, 1) ||
-            BOOST(doc.name IN t, 2) ||
-            BOOST(doc.bestGuess IN t, 3)
+            BOOST(doc.bestGuess IN t, 2) ||
+            BOOST(doc.name IN t, 3)
           , 'text_en') 
           SORT BM25(doc, 1.2, 0) DESC 
           LIMIT 15
@@ -170,8 +170,8 @@ export async function fetch_visualizer_info(
             FOR doc IN searchview 
               SEARCH ANALYZER(
                 BOOST(doc.label IN t, 1) ||
-                BOOST(doc.name IN t, 2) ||
-                BOOST(doc.bestGuess IN t, 3)
+                BOOST(doc.bestGuess IN t, 2) ||
+                BOOST(doc.name IN t, 3)
               , 'text_en') 
                 SORT BM25(doc, 1.2, 0) DESC
                 LIMIT 15

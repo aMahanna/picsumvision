@@ -10,7 +10,7 @@ Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
 
 **[View the tech stack on the About page](https://picsumvision.mahanna.dev/about)**
 
-This project was submitted as a Shopify Developer Challenge on May 9th, but has continued to grow since then. If you would like to see the state of the project as of May 9th only, you can rollback to the following commit: https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e
+This project was submitted as a Shopify Developer Challenge on May 9th, but has continued to grow since. If you would like to see the state of the project as of May 9th only, you can rollback to the following commit: [53e84e8](https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e)
 
 _Disclaimer: Searching is far from being optimized._
 

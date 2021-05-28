@@ -4,17 +4,15 @@
 [![peerDependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg?type=peer)](https://david-dm.org/aMahanna/picsumvision?type=peer)
 
 # Picsum Vision
-Backend & Data Developer Intern Challenge
-
 Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
 
 **[Show, don't tell](https://picsumvision.mahanna.dev/)**
 
 **[View the tech stack on the About page](https://picsumvision.mahanna.dev/about)**
 
-_Disclaimer: Searching is far from being optimized; generating the metadata is not the issue, the challenge comes with parsing & indexing it effectively._
+This project was submitted as a Shopify Developer Challenge on May 9th, but has continued to grow since then. If you would like to see the state of the project as of May 9th only, you can rollback to the following commit: https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e
 
-_What you see here is about 10 days worth of progress, as of May 10th._
+_Disclaimer: Searching is far from being optimized._
 
 ## Configuration
 
@@ -48,6 +46,17 @@ Good to go:
 * GET `/api/info/randomkeys` - Returns random labels (generated from ArangoDB)
 * GET `/api/info/metrics` - Returns database collection counts
 
+## Configuring New Collections
+
+Adding a new collections is a simple as creating a file under `/src/collections`, and updating the `documentCollections` and `edgeCollections` arrays in `database.ts` to indicate that you have added new collections.
+
+Keep in mind that collections are created in pairs. You create a Document collection to store the data you want to add, and you create an Edge collection to connect your Document collection with other Document collections. 
+
+If you would like as well, you can update the `populate.ts` to generate some data into your new collections. However, you do not need to modify the `onboard.ts` or `clear.ts` scripts, as it will take into account your changes, based on the `documentCollections` and `edgeCollections` values.
+
+## Configuring New Queries
+
+Simply create a new `export async function...` in `/src/queries.ts`, and you can begin to reference it in an existing Search / Info API Route, or create a new API / Endpoint.
 
 ## Extra Information
 

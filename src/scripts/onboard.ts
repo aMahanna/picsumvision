@@ -49,7 +49,7 @@ async function onboardDB() {
         fields: {
           name: {
             // Enable English search analyzer for .name field
-            analyzers: ['custom_text_en'],
+            analyzers: ['custom_text_en', 'text_en'],
           },
         },
         includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)
@@ -62,11 +62,11 @@ async function onboardDB() {
         fields: {
           label: {
             // Enable English search analyzer for .label field
-            analyzers: ['custom_text_en'],
+            analyzers: ['custom_text_en', 'text_en'],
           },
           data: {
             // Enable English search analyzer for .data field
-            analyzers: ['custom_text_en'],
+            analyzers: ['custom_text_en', 'text_en'],
           },
         },
         includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)
@@ -79,7 +79,7 @@ async function onboardDB() {
         fields: {
           bestGuess: {
             // Enable English search analyzer for .bestGuess field
-            analyzers: ['custom_text_en'],
+            analyzers: ['custom_text_en', 'text_en'],
           },
         },
         includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)

@@ -9,7 +9,7 @@ import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } fr
  *    - @todo Maybe reintroduce "doc.data IN t" to also search by Datamuse Keywords...
  * - Sorts results using the BM25 Ranking Algorithm (@see https://en.wikipedia.org/wiki/Okapi_BM25)
  * - Takes the first 15 highest data matches (label nodes)
- * - Uses those 15 matches to find the Images with the most label collisions 
+ * - Uses those 15 matches to find the Images with the most label collisions
  *    - @todo Maybe reintroduce SORT e._score to track highest match scores...
  * @param targetLabels An array of targetted words
  * @returns an array of ArangoImages, or an empty array
@@ -18,13 +18,13 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
   const matches = await (
     await db.query(aql`
         WITH Labels, Authors, Images, BestGuess
-        LET t = TOKENS(${targetLabels}, 'picsum_analyzer')
+        LET t = TOKENS(${targetLabels}, 'custom_text_en')
         FOR doc IN searchview 
           SEARCH ANALYZER(
             BOOST(doc.label IN t, 1) ||
             BOOST(doc.bestGuess IN t, 2) ||
             BOOST(doc.name IN t, 3)
-          , 'picsum_analyzer') 
+          , 'custom_text_en') 
           SORT BM25(doc, 1.2, 0) DESC 
           LIMIT 15
           FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
@@ -126,7 +126,7 @@ export async function fetch_discovery(clickedImages: string[], searches?: string
         WITH Labels, Authors
         FOR i IN Images
           FILTER i._key IN ${clickedImages}
-          LET searchTokens = TOKENS(${searches}, 'picsum_analyzer')
+          LET searchTokens = TOKENS(${searches}, 'custom_text_en')
           FOR keyword IN searchTokens
             FOR v, e IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
               FILTER CONTAINS(LOWER(v.label), keyword) OR CONTAINS(LOWER(v.data), keyword) OR CONTAINS(LOWER(v.name), keyword)
@@ -166,13 +166,13 @@ export async function fetch_visualizer_info(
         WITH Images, Labels, Authors, BestGuess
         LET vertices = FIRST(
           LET similar = (
-            LET t = TOKENS(${labels}, 'picsum_analyzer')
+            LET t = TOKENS(${labels}, 'custom_text_en')
             FOR doc IN searchview 
               SEARCH ANALYZER(
                 BOOST(doc.label IN t, 1) ||
                 BOOST(doc.bestGuess IN t, 2) ||
                 BOOST(doc.name IN t, 3)
-              , 'picsum_analyzer') 
+              , 'custom_text_en') 
                 SORT BM25(doc, 1.2, 0) DESC
                 LIMIT 15
                 FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }

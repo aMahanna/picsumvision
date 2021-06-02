@@ -27,6 +27,7 @@ async function onboardDB() {
 
   console.log(`Configuring Custom Search Analyzer...`)
   const customAnalyzer = db.analyzer("picsum_analyzer");
+  (await customAnalyzer.exists()) ? await customAnalyzer.drop(true) : '';
   await customAnalyzer.create(
     {
       type: 'text',

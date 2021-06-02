@@ -175,12 +175,15 @@ export async function fetch_visualizer_info(
               , 'text_en') 
                 SORT BM25(doc, 1.2, 0) DESC
                 LIMIT 15
-                RETURN {
-                  _key: doc._key,
-                  _id: doc._id,
-                  data: doc.label OR doc.name OR doc.bestGuess,
-                  color: '#FC7753'
-                }
+                FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+                  FILTER v IN ${collection}
+                  LET similarDoc = {
+                    _key: doc._key,
+                    _id: doc._id,
+                    data: doc.label OR doc.name OR doc.bestGuess,
+                    color: '#FC7753'
+                  }
+                  RETURN DISTINCT similarDoc
           ) 
           LET unsimilar = (
             FOR i IN ${collection}

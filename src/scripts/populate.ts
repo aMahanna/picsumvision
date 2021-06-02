@@ -103,7 +103,7 @@ async function populateDB() {
     await authorOfObject.insertAuthorOf({
       _from: authorID,
       _to: imageID,
-      _score: 1,
+      _score: 2,
     });
 
     /**

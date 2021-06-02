@@ -24,7 +24,7 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
             BOOST(doc.label IN t, 1) ||
             BOOST(doc.bestGuess IN t, 2) ||
             BOOST(doc.name IN t, 3)
-          , 'custom_text_en') 
+          , 'text_en') 
           SORT BM25(doc, 1.2, 0) DESC 
           LIMIT 15
           FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
@@ -172,19 +172,15 @@ export async function fetch_visualizer_info(
                 BOOST(doc.label IN t, 1) ||
                 BOOST(doc.bestGuess IN t, 2) ||
                 BOOST(doc.name IN t, 3)
-              , 'custom_text_en') 
+              , 'text_en') 
                 SORT BM25(doc, 1.2, 0) DESC
                 LIMIT 15
-                FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                  SORT e._score DESC
-                  LIMIT 10
-                  LET similarVertice = {
-                    _key: doc._key,
-                    _id: doc._id,
-                    data: doc.label OR doc.name OR doc.bestGuess,
-                    color: '#FC7753'
-                  }
-                  RETURN DISTINCT similarVertice
+                RETURN {
+                  _key: doc._key,
+                  _id: doc._id,
+                  data: doc.label OR doc.name OR doc.bestGuess,
+                  color: '#FC7753'
+                }
           ) 
           LET unsimilar = (
             FOR i IN ${collection}

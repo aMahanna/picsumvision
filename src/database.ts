@@ -15,16 +15,15 @@ if (process.env.NODE_ENV !== 'production') {
 /** @see env.example */
 const DB_URL: string = process.env.ARANGO_DB_URL!;
 const DB_NAME: string = process.env.ARANGO_DB_NAME!;
-const ENCODED_CA: string = process.env.ARANGO_ENCODED_CA!;
 const DB_PASS: string = process.env.ARANGO_PASS!;
+const DB_USER: string = process.env.ARANGO_USER!;
 
 const db = new Database({
   url: DB_URL,
   databaseName: DB_NAME,
-  agentOptions: { ca: Buffer.from(ENCODED_CA, 'base64') },
+  auth: { username: DB_USER, password: DB_PASS },
 });
 
-db.useBasicAuth('root', DB_PASS); // Logging in with root user for now
 db.version().then(
   version => console.log(version),
   error => console.error(error),

@@ -20,8 +20,9 @@ Picsum Vision requires the following environment variables:
 * GOOGLE_APPLICATION_CREDENTIALS
     - Setup here: https://cloud.google.com/docs/authentication/api-keys)
 
-* ARANGO_DB_URL, ARANGO_DB_NAME, ARANGO_ENCODED_CA, ARANGO_PASS
+* ARANGO_DB_URL, ARANGO_DB_NAME, ARANGO_USER, ARANGO_PASS
     - Setup here: https://www.arangodb.com/docs/stable/oasis/getting-started.html
+    - (Setup via Docker will be available soon)
 
 * Run `yarn install && yarn client:install` (root directory).
 * Run `yarn build` (root directory).

@@ -15,14 +15,13 @@ if (process.env.NODE_ENV !== 'production') {
 /** @see env.example */
 const DB_URL: string = process.env.ARANGO_DB_URL!;
 const DB_NAME: string = process.env.ARANGO_DB_NAME!;
-// const ENCODED_CA: string = process.env.ARANGO_ENCODED_CA!;
 const DB_PASS: string = process.env.ARANGO_PASS!;
 const DB_USER: string = process.env.ARANGO_USER!;
 
 const db = new Database({
   url: DB_URL,
   databaseName: DB_NAME,
-  auth: { username: DB_USER, password: DB_PASS }
+  auth: { username: DB_USER, password: DB_PASS },
 });
 
 db.version().then(

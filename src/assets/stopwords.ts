@@ -16,6 +16,7 @@ export default [
   'that',
   'these',
   'those',
+  'i',
   'my',
   'your',
   'his',

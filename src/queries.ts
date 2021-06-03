@@ -21,21 +21,26 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
   const matches = await (
     await db.query(aql`
         WITH Labels, Authors, Images, BestGuess
-        LET t = TOKENS(${targetLabels}, 'custom_text_en')
+        LET normTokens = TOKENS(${targetLabels}, 'norm_accent_lower')[0]
+        LET textTokens = TOKENS(${targetLabels}, 'text_en_stopwords')
         LET exactMatch = (
           FOR doc IN searchview
-              SEARCH  doc.bestGuess == ${targetLabels} ||
-                      doc.name == ${targetLabels} ||
-                      doc.label == ${targetLabels}
-              FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-                RETURN v
+            SEARCH ANALYZER(
+              doc.label == normTokens ||
+              doc.bestGuess == normTokens ||
+              doc.name == normTokens
+            , 'norm_accent_lower')
+            FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              SORT e._score DESC
+              LIMIT 5
+              RETURN v
         )
         LET closeMatches = (
           FOR doc IN searchview 
             SEARCH ANALYZER(
-              BOOST(doc.label IN t, 2) ||
-              BOOST(doc.bestGuess IN t, 3) ||
-              BOOST(doc.name IN t, 4)
+              BOOST(doc.label IN textTokens, 2) ||
+              BOOST(doc.bestGuess IN textTokens, 3) ||
+              BOOST(doc.name IN textTokens, 4)
             , 'text_en') 
             SORT BM25(doc, 1.2, 0) DESC 
             LIMIT 15
@@ -43,7 +48,7 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
               FILTER v NOT IN exactMatch
               COLLECT img = v WITH COUNT INTO num
               SORT num DESC
-              LIMIT 9
+              LIMIT 5
               RETURN img
         )
         RETURN APPEND(exactMatch, closeMatches)
@@ -140,7 +145,7 @@ export async function fetch_discovery(clickedImages: string[], searches?: string
         WITH Labels, Authors
         FOR i IN Images
           FILTER i._key IN ${clickedImages}
-          LET searchTokens = TOKENS(${searches}, 'custom_text_en')
+          LET searchTokens = TOKENS(${searches}, 'text_en_stopwords')
           FOR keyword IN searchTokens
             FOR v, e IN 1..1 INBOUND i LabelOf, AuthorOf OPTIONS {bfs: true, uniqueVertices: 'global' }
               FILTER CONTAINS(LOWER(v.label), keyword) OR CONTAINS(LOWER(v.data), keyword) OR CONTAINS(LOWER(v.name), keyword)
@@ -180,7 +185,7 @@ export async function fetch_visualizer_info(
         WITH Images, Labels, Authors, BestGuess
         LET vertices = FIRST(
           LET similar = (
-            LET t = TOKENS(${labels}, 'custom_text_en')
+            LET t = TOKENS(${labels}, 'text_en_stopwords')
             FOR doc IN searchview 
               SEARCH ANALYZER(
                 BOOST(doc.label IN t, 1) ||

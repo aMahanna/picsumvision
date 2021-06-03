@@ -25,15 +25,26 @@ async function onboardDB() {
     await edgeCollection.create({ type: CollectionType.EDGE_COLLECTION });
   }
 
-  console.log(`Configuring Custom Search Analyzer...`);
-  const customAnalyzer = db.analyzer('custom_text_en');
-  (await customAnalyzer.exists()) ? await customAnalyzer.drop(true) : '';
-  await customAnalyzer.create({
+  console.log(`Configuring Custom Analyzers...`);
+  const customTextAnalyzer = db.analyzer('text_en_stopwords');
+  (await customTextAnalyzer.exists()) ? await customTextAnalyzer.drop(true) : '';
+  await customTextAnalyzer.create({
     type: 'text',
     properties: {
-      locale: 'en',
+      locale: 'en.utf-8',
       stemming: true,
       stopwords,
+    },
+  });
+
+  const customNormAnalyzer = db.analyzer('norm_accent_lower');
+  (await customNormAnalyzer.exists()) ? await customNormAnalyzer.drop(true) : '';
+  await customNormAnalyzer.create({
+    type: 'norm',
+    properties: {
+      locale: 'en.utf-8',
+      accent: false,
+      case: 'lower',
     },
   });
 
@@ -43,46 +54,43 @@ async function onboardDB() {
   await searchView.create({ type: ViewType.ARANGOSEARCH_VIEW });
   await searchView.updateProperties({
     links: {
+      // Connect the Author vertices to the View
       Authors: {
-        // Connect the Author vertices to the View
-        analyzers: ['identity'],
+        analyzers: ['identity'], // Set default analyzer for fields not defined below
         fields: {
           name: {
-            // Enable English search analyzer for .name field
-            analyzers: ['custom_text_en', 'text_en'],
+            analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },
         },
         includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)
         storeValues: 'none',
         trackListPositions: false,
       },
+      // Connect the Label vertices to the View
       Labels: {
-        // Connect the Label vertices to the View
         analyzers: ['identity'],
         fields: {
           label: {
-            // Enable English search analyzer for .label field
-            analyzers: ['custom_text_en', 'text_en'],
+            analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },
           data: {
-            // Enable English search analyzer for .data field
-            analyzers: ['custom_text_en', 'text_en'],
+            analyzers: ['text_en_stopwords', 'text_en'],
           },
         },
-        includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)
+        includeAllFields: true,
         storeValues: 'none',
         trackListPositions: false,
       },
+      // Connect the BestGuess vertices to the View
       BestGuess: {
-        // Connect the BestGuess vertices to the View
         analyzers: ['identity'],
         fields: {
           bestGuess: {
             // Enable English search analyzer for .bestGuess field
-            analyzers: ['custom_text_en', 'text_en'],
+            analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },
         },
-        includeAllFields: true, // All other fields are included, but are analyzed as atoms (not parsed as English words)
+        includeAllFields: true,
         storeValues: 'none',
         trackListPositions: false,
       },

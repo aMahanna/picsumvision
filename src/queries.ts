@@ -4,12 +4,14 @@ import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } fr
 
 /**
  * @method allows the user to query by multiple keys (e.g author, label, web detection,...)
- * - First, search for exact matches using the ArangoSearch "identity" analyzer
- * - Second, search for close matches using the ArangoSearch "text_en" analyzer
+ * - First, search for exact matches using a custom ArangoSearch "norm" analyzer
+ *    - Sort by confidence score
+ *    - Select the first 5 images
+ * - Second, search for close matches using a custom ArangoSearch "text_en" analyzer
  *     - Sort the ArangoDB View matches by the BM25 algorithm (@see https://en.wikipedia.org/wiki/Okapi_BM25)
  *     - Perform graph traversals on the first 15 View matches
- *     - Return the images with the highest number of "match collisions" (i.e reocurring the most)
- * - Lastly, combine the exactMatch and closeMatches results to form the final list
+ *     - Return the first 5 images with the highest number of "match collisions" (i.e reocurring the most)
+ * - Lastly, combine the exactMatches and closeMatches results to form the final list
  *
  * - @todo Maybe reintroduce "doc.data IN t" to also search by Datamuse Keywords... (for closeMatches)
  * - @todo Maybe reintroduce SORT e._score to track highest match scores... (for closeMatches)
@@ -23,7 +25,7 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
         WITH Labels, Authors, Images, BestGuess
         LET normTokens = TOKENS(${targetLabels}, 'norm_accent_lower')[0]
         LET textTokens = TOKENS(${targetLabels}, 'text_en_stopwords')
-        LET exactMatch = (
+        LET exactMatches = (
           FOR doc IN searchview
             SEARCH ANALYZER(
               doc.label == normTokens ||
@@ -45,13 +47,13 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
             SORT BM25(doc, 1.2, 0) DESC 
             LIMIT 15
             FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-              FILTER v NOT IN exactMatch
+              FILTER v NOT IN exactMatches
               COLLECT img = v WITH COUNT INTO num
               SORT num DESC
               LIMIT 5
               RETURN img
         )
-        RETURN APPEND(exactMatch, closeMatches)
+        RETURN APPEND(exactMatches, closeMatches)
       `)
   ).all();
 
@@ -59,9 +61,9 @@ export async function query_mixed_keys(targetLabels: string): Promise<ArangoImag
 }
 
 /**
- * @method Returns a max of 4 random labels for user input
+ * @method Returns 3 random labels for user input
  * - Picks a random image
- * - Iterates through its neighbouring nodes (which are labels)
+ * - Performs a 1-step graph traversal to its labels
  * - Picks 3 of them randomly (among the higher confidence labels), and returns them as a string
  * @returns a random collection of labels (e.g 'mountain blue sky')
  */
@@ -185,15 +187,13 @@ export async function fetch_visualizer_info(
         WITH Images, Labels, Authors, BestGuess
         LET vertices = FIRST(
           LET similar = (
-            LET t = TOKENS(${labels}, 'text_en_stopwords')
+            LET textTokens = TOKENS(${labels}, 'text_en_stopwords')
             FOR doc IN searchview 
               SEARCH ANALYZER(
-                BOOST(doc.label IN t, 1) ||
-                BOOST(doc.bestGuess IN t, 2) ||
-                BOOST(doc.name IN t, 3)
+                doc.label IN textTokens ||
+                doc.bestGuess IN textTokens ||
+                doc.name IN textTokens
               , 'text_en') 
-                SORT BM25(doc, 1.2, 0) DESC
-                LIMIT 15
                 FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
                   FILTER v IN ${collection}
                   LET similarDoc = {

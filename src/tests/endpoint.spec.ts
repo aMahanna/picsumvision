@@ -2,17 +2,19 @@
  * @file Hits all endpoint variations of the application
  * - /api/info/image
  * - /api/info/randomkeys
- * - /api/search/mixed
- * - /api/search/mixed
+ * - /api/search/keyword
  * - /api/search/extimage
  * - /api/search/surpriseme
- * - /api/search/discovery
+ * - /api/search/discover
+ * - /api/search/visualize
  * - /api/insert
  * - /api/erase
  */
 
 import app from '../../server';
 import supertest from 'supertest';
+import lastSearchResult from '../assets/sampleLastSearchResult';
+
 const request = supertest(app);
 
 test('Fetch Image information about Image/0', async () => {
@@ -33,23 +35,18 @@ test('Return random labels from ArangoDB', async () => {
 });
 
 test('Search for Images using "Water" and "Sky"', async () => {
-  const res = await request.get(`/api/search/mixed?labels=water%20sky`);
+  const res = await request.get(`/api/search/keyword?labels=water%20sky`);
   expect(res.status).toBe(200);
   expect(res.body.labels).toBe('sky water');
   expect(res.body.data.length).toBeGreaterThan(0);
 
-  const resEmpty = await request.get(`/api/search/mixed`);
+  const resEmpty = await request.get(`/api/search/keyword`);
   expect(resEmpty.status).toBe(400);
   expect(resEmpty.body).toBe('User must pass labels as a string to search');
-
-  const resVisualize = await request.get(`/api/search/mixed?labels=cloud&isVisualizeRequest=true`);
-  expect(resVisualize.status).toBe(200);
-  expect(resVisualize.body.graphObject.nodes.length).toBeGreaterThan(2);
-  expect(resVisualize.body.graphObject.edges.length).toBeGreaterThan(1);
 });
 
 test('Search for images using an external image URL', async () => {
-  const res = await request.get(`/api/search/extimage?url=https://picsum.photos/id/0/500/500`);
+  const res = await request.get(`/api/search/extimage?url=https://picsum.photos/id/1056/3988/2720`);
   expect(res.status).toBe(200);
   expect(res.body.labels.split(' ').length).toBeGreaterThan(0);
 
@@ -66,9 +63,20 @@ test('Search for an image using labels randomly selected from ArangoDB', async (
 });
 
 test('Discover images similar to user search & click history', async () => {
-  const res = await request.get(`/api/search/discovery?IDs=0`);
+  const res = await request.get(`/api/search/discover?IDs=0`);
   expect(res.status).toBe(200);
   expect(res.body.data.length).toBeGreaterThan(0);
+});
+
+test('Visualize image results', async () => {
+  const res = await request
+    .post('/api/search/visualize?labels=clouds')
+    .send({ lastSearchResult })
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/);
+  expect(res.status).toBe(200);
+  expect(res.body.graphObject.nodes.length).toBeGreaterThan(2);
+  expect(res.body.graphObject.edges.length).toBeGreaterThan(1);
 });
 
 // test('Insert image (todo)', async () => {

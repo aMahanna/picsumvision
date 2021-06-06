@@ -3,7 +3,7 @@ import { aql } from 'arangojs';
 import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } from './interfaces';
 
 /**
- * @method allows the user to query by multiple keys (e.g author, label, web detection,...)
+ * @method allows the user to query by keyword (i.e by author name, label, bestGuess)
  * - First, search for exact matches using a custom ArangoSearch "norm" analyzer
  *    - Sort by confidence score
  *    - Select the first 5 images
@@ -19,7 +19,7 @@ import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } fr
  * @param targetLabels An array of targetted words
  * @returns an array of ArangoImages, or an empty array
  */
-export async function query_mixed_keys(targetLabels: string): Promise<ArangoImage[]> {
+export async function fetch_images(targetLabels: string): Promise<ArangoImage[]> {
   const matches = await (
     await db.query(aql`
         WITH Labels, Authors, Images, BestGuess
@@ -106,7 +106,7 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
         `)
   ).all();
 
-  // Fetch similar images in respect to the shared metadata 
+  // Fetch similar images in respect to the shared metadata
   result[0].similar = await fetch_discovery([id], 4);
 
   return result[0];
@@ -155,27 +155,27 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
  * @returns the nodes & edges for VISJS to use client-side
  *
  */
-export async function fetch_visualizer_info(
-  collection: ArangoImage[],
-  labels: string,
+export async function fetch_search_visualization(
+  searchResult: ArangoImage[],
+  searchInput: string,
 ): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
   const result = await (
     await db.query(aql`
         WITH Images, Labels, Authors, BestGuess
+        LET textTokens = TOKENS(${searchInput}, 'text_en_stopwords')
+        LET matchList = (
+          FOR doc IN searchview
+            SEARCH ANALYZER(
+              BOOST(doc.label IN textTokens, 2) ||
+              BOOST(doc.bestGuess IN textTokens, 3) ||
+              BOOST(doc.name IN textTokens, 4)
+            , 'text_en')
+            SORT BM25(doc, 1.2, 0) DESC 
+            LIMIT 25
+            RETURN doc
+        )
         LET vertices = (
-          LET textTokens = TOKENS(${labels}, 'text_en_stopwords')
-          LET matchList = (
-            FOR doc IN searchview
-              SEARCH ANALYZER(
-                BOOST(doc.label IN textTokens, 2) ||
-                BOOST(doc.bestGuess IN textTokens, 3) ||
-                BOOST(doc.name IN textTokens, 4)
-              , 'text_en')
-              SORT BM25(doc, 1.2, 0) DESC 
-              LIMIT 25
-              RETURN doc
-          )
-          FOR i IN ${collection}
+          FOR i IN ${searchResult}
             FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
               LET vertice = {
                 _key: v._key,
@@ -186,14 +186,65 @@ export async function fetch_visualizer_info(
               RETURN DISTINCT vertice
         )
         LET connections = (
-          FOR i IN ${collection}
+          FOR i IN ${searchResult}
+            LET edges = (FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf RETURN e)
+            RETURN {i, edges}
+        )
+        RETURN {vertices, connections} 
+      `)
+  ).all();
+
+  return result[0];
+}
+
+/**
+ * @method Returns vertices & edges of image relationships for visualization
+ * @param collection - The images to visualize
+ * @param labels - The labels that queried the search results
+ * @returns the nodes & edges for VISJS to use client-side
+ *
+ */
+export async function fetch_image_visualization(
+  clickedImages: string[],
+  maxResults: number,
+): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
+  const similarImages = await fetch_discovery(clickedImages, maxResults);
+
+  const result = await (
+    await db.query(aql`
+        WITH Images, Labels, Authors, BestGuess
+        LET startEdges = (
+          FOR i IN Images
+            FILTER i._key IN ${clickedImages}
             LET edges = (
               FOR v, e IN 1..1 INBOUND i._id LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
               RETURN e
             )
-            RETURN {i, edges}
+            RETURN {
+              _key: i._key,
+              _id: i._id,
+              color: '#FC7753',
+              edges
+            }
         )
-        RETURN {vertices, connections} 
+        LET vertices = (
+          FOR i IN Images
+            FILTER i._key IN ${clickedImages}
+            FOR v, e IN 1..1 INBOUND i LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+              SORT e._score DESC
+              RETURN v
+        )
+        LET endEdges = (
+          FOR label IN vertices
+            FOR v, e IN 1..1 OUTBOUND label LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            FILTER v IN ${similarImages}
+            RETURN {
+              _key: v._key,
+              _id: v._id,
+              color: '#66D7D1',
+              edges
+            }
+        )
       `)
   ).all();
 

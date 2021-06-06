@@ -39,13 +39,24 @@ const Visualize = () => {
     const persistedState = localStorage.getItem('lastSearch');
     return persistedState ? JSON.parse(persistedState) : {};
   });
+  const [persistedData] = useState(() => {
+    // Fetch the user's result history
+    const persistedState = localStorage.getItem('data');
+    return persistedState ? JSON.parse(persistedState) : {};
+  });
 
   /**
    * @useEffect fetches Visualization data of the user's last search
    * - Updates the state of the graph with the endpoint's response
    */
   useEffect(() => {
-    fetch(`/api/search/mixed?labels=${lastSearch}&isVisualizeRequest=true`)
+    fetch(`/api/search/visualize?labels=${lastSearch}`, {
+      method: 'POST',
+      body: JSON.stringify({ lastSearchResult: persistedData![lastSearch].data }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
       .then(result => (result.status === 200 ? result.json() : undefined))
       .then(response => {
         if (response) {

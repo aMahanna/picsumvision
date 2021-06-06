@@ -62,7 +62,7 @@ async function populateDB() {
 
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
     pageCount++;
-  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); // Remove `pageCount !== 2` to get all +900 images
+  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); // Remove `&& pageCount !== 2` to get all +990 images
 
   for (let j = 0; j < PICSUM_LIST.length; j++) {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];

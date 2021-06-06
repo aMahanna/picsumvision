@@ -114,7 +114,7 @@ const Search = (props: any) => {
     } else if (persistedData[index]) {
       setSearchResult(persistedData[index].data);
     } else {
-      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/mixed?labels=${input}`;
+      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/keyword?labels=${input}`;
       const response = await fetch(uri);
       if (response.status === 200) {
         const result = await response.json();
@@ -166,7 +166,7 @@ const Search = (props: any) => {
 
     if (imageClicks !== undefined) {
       const IDs = imageClicks.map(elem => Object.keys(elem)[0]);
-      const response = await fetch(`/api/search/discovery?IDs=${IDs}`);
+      const response = await fetch(`/api/search/discover?IDs=${IDs}`);
 
       if (response.status === 200) {
         const result = await response.json();

@@ -66,7 +66,7 @@ test('Search for an image using labels randomly selected from ArangoDB', async (
 });
 
 test('Discover images similar to user search & click history', async () => {
-  const res = await request.get(`/api/search/discovery?IDs=0&searches=computer`);
+  const res = await request.get(`/api/search/discovery?IDs=0`);
   expect(res.status).toBe(200);
   expect(res.body.data.length).toBeGreaterThan(0);
 });

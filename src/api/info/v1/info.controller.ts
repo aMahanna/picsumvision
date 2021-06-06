@@ -8,18 +8,16 @@ import { fetch_image_info, fetch_surprise_keys, fetch_db_metrics } from '../../.
 namespace InfoController {
   /**
    * Handles request to the @endpoint /api/info/image
-   * Returns information about an image, such as its author, url, and associated labels
-   * Will also try to display similar images, based on the user's last search
+   * Returns information about an image, such as its author, url, associated labels, and similar images
    *
    * @param req Request
    * @param res Response
    */
   export async function fetch_image(req: Request, res: Response): Promise<void> {
     const id: string | undefined = typeof req.query.id === 'string' ? req.query.id : undefined;
-    const searches: string | undefined = typeof req.query.searches === 'string' ? req.query.searches : undefined;
     if (!id) res.status(400).json('User must pass image ID & previous search to view');
     else {
-      const data: ArangoImageInfo[] = await fetch_image_info(id, searches);
+      const data: ArangoImageInfo[] = await fetch_image_info(id);
       res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }

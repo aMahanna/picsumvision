@@ -29,7 +29,7 @@ const Info = (props: any) => {
         date: new Date(),
       },
     });
-    fetch(`/api/info/image?id=${id}${fromSearch ? `&searches=${fromSearch?.trim()}` : ''}`)
+    fetch(`/api/info/image?id=${id}`)
       .then(response => (response.status === 200 ? response.json() : undefined))
       .then(result => {
         if (result) {

@@ -166,15 +166,12 @@ const Search = (props: any) => {
 
     if (imageClicks !== undefined) {
       const IDs = imageClicks.map(elem => Object.keys(elem)[0]);
-      const fromSearches: any = imageClicks.map((elem: any) => (Object.values(elem)[0] as any).fromSearch);
-      const discoverySearches = fromSearches.join(' ').trim();
-      const response = await fetch(`/api/search/discovery?IDs=${IDs}&searches=${discoverySearches}`);
+      const response = await fetch(`/api/search/discovery?IDs=${IDs}`);
 
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        setTextFieldInput(t('searchPage.discover'));
-        updateCache(discoverySearches, result.data);
+        setTextFieldInput(t('searchPage.discoverInput'));
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {

@@ -107,10 +107,9 @@ namespace SearchController {
    */
   export async function from_discovery(req: Request, res: Response): Promise<void> {
     const imageIDs: string[] | undefined = typeof req.query.IDs === 'string' ? req.query.IDs.split(',') : undefined;
-    const searches: string | undefined = typeof req.query.searches === 'string' ? req.query.searches : undefined;
     if (!imageIDs) res.status(400).json('Unacceptable image IDs format');
     else {
-      const data: ArangoImage[] = await fetch_discovery(imageIDs, searches);
+      const data: ArangoImage[] = await fetch_discovery(imageIDs, 6);
       res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }
@@ -134,13 +133,15 @@ namespace SearchController {
       ...new Map(VISION_LABEL_OBJECT_ANNOTATIONS.map((elem: VisionAnnotation) => [elem.mid, elem])).values(),
     ];
 
-    // Iterate through the Unique Labels array the labels
+    // Iterate through the Unique Labels array
     const labelsObject: string[] = [];
     for (let t = 0; t < UNIQUE_LABELS.length; t++) {
       const elem: VisionAnnotation = UNIQUE_LABELS[t];
       labelsObject.push((elem.description || elem.name)!.toLowerCase());
     }
-    return labelsObject.join(' ') + VISION_DATA.webDetection?.bestGuessLabels[0]?.label;
+
+    // Return the Image's best guess if present, or simply return its labels in a string
+    return VISION_DATA.webDetection?.bestGuessLabels[0]?.label || labelsObject.join(' ');
   }
 }
 

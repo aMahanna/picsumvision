@@ -122,6 +122,7 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
  *  - This would water down the attempt of trying to find a pattern, not sure yet
  *
  * @param clickedImages The images the user has viewed
+ * @param maxResults Number of "similar" images to return
  * @returns An array of images
  */
 export async function fetch_discovery(clickedImages: string[], maxResults: number): Promise<ArangoImage[]> {
@@ -130,9 +131,9 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
     WITH Labels, Authors, BestGuess
     FOR i IN Images
       FILTER i._key IN ${clickedImages}
-      FOR v, e IN 1..1 INBOUND i LabelOf, AuthorOf, BestGuessOf
+      FOR v, e IN 1..1 INBOUND i LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
         SORT e._score DESC
-        FOR v2, e2 IN 1..1 OUTBOUND v LabelOf, AuthorOf, BestGuessOf
+        FOR v2, e2 IN 1..1 OUTBOUND v LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
           FILTER v2._key != i._key
           COLLECT img = v2 WITH COUNT INTO num
           SORT num DESC
@@ -146,12 +147,8 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
 
 /**
  * @method Returns vertices & edges of a search result for visualization
- * - Fetches the vertices similar to the labels provided
- * - Appends the unsimilar vertices as well
- *  - Color-codes the vertices using the ArangoSearch BM25 Ranking Algorithm
+ * - Fetches the vertices and color-codes them by similarity to the user's search
  * - Collects the edge documents related to each Image contained in the collection @param
- *
- * @todo - This query seems quite complicated for no reason, should look into refactoring it...
  *
  * @param collection - The images to visualize
  * @param labels - The labels that queried the search results

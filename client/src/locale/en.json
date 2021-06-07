@@ -34,7 +34,7 @@
       "discoverInput": "Discovery Mode",
       "discoverTip": "Discover images similar to click history",
       "visualize": "Visualize",
-      "visualizeTip": "Visualize results as a graph",
+      "visualizeTip": "Visualize search results as a graph",
       "inputLabel": "Search by keywords / image url",
       "inputPlaceholder": "Cloud Mountain Rain",
       "noResults": "Shoot, we couldn't find anything",
@@ -42,7 +42,7 @@
       "sorryAlert": "Apologies, we hit an error"
     },
     "historyPage": {
-      "clear": "Clear",
+      "clear": "Clear Search History",
       "searches": "Searches",
       "favourites": "Favourites",
       "imageClicks": "Image Clicks",
@@ -57,8 +57,13 @@
     "aboutPage": {
       "heading": "About "
     },
+    "infoPage": {
+      "visualize": "Visualize",
+      "visualizeTip": "Visualize similar images as a graph"
+    },
     "visualizerPage": {
-      "lastSearch": "Last Search: "
+      "search": "Last Search Visualization: ",
+      "image": "Last Image Visualization: "
     }
   }
 }

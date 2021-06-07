@@ -14,7 +14,7 @@ import { authorObject, authorOfObject } from '../collections/Author';
 import { labelObject, labelOfObject } from '../collections/Label';
 import { bestGuessObject, bestGuessOfObject } from '../collections/BestGuess';
 
-import { image, author, authorOf, label, labelOf, bestGuess, bestGuessOf } from '../assets/sampleData';
+import { image, author, authorOf, label, labelOf, bestGuess, bestGuessOf } from '../assets/sampleCRUDData';
 
 const ImageCollection = db.collection('Images');
 const AuthorCollection = db.collection('Authors');

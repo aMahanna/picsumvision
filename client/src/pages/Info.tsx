@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container, Box, ImageList, ImageListItem, Link as MUILink } from '@material-ui/core';
+import { Container, Box, ImageList, ImageListItem, Tooltip, Button } from '@material-ui/core';
 // Import hooks
 import usePersistedState from '../hooks/usePersistedState';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Info = (props: any) => {
+  const [t] = useTranslation();
   const [id] = useState(props.match.params.id);
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
@@ -22,22 +25,23 @@ const Info = (props: any) => {
    */
   useEffect(() => {
     const fromSearch: string | undefined = props.location?.state?.fromSearch;
-    setImageIDs({
-      ...imageIDs,
-      [id]: {
-        fromSearch,
-        date: new Date(),
-      },
-    });
     fetch(`/api/info/image?id=${id}`)
       .then(response => (response.status === 200 ? response.json() : undefined))
       .then(result => {
-        if (result) {
+        if (result.data?.image) {
           setURL(result.data.image.url);
           setAuthor(result.data.image.author);
           setBestGuess(result.data.bestGuess);
           setLabels(result.data.labels);
           setSimilar(result.data.similar);
+
+          setImageIDs({
+            ...imageIDs,
+            [id]: {
+              fromSearch,
+              date: new Date(),
+            },
+          });
         } else {
           props.history.push('/');
         }
@@ -70,6 +74,13 @@ const Info = (props: any) => {
           ))}
         {similar !== undefined && similar.length !== 0 && (
           <Container maxWidth="sm">
+            <Box mt={4}>
+              <Tooltip title={`${t('infoPage.visualizeTip')}`} placement="right">
+                <Button id="search-surprise" to={`/visualize/${id}`} color="inherit" component={Link}>
+                  {t('infoPage.visualize')}
+                </Button>
+              </Tooltip>
+            </Box>
             <Box mt={3}>
               <ImageList variant="standard" style={{ overflowY: 'hidden' }} cols={2}>
                 {similar.map((item: { url: string; _key: string; author: string }) => (
@@ -88,14 +99,6 @@ const Info = (props: any) => {
             </Box>
           </Container>
         )}
-      </Box>
-      <Box mt={4}>
-        <p>
-          <MUILink color="inherit" href="https://mahanna.dev/">
-            aMahanna
-          </MUILink>
-          {' © ' + new Date().getFullYear()}
-        </p>
       </Box>
     </Container>
   );

@@ -38,10 +38,11 @@ Good to go:
 
 ## Routes
 
-* GET `/api/search/mixed` - Queries images based on user labels (e.g 'cloud sky plant')
+* GET `/api/search/keyword` - Queries images based the keyword provided (e.g 'cloud sky plant')
 * GET `/api/search/extimage` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
 * GET `/api/search/surpriseme` - Queries images based on random labels (generated from ArangoDB)
-* GET `/api/search/discovery` - Queries images based on user click history 
+* GET `/api/search/discover` - Recommends images a user may like based on history
+* GET `/api/search/visualize` - Represents the user's last search results as a graph network
 
 * GET `/api/info/image` - Returns metadata of an image using its ID
 * GET `/api/info/randomkeys` - Returns random labels (generated from ArangoDB)
@@ -70,11 +71,11 @@ do {
 
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
     pageCount++;
-  } while (pageCount !== 2); // set to `pageCount < 12` to get all 993 images
+  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); // Remove `&& pageCount !== 2` to get all +990 images
 ```
 
 ([Source](https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
-)) To include all +900 Picsum Images in your database population, you can change `pageCount !== 2` to `pageCount < 12`. This will instead fetch all Picsum image lists pages, as opposed to just fetching the first.
+)) To include all +990 Picsum Images in your database population, remove `&& pageCount !== 2` in the condition statement. This will instead fetch all all image pages, as opposed to just fetching the first page.
 
 ### An idea of what the ArangoDB graph looks like:
 <img src="https://user-images.githubusercontent.com/43019056/117744883-78573c00-b1d7-11eb-9a8f-6cf332d154a2.png"  width="400"/>

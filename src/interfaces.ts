@@ -20,7 +20,8 @@ export interface Connection {
     _id: string; // ArangoDB-generated ID
     _key: string; // The number section of ArangoDB-generated ID
     author: string; // Image author
-    url: string; // Image url
+    url: string; // Image url,
+    color?: string;
   };
   edges: {
     // Represents the array of edges associated to the Image object

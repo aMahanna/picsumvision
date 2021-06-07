@@ -84,6 +84,4 @@ test('render the info page', async () => {
       </I18nextProvider>
     </BrowserRouter>,
   );
-
-  expect(screen.getByText('aMahanna')).toBeInTheDocument();
 });

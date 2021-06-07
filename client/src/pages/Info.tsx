@@ -25,13 +25,6 @@ const Info = (props: any) => {
    */
   useEffect(() => {
     const fromSearch: string | undefined = props.location?.state?.fromSearch;
-    setImageIDs({
-      ...imageIDs,
-      [id]: {
-        fromSearch,
-        date: new Date(),
-      },
-    });
     fetch(`/api/info/image?id=${id}`)
       .then(response => (response.status === 200 ? response.json() : undefined))
       .then(result => {
@@ -41,6 +34,14 @@ const Info = (props: any) => {
           setBestGuess(result.data.bestGuess);
           setLabels(result.data.labels);
           setSimilar(result.data.similar);
+
+          setImageIDs({
+            ...imageIDs,
+            [id]: {
+              fromSearch,
+              date: new Date(),
+            },
+          });
         } else {
           props.history.push('/');
         }

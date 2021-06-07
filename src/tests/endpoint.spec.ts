@@ -69,14 +69,23 @@ test('Discover images similar to user search & click history', async () => {
 });
 
 test('Visualize image results', async () => {
-  const res = await request
-    .post('/api/search/visualize?labels=clouds')
-    .send({ lastSearchResult })
+  const resSearch = await request
+    .post('/api/search/visualize?type=search')
+    .send({ labels: 'clouds', lastSearchResult })
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/);
-  expect(res.status).toBe(200);
-  expect(res.body.graphObject.nodes.length).toBeGreaterThan(2);
-  expect(res.body.graphObject.edges.length).toBeGreaterThan(1);
+  expect(resSearch.status).toBe(200);
+  expect(resSearch.body.graphObject.nodes.length).toBeGreaterThan(2);
+  expect(resSearch.body.graphObject.edges.length).toBeGreaterThan(1);
+
+  const resImage = await request
+    .post('/api/search/visualize?type=image')
+    .send({ imageID: '1' })
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/);
+  expect(resImage.status).toBe(200);
+  expect(resImage.body.graphObject.nodes.length).toBeGreaterThan(2);
+  expect(resImage.body.graphObject.edges.length).toBeGreaterThan(1);
 });
 
 // test('Insert image (todo)', async () => {

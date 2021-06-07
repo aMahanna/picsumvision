@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import fetchVisionMetadata from '../../../vision';
 import { Vertice, Connection, VisionAnnotation, ArangoImage } from '../../../interfaces';
-import { fetch_images, fetch_search_visualization, fetch_surprise_keys, fetch_discovery } from '../../../queries';
+import {
+  fetch_images,
+  fetch_surprise_keys,
+  fetch_discovery,
+  fetch_image_visualization,
+  fetch_search_visualization,
+} from '../../../queries';
 
 /**
  * Builds an array of nodes & edges, to provide formatted data to the React Graph Visualizer tool
@@ -20,7 +26,7 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
 
   for (let j = 0; j < info.connections.length; j++) {
     const connect: Connection = info.connections[j];
-    nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: '#399E5A' }]);
+    nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: connect.i.color || '#399E5A' }]);
     for (let t = 0; t < connect.edges.length; t++) {
       const edge = connect.edges[t];
       edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to, label: String(edge._score) }]);
@@ -111,17 +117,26 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_visualizer(req: Request, res: Response): Promise<void> {
-    const keyword: string | undefined = typeof req.query.labels === 'string' ? req.query.labels : undefined;
-    const lastSearchResult = req.body.lastSearchResult;
-    if (!keyword || !lastSearchResult) res.status(400).json('Missing keyword and/or search result for visualization');
-    else {
-      const data = await fetch_search_visualization(lastSearchResult, keyword);
-      if (data.vertices.length === 0) {
-        res.status(204).json('No visualization info found :/');
-      } else {
-        const graphObject = parseVisualizationInfo(data);
-        res.status(200).json({ graphObject });
-      }
+    const visualizationType: string = typeof req.query.type === 'string' ? req.query.type : 'search';
+    let data: { vertices: Vertice[]; connections: Connection[] } = { vertices: [], connections: [] };
+
+    if (!visualizationType) res.status(400).json('Invalid visualization type. Must be "image" or "search".');
+    else if (visualizationType === 'image') {
+      const imageID = req.body.imageID;
+      if (!imageID) res.status(400).json('Missing image ID for image visualization.');
+      else data = await fetch_image_visualization([imageID], 4);
+    } else if (visualizationType === 'search') {
+      const keyword = req.body.labels;
+      const lastSearchResult = req.body.lastSearchResult;
+      if (!keyword || !lastSearchResult) res.status(400).json('Missing keyword and/or search result for visualization');
+      else data = await fetch_search_visualization(lastSearchResult, keyword);
+    }
+
+    if (data.vertices.length === 0) {
+      res.status(204).json('No visualization info found :/');
+    } else {
+      const graphObject = parseVisualizationInfo(data);
+      res.status(200).json({ graphObject });
     }
   }
 

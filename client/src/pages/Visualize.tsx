@@ -25,8 +25,10 @@ const options = {
  * @see VISJS.org
  *
  */
-const Visualize = () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Visualize = (props: any) => {
   const [t] = useTranslation();
+  const visualizationType = props.match.params.id ? 'image' : 'search';
   const [sorryAlert, setSorryAlert] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [graph, setGraph]: any = useState({
@@ -50,9 +52,19 @@ const Visualize = () => {
    * - Updates the state of the graph with the endpoint's response
    */
   useEffect(() => {
-    fetch(`/api/search/visualize?labels=${lastSearch}`, {
+    const isSearch = visualizationType === 'search';
+    if (isSearch && (lastSearch === '' || !persistedData[lastSearch])) {
+      props.history.push('/');
+      return;
+    }
+
+    fetch(`/api/search/visualize?type=${visualizationType}`, {
       method: 'POST',
-      body: JSON.stringify({ lastSearchResult: persistedData![lastSearch].data }),
+      body: JSON.stringify({
+        imageID: isSearch ? undefined : props.match.params.id,
+        labels: isSearch ? lastSearch : undefined,
+        lastSearchResult: isSearch ? persistedData[lastSearch].data : undefined,
+      }),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -75,7 +87,9 @@ const Visualize = () => {
   return (
     <Container maxWidth="lg">
       <h4>
-        {t('visualizerPage.lastSearch')} "{lastSearch}"
+        {visualizationType === 'search'
+          ? `${t('visualizerPage.search')} "${lastSearch}"`
+          : `${t('visualizerPage.image')} "${props.match.params.id}"`}
       </h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
       {graph.nodes.length !== 0 && (

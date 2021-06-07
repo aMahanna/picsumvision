@@ -8,7 +8,7 @@ import usePersistedState from '../hooks/usePersistedState';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Info = (props: any) => {
-  const [t] = useTranslation(); // Translation use
+  const [t] = useTranslation();
   const [id] = useState(props.match.params.id);
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');

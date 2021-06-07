@@ -43,7 +43,7 @@ const useStyles = makeStyles(() =>
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Search = (props: any) => {
-  const [t, i18n] = useTranslation(); // Translation use
+  const [t, i18n] = useTranslation();
   const classes = useStyles();
 
   const [textFieldInput, setTextFieldInput] = useState(''); // The input of the search bar

@@ -21,7 +21,7 @@ const App = () => {
       <Switch>
         <Route exact path="/" component={Landing} />
         <Route exact path="/search" render={props => <Search {...props} />} />
-        <Route exact path={['/visualize', '/visualize/:id']} component={Visualize} />
+        <Route exact path={["/visualize", "/visualize/:id"]} component={Visualize} />
         <Route exact path="/history" component={History} />
         <Route exact path="/about" component={About} />
         <Route exact path="/info/:id" component={Info} />

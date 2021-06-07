@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Graph from 'react-graph-vis';
 import { CircularProgress, Container } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
-import Alert from '../components/Alert';
 
 const options = {
   layout: {
@@ -79,7 +78,7 @@ const Visualize = (props: any) => {
             edges,
           });
         } else {
-          setSorryAlert(true);
+          props.history.push('/');
         }
       });
   }, []);
@@ -89,21 +88,12 @@ const Visualize = (props: any) => {
       <h4>
         {visualizationType === 'search'
           ? `${t('visualizerPage.search')} "${lastSearch}"`
-          : `${t('visualizerPage.image')} "${props.match.params.id}"`}
+          : `${t('visualizerPage.image')} #${props.match.params.id}`}
       </h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
       {graph.nodes.length !== 0 && (
         <Graph graph={graph} options={options} events={{}} style={{ border: 'solid', borderRadius: '1cm', height: '70vh' }} />
       )}
-      <Alert
-        open={sorryAlert}
-        message={`${t('searchPage.sorryAlert')}`}
-        severity="error"
-        onSnackbarClose={(e, r) => {
-          return r === 'clickaway' ? undefined : setSorryAlert(false);
-        }}
-        onAlertClose={() => setSorryAlert(false)}
-      ></Alert>
     </Container>
   );
 };

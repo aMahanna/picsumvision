@@ -64,19 +64,23 @@ export async function fetch_images(targetLabels: string): Promise<ArangoImage[]>
  * @method Returns 3 random labels for user input
  * - Picks a random image
  * - Performs a 1-step graph traversal to its labels
- * - Picks 3 of them randomly (among the higher confidence labels), and returns them as a string
+ * - Filters for labels with scores of 70% or higher
+ * - Picks X amount of labels randomly
+ *    - X is ranges from 1 to 4
  * @returns a random collection of labels (e.g 'mountain blue sky')
  */
 export async function fetch_surprise_keys(): Promise<string> {
+  const maxResults = Math.floor(Math.random() * 4) + 1;
   const result = await (
     await db.query(aql`
       With Labels
       FOR i IN Images
         SORT RAND()
         LIMIT 1
-        FOR v, e IN 1..1 INBOUND i LabelOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-          SORT e._score DESC
-          LIMIT 3
+        FOR v, e IN 1..1 INBOUND i LabelOf
+          FILTER e._score >= 0.70
+          SORT RAND()
+          LIMIT ${maxResults}
           RETURN v.label
     `)
   ).all();

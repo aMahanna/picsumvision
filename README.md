@@ -16,25 +16,25 @@ _Disclaimer: Searching is far from being optimized._
 
 ## Configuration
 
-Picsum Vision requires the following environment variables:
-* GOOGLE_APPLICATION_CREDENTIALS
-    - Setup here: https://cloud.google.com/docs/authentication/api-keys)
-
-* ARANGO_DB_URL, ARANGO_DB_NAME, ARANGO_USER, ARANGO_PASS
-    - Setup here: https://www.arangodb.com/docs/stable/oasis/getting-started.html
-    - (Setup via Docker will be available soon)
-
+* Copy the `env.example` into a new `.env` file.
 * Run `yarn install && yarn client:install` (root directory).
 * Run `yarn build` (root directory).
+* Run `docker-compose up -d` to create your local ArangoDB instance
+   * Head over to `http://localhost:8529/` and login with user "root" & password "rootpassword" to access your `_system` DB
 
 ## Running
 
-After acquiring these variables, simply run the following scripts to onboard & populate your ArangoDB:
-1. `yarn db:onboard` (root directory) - Creates your Search View, and Document / Edges collections
-2. `yarn db:populate` (root directory) - Inserts the first 100 Picsum images (see below for how to generate more)
+To populate your ArangoDB with image metadata, you will need a Google Vision API Key, set as `GOOGLE_APPLICATION_CREDENTIALS`:
+* Setup here: https://cloud.google.com/docs/authentication/api-keys)
+
+1. Run `yarn db:onboard` (root directory) - Creates your Document / Edge collections, and an ArangoDB View
+2. Run `yarn db:populate` (root directory) - Inserts the first 100 Picsum images (see below for how to generate more)
 
 Good to go:
 * Run `yarn dev` (root directory)
+
+When you get bored:
+* Run `docker kill picsumvision_arangodb_db_container_1`
 
 ## Routes
 
@@ -76,7 +76,7 @@ do {
 
 ([Source](https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
 )) To include all +990 Picsum Images in your database population, remove `&& pageCount !== 2` in the condition statement. This will instead fetch all all image pages, as opposed to just fetching the first page.
-
+-
 ### An idea of what the ArangoDB graph looks like:
 <img src="https://user-images.githubusercontent.com/43019056/117744883-78573c00-b1d7-11eb-9a8f-6cf332d154a2.png"  width="400"/>
 <img src="https://user-images.githubusercontent.com/43019056/117744933-9886fb00-b1d7-11eb-95f2-98874027311d.png"  width="400"/>

@@ -8,45 +8,36 @@ Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
 
 **[Show, don't tell](https://picsumvision.mahanna.dev/)**
 
-**[View the tech stack on the About page](https://picsumvision.mahanna.dev/about)**
-
 This project was submitted as a Shopify Developer Challenge on May 9th, but has continued to grow since. If you would like to see the state of the project as of May 9th only, you can rollback to the following commit: [53e84e8](https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e)
 
 _Disclaimer: Searching is far from being optimized._
 
-## Configuration
+## How to run
 
-Picsum Vision requires the following environment variables:
-* GOOGLE_APPLICATION_CREDENTIALS
-    - Setup here: https://cloud.google.com/docs/authentication/api-keys)
+1. Copy the `env.example` into a new `.env` file. For fast setup, **do not modify anything**.
+2. Run `yarn install && yarn client:install`.
+3. Run `yarn build`.
+4. Run `docker-compose up -d` to create your local DB instance
+    * Login at `http://localhost:8529/` with `root` // `rootpassword`
+5. Run `yarn db:onboard` to configure your DB with Collections, Analyzers, and a View.
+6. Run `yarn db:restore` to restore your DB with data from previous ArangoDB dumps
 
-* ARANGO_DB_URL, ARANGO_DB_NAME, ARANGO_USER, ARANGO_PASS
-    - Setup here: https://www.arangodb.com/docs/stable/oasis/getting-started.html
-    - (Setup via Docker will be available soon)
+**Good to go:**
+* Run `yarn dev`.
 
-* Run `yarn install && yarn client:install` (root directory).
-* Run `yarn build` (root directory).
+When you get bored:
+* Run `docker kill picsumvision_arangodb_db_container_1`
 
-## Running
+## Google Vision API Usage
 
-After acquiring these variables, simply run the following scripts to onboard & populate your ArangoDB:
-1. `yarn db:onboard` (root directory) - Creates your Search View, and Document / Edges collections
-2. `yarn db:populate` (root directory) - Inserts the first 100 Picsum images (see below for how to generate more)
+PicsumVision relies on the Google Vision API for two things:
+1. Metadata generation of images, via the `yarn db:populate` command.
+2. Search for images via an Image URL, instead of searching via keyword.
 
-Good to go:
-* Run `yarn dev` (root directory)
+If you would like to mess around with any of these, you will need a Google Vision API Key, set as `GOOGLE_APPLICATION_CREDENTIALS`:
+* Setup here: https://cloud.google.com/docs/authentication/api-keys)
 
-## Routes
-
-* GET `/api/search/keyword` - Queries images based the keyword provided (e.g 'cloud sky plant')
-* GET `/api/search/extimage` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
-* GET `/api/search/surpriseme` - Queries images based on random labels (generated from ArangoDB)
-* GET `/api/search/discover` - Recommends images a user may like based on history
-* GET `/api/search/visualize` - Represents the user's last search results as a graph network
-
-* GET `/api/info/image` - Returns metadata of an image using its ID
-* GET `/api/info/randomkeys` - Returns random labels (generated from ArangoDB)
-* GET `/api/info/metrics` - Returns database collection counts
+For fast setup, I recommend you use the `yarn db:restore` command instead of `yarn db:populate`, as the former doesn't require a Google Vision API key. **Keep in mind however that you will not be able to search for images via image URls without a Vision key..**
 
 ## Configuring New Collections
 
@@ -60,22 +51,17 @@ If you would like as well, you can update the `populate.ts` to generate some dat
 
 Simply create a new `export async function...` in `/src/queries.ts`, and you can begin to reference it in an existing Search / Info API Route, or create a new API / Endpoint.
 
-## Extra Information
+## Routes
 
-**Generating more images from `populate.ts`**
+* GET `/api/search/keyword` - Queries images based the keyword provided (e.g 'cloud sky plant')
+* GET `/api/search/extimage` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
+* GET `/api/search/surpriseme` - Queries images based on random labels (generated from ArangoDB)
+* GET `/api/search/discover` - Recommends images a user may like based on history
+* GET `/api/search/visualize` - Represents the user's last search results as a graph network
 
-```typescript
-do {
-    const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${pageCount}&limit=${limit}`);
-    PICSUM_RESULT = await PICSUM_RESPONSE.json();
-
-    PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
-    pageCount++;
-  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); // Remove `&& pageCount !== 2` to get all +990 images
-```
-
-([Source](https://github.com/aMahanna/picsumvision/blob/main/src/scripts/populate.ts#L59-#L65
-)) To include all +990 Picsum Images in your database population, remove `&& pageCount !== 2` in the condition statement. This will instead fetch all all image pages, as opposed to just fetching the first page.
+* GET `/api/info/image` - Returns metadata of an image using its ID
+* GET `/api/info/randomkeys` - Returns random labels (generated from ArangoDB)
+* GET `/api/info/metrics` - Returns database collection counts
 
 ### An idea of what the ArangoDB graph looks like:
 <img src="https://user-images.githubusercontent.com/43019056/117744883-78573c00-b1d7-11eb-9a8f-6cf332d154a2.png"  width="400"/>

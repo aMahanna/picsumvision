@@ -13,8 +13,6 @@ import fetch from 'node-fetch';
 
 // Import the Vision API
 import fetchVisionMetadata from '../vision';
-// Import the test data (optional)
-// import sampleVisionLabels from '../assets/sampleVisionLabels';
 // Import the interfaces used
 import { VisionAnnotation, PicsumImage } from '../interfaces';
 
@@ -62,8 +60,9 @@ async function populateDB() {
 
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
     pageCount++;
-  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); // Remove `&& pageCount !== 2` to get all +990 images
+  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); /** @attention Remove `&& pageCount !== 2` to get all +990 images */
 
+  console.log(`Generating metadata for ${PICSUM_LIST.length} images. Please standby...`);
   for (let j = 0; j < PICSUM_LIST.length; j++) {
     const PICSUM_IMAGE: PicsumImage = PICSUM_LIST[j];
     const PICSUM_URL = PICSUM_IMAGE.download_url;

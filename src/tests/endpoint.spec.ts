@@ -31,7 +31,7 @@ test('Return random labels from ArangoDB', async () => {
   const res = await request.get(`/api/info/randomkeys`);
   expect(res.status).toBe(200);
   expect(res.body.labels).toBeDefined();
-  expect(res.body.labels.split(' ').length).toBeGreaterThan(1);
+  expect(res.body.labels.split(' ').length).toBeGreaterThan(0);
 });
 
 test('Search for Images using "Water" and "Sky"', async () => {

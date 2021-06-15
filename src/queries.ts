@@ -170,8 +170,6 @@ export async function fetch_search_visualization(
             BOOST(doc.bestGuess IN textTokens, 3) ||
             BOOST(doc.name IN textTokens, 4)
           , 'text_en')
-          SORT BM25(doc, 1.2, 0) DESC 
-          LIMIT 25
           RETURN doc
       )
       LET vertices = (

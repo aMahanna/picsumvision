@@ -17,11 +17,12 @@ _Disclaimer: Searching is far from being optimized._
 1. Copy the `env.example` into a new `.env` file. For fast setup, **do not modify anything**.
 2. Run `yarn install && yarn client:install`.
 3. Run `yarn build`.
-4. Run `docker-compose up -d` to create your DB (login @ `http://localhost:8529/` with `root` // `rootpassword`).
+4. Run `docker-compose up -d` to create your local DB instance
+    * Login at `http://localhost:8529/` with `root` // `rootpassword`
 5. Run `yarn db:onboard` to configure your DB with Collections, Analyzers, and a View.
 6. Run `yarn db:restore` to restore your DB with data from previous ArangoDB dumps
 
-Good to go:
+**Good to go:**
 * Run `yarn dev`.
 
 When you get bored:
@@ -36,7 +37,7 @@ PicsumVision relies on the Google Vision API for two things:
 If you would like to mess around with any of these, you will need a Google Vision API Key, set as `GOOGLE_APPLICATION_CREDENTIALS`:
 * Setup here: https://cloud.google.com/docs/authentication/api-keys)
 
-**For fast setup, I recommend you use the `yarn db:restore` command instead of `yarn db:populate`, as the former doesn't require a Google Vision API key.** 
+For fast setup, I recommend you use the `yarn db:restore` command instead of `yarn db:populate`, as the former doesn't require a Google Vision API key. **Keep in mind however that you will not be able to search for images via image URls without a Vision key..**
 
 ## Configuring New Collections
 

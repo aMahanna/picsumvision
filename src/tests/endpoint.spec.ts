@@ -13,7 +13,7 @@
 
 import app from '../../server';
 import supertest from 'supertest';
-import lastSearchResult from '../assets/sampleLastSearchResult';
+import lastSearchResult from '../assets/spec/sampleLastSearchResult';
 
 const request = supertest(app);
 

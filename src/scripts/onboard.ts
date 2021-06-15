@@ -8,7 +8,7 @@
 
 import db, { documentCollections, edgeCollections, view } from '../database';
 import { ViewType, CollectionType } from 'arangojs';
-import stopwords from '../assets/stopwords';
+import stopwords from '../assets/misc/stopwords';
 
 async function onboardDB() {
   for (let i = 0; i < documentCollections.length; i++) {

@@ -87,7 +87,7 @@ const Visualize = (props: any) => {
     <Container maxWidth="lg">
       <h4>
         {visualizationType === 'search'
-          ? `${t('visualizerPage.search')} "${lastSearch}"`
+          ? `${t('visualizerPage.search')} "${persistedData[lastSearch].input}"`
           : `${t('visualizerPage.image')} #${props.match.params.id}`}
       </h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}

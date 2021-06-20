@@ -70,7 +70,7 @@ const Search = (props: any) => {
     const historyIndex: string = props.location?.state?.fromHistory;
     if (historyIndex) {
       if (persistedData[historyIndex]) {
-        setTextFieldInput(historyIndex);
+        setTextFieldInput(persistedData[historyIndex].input || historyIndex);
         setSearchResult(persistedData[historyIndex].data);
         setLastSearch(historyIndex);
       } else {
@@ -78,8 +78,8 @@ const Search = (props: any) => {
         query(historyIndex);
       }
     } else if (lastSearch !== '') {
-      setTextFieldInput(lastSearch);
-      setSearchResult(persistedData[lastSearch]?.data || []);
+      setTextFieldInput(persistedData[lastSearch].input || lastSearch);
+      setSearchResult(persistedData[lastSearch].data);
     } else {
       fetch('/api/info/randomkeys')
         .then(result => (result.status === 200 ? result.json() : undefined))
@@ -119,7 +119,7 @@ const Search = (props: any) => {
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        updateCache(result.labels, result.data);
+        updateCache(input, index, result.data);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -144,7 +144,7 @@ const Search = (props: any) => {
       setTextFieldInput(result.labels);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels, result.data);
+      updateCache(result.labels, result.labels.split(' ').sort().join(' ').toLowerCase(), result.data);
     } else {
       setSorryAlert(true);
     }
@@ -204,11 +204,12 @@ const Search = (props: any) => {
    * @param data  The data to store
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateCache = async (index: string, data: any[]) => {
+  const updateCache = async (input: string, index: string, data: any[]) => {
     if (data.length !== 0) {
       setPersistedData({
         ...persistedData,
         [index]: {
+          input,
           data,
           date: Date(),
         },

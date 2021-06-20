@@ -51,7 +51,7 @@ namespace SearchController {
     if (!keyword) res.status(400).json('User must pass labels as a string to search');
     else {
       const data: ArangoImage[] = await fetch_images(keyword);
-      res.status(data.length === 0 ? 204 : 200).json({ data, labels: keyword.split(' ').sort().join(' ') }); // Return a sorted version of the labels
+      res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }
 

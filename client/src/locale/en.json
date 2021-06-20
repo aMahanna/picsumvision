@@ -42,7 +42,7 @@
       "sorryAlert": "Apologies, we hit an error"
     },
     "historyPage": {
-      "clear": "Clear Search History",
+      "clear": "Clear",
       "searches": "Searches",
       "favourites": "Favourites",
       "imageClicks": "Image Clicks",
@@ -62,8 +62,8 @@
       "visualizeTip": "Visualize similar images as a graph"
     },
     "visualizerPage": {
-      "search": "Last Search Visualization: ",
-      "image": "Last Image Visualization: "
+      "search": "Search: ",
+      "image": "Image: "
     }
   }
 }

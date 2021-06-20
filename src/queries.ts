@@ -6,7 +6,7 @@ import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } fr
  * @method allows the user to query by keyword (i.e by author name, label, bestGuess)
  * - First, search for exact matches using a custom ArangoSearch "norm" analyzer
  *    - Sort by confidence score
- *    - Select the first 5 images
+ *    - Select the first 10 images
  * - Second, search for close matches using a custom ArangoSearch "text_en" analyzer
  *     - Sort the ArangoDB View matches by the BM25 algorithm (@see https://en.wikipedia.org/wiki/Okapi_BM25)
  *     - Perform graph traversals on the first 15 View matches
@@ -50,7 +50,7 @@ export async function fetch_images(targetLabels: string): Promise<ArangoImage[]>
             FILTER v NOT IN exactMatches
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
-            LIMIT 5
+            LIMIT 10
             RETURN img
       )
       RETURN APPEND(exactMatches, closeMatches)
@@ -62,15 +62,16 @@ export async function fetch_images(targetLabels: string): Promise<ArangoImage[]>
 
 /**
  * @method Returns 3 random labels for user input
- * - Picks a random image
- * - Performs a 1-step graph traversal to its labels
- * - Filters for labels with scores of 70% or higher
- * - Picks X amount of labels randomly
- *    - X is ranges from 1 to 4
+ * - Pick a random image
+ * - Branch out to its labels
+ * - Omit 'sky' and 'cloud', filter for over 60% confidence score
+ * - Randomly select X amount of labels
+ *    - X ranges from 1 to 3
  * @returns a random collection of labels (e.g 'mountain blue sky')
  */
 export async function fetch_surprise_keys(): Promise<string> {
-  const maxResults = Math.floor(Math.random() * 4) + 1;
+  const maxResults = Math.floor(Math.random() * 3) + 1;
+  const ignoredLabels = ['sky', 'cloud', 'stock.xchng']; // Some labels to skip over for now
   const result = await (
     await db.query(aql`
       With Labels
@@ -78,7 +79,8 @@ export async function fetch_surprise_keys(): Promise<string> {
         SORT RAND()
         LIMIT 1
         FOR v, e IN 1..1 INBOUND i LabelOf
-          FILTER e._score >= 0.70
+          FILTER LOWER(v.label) NOT IN ${ignoredLabels}
+          FILTER e._score >= 0.60
           SORT RAND()
           LIMIT ${maxResults}
           RETURN v.label

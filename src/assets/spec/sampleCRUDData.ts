@@ -25,6 +25,7 @@ export const label = {
   _key: '1',
   mid: 'm/machineid1',
   label: 'computer',
+  labelTopic: 'computer',
 };
 
 export const labelOf = {

@@ -31,7 +31,7 @@ const History = () => {
    * Removes the history cache from the user's session
    * Forces a reload to clear up the table
    */
-  const clearCache = async () => {
+  const clearCache = () => {
     localStorage.removeItem('data');
     localStorage.removeItem('lastSearch');
     localStorage.removeItem('favourites');
@@ -47,12 +47,13 @@ const History = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const HistoryRow = (props: { persistedState: any }) => {
     const key: string = Object.keys(props.persistedState)[0];
-    const date: Date = new Date(props.persistedState[key].date);
+    const input: number = props.persistedState[key].input;
     const results: number = props.persistedState[key].data.length;
+    const date: Date = new Date(props.persistedState[key].date);
     return (
       <TableRow key={key}>
         <TableCell component="th" scope="row">
-          {key}
+          {input}
         </TableCell>
         <TableCell align="center">{results}</TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
@@ -106,7 +107,7 @@ const History = () => {
           <Link to={{ pathname: '/search', state: { fromHistory: makeHistory } }}>{t('historyPage.makehistory')}</Link>
         </div>
       )}
-      {(history || favourites) && (
+      {(history || favourites || imageClicks) && (
         <Button id="history-clear" style={{ color: '#2f2d2e' }} onClick={clearCache}>
           {t('historyPage.clear')}
         </Button>
@@ -156,7 +157,7 @@ const History = () => {
         </Box>
       )}
       {imageClicks && (
-        <Box mt={3}>
+        <Box mt={3} mb={5}>
           <h3>{t('historyPage.imageClicks')}</h3>
           <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
             <Table aria-label="history-table" stickyHeader>

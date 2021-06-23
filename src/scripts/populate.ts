@@ -22,6 +22,9 @@ import { labelObject, labelOfObject } from '../collections/Label';
 import { authorObject, authorOfObject } from '../collections/Author';
 import { bestGuessObject, bestGuessOfObject } from '../collections/BestGuess';
 
+// Import assets
+import ignoredwords from '../assets/misc/ignoredwords';
+
 if (process.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   require('dotenv').config();
@@ -78,7 +81,7 @@ async function populateDB() {
       date: Date(),
     });
     if (imageInsert.alreadyExists) {
-      console.log('Duplicate image, skipping...');
+      console.log(`Duplicate image: ${imageInsert.id}, skipping...`);
       continue; // Skip the image if it is already inserted
     }
 
@@ -110,16 +113,25 @@ async function populateDB() {
      * @returns "LABEL" IDs
      */
     // Parse, sort & unify the metadata to ensure there are no conflicting values
-    const visionAnnotations = VISION_DATA.labelAnnotations
-      ?.concat(
-        VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [],
-        VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
-      )
-      .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1));
+    const visionAnnotations = VISION_DATA.labelAnnotations?.concat(
+      VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [],
+      VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
+    );
 
     const uniqueAnnotations = [
       ...new Map(visionAnnotations.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values(),
-    ];
+    ].sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1));
+
+    const labelTopic = uniqueAnnotations
+      .filter(obj => {
+        const label = obj.description || obj.name;
+        const isSafeLabel = label ? ignoredwords.indexOf(label.toLowerCase()) === -1 : false;
+        const isOneWordLabel = label ? label.split(' ').length === 1 : false;
+        if (isSafeLabel && isOneWordLabel) return obj;
+      })
+      .slice(0, 5)
+      .map(obj => obj.description || obj.name)
+      .join(',');
 
     for (let t = 0; t < uniqueAnnotations.length; t++) {
       const annot = uniqueAnnotations[t];
@@ -128,11 +140,12 @@ async function populateDB() {
       // Keep Label scores from going over 1 to distinguish from AuthorOf and BestGuessOf scores
       const _score = annot.score > 1 ? 0.99999 : annot.score;
 
-      if (label && id) {
+      if (id && label) {
         const labelID = await labelObject.insertLabel({
-          _key: stringToASCII(id),
+          _key: stringToASCII(label),
           mid: id,
           label,
+          labelTopic,
         });
 
         await labelOfObject.insertLabelOf({
@@ -142,6 +155,7 @@ async function populateDB() {
         });
       }
     }
+
     /**
      * @this Inserts the Best Guess documents, and links the image using BestGuessOf edges
      * @returns "BestGuess" IDs
@@ -150,15 +164,17 @@ async function populateDB() {
     for (let y = 0; y < bestGuesses.length; y++) {
       const guess = bestGuesses[y];
 
-      const bestGuessID: string = await bestGuessObject.insertBestGuess({
-        _key: stringToASCII(guess.label.toLowerCase()),
-        bestGuess: guess.label,
-      });
-      await bestGuessOfObject.insertBestGuessOf({
-        _from: bestGuessID,
-        _to: imageID,
-        _score: 1,
-      });
+      if (guess && guess.label) {
+        const bestGuessID: string = await bestGuessObject.insertBestGuess({
+          _key: stringToASCII(guess.label),
+          bestGuess: guess.label,
+        });
+        await bestGuessOfObject.insertBestGuessOf({
+          _from: bestGuessID,
+          _to: imageID,
+          _score: 1,
+        });
+      }
     }
 
     console.log(`${imageID} complete`);

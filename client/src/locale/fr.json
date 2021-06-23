@@ -41,7 +41,7 @@
       "suggestAlert": "Suggestion: "
     },
     "historyPage": {
-      "clear": "Effacer votre historique de recherche",
+      "clear": "Effacer",
       "searches": "Recherches",
       "favourites": "Favoris",
       "imageClicks": "Images inspectées",
@@ -57,7 +57,8 @@
       "heading": "About"
     },
     "visualizerPage": {
-      "lastSearch": "Dernière recherche: "
+      "search": "Recherche: ",
+      "image": "Image: "
     }
   }
 }

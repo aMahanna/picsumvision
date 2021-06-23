@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import fs from 'fs';
-import db, { documentCollections, edgeCollections, view } from '../database';
+import db, { documentCollections, edgeCollections } from '../database';
 
 /**
  * @method handles DB data restoring from ArangoDB JSON dumps

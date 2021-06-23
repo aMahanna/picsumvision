@@ -10,7 +10,6 @@ interface labelModel {
   _key: string;
   mid: string;
   label: string;
-  labelTopic: string;
   data?: string;
 }
 
@@ -37,15 +36,15 @@ class LabelObject {
    * @param document implements the labelModel interface
    * @returns the ArangoID of the Label inserted
    */
-  public async insertLabel(document: labelModel): Promise<string> {
+  public async insertLabel(document: labelModel, labelTopic: string): Promise<string> {
     const existingLabel = await LabelCollection.document({ _key: document._key }, true);
     if (existingLabel) {
-      const newData = await this.generateLabelData(document.label, document.labelTopic);
+      const newData = await this.generateLabelData(document.label, labelTopic);
       await LabelCollection.update(document._key, { data: newData + ' ' + existingLabel.data }, { waitForSync: true });
       return existingLabel._id;
     }
 
-    document.data = await this.generateLabelData(document.label, document.labelTopic);
+    document.data = await this.generateLabelData(document.label, labelTopic);
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 

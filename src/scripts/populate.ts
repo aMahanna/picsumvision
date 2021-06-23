@@ -141,12 +141,14 @@ async function populateDB() {
       const _score = annot.score > 1 ? 0.99999 : annot.score;
 
       if (id && label) {
-        const labelID = await labelObject.insertLabel({
-          _key: stringToASCII(label),
-          mid: id,
-          label,
-          labelTopic,
-        });
+        const labelID = await labelObject.insertLabel(
+          {
+            _key: stringToASCII(label),
+            mid: id,
+            label,
+          },
+          labelTopic
+        );
 
         await labelOfObject.insertLabelOf({
           _from: labelID,

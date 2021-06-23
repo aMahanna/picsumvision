@@ -59,12 +59,12 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
 });
 
 test('perform basic insert/delete for the Label & LabelOf collections', async () => {
-  await labelObject.insertLabel(label);
+  await labelObject.insertLabel(label, label.label);
   const labelDoc = await LabelCollection.document(label._key);
   expect(labelDoc._key).toBe(label._key);
   //expect(labelDoc.data.split(' ')).toContain('calculator');
 
-  const labelAlreadyExists = await labelObject.insertLabel(label);
+  const labelAlreadyExists = await labelObject.insertLabel(label, label.label);
   expect(labelAlreadyExists).toBe(`Labels/${label._key}`);
 
   await labelOfObject.insertLabelOf(labelOf);

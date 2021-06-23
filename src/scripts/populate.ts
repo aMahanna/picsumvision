@@ -140,7 +140,7 @@ async function populateDB() {
       // Keep Label scores from going over 1 to distinguish from AuthorOf and BestGuessOf scores
       const _score = annot.score > 1 ? 0.99999 : annot.score;
 
-      if (label && id) {
+      if (id && label) {
         const labelID = await labelObject.insertLabel({
           _key: stringToASCII(label),
           mid: id,
@@ -164,15 +164,17 @@ async function populateDB() {
     for (let y = 0; y < bestGuesses.length; y++) {
       const guess = bestGuesses[y];
 
-      const bestGuessID: string = await bestGuessObject.insertBestGuess({
-        _key: stringToASCII(guess.label),
-        bestGuess: guess.label,
-      });
-      await bestGuessOfObject.insertBestGuessOf({
-        _from: bestGuessID,
-        _to: imageID,
-        _score: 1,
-      });
+      if (guess && guess.label) {
+        const bestGuessID: string = await bestGuessObject.insertBestGuess({
+          _key: stringToASCII(guess.label),
+          bestGuess: guess.label,
+        });
+        await bestGuessOfObject.insertBestGuessOf({
+          _from: bestGuessID,
+          _to: imageID,
+          _score: 1,
+        });
+      }
     }
 
     console.log(`${imageID} complete`);

@@ -49,6 +49,7 @@ export async function fetch_images(targetLabels: string): Promise<ArangoImage[]>
           LIMIT 25
           FOR v, e IN 1..1 OUTBOUND doc LabelOf, AuthorOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             FILTER v NOT IN exactMatches
+            SORT e._score DESC
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
             LIMIT 10

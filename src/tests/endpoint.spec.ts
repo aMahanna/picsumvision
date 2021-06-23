@@ -70,7 +70,7 @@ test('Discover images similar to user search & click history', async () => {
 test('Visualize image results', async () => {
   const resSearch = await request
     .post('/api/search/visualize?type=search')
-    .send({ labels: 'clouds', lastSearchResult })
+    .send({ labels: 'computer', lastSearchResult })
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/);
   expect(resSearch.status).toBe(200);

@@ -1,6 +1,7 @@
 import db from './database';
 import { aql } from 'arangojs';
 import { Vertice, Connection, ArangoImage, ArangoImageInfo, ArangoDBMetrics } from './interfaces';
+import ignoredwords from './assets/misc/ignoredwords';
 
 /**
  * @method allows the user to query by keyword (i.e by author name, label, bestGuess)
@@ -64,14 +65,13 @@ export async function fetch_images(targetLabels: string): Promise<ArangoImage[]>
  * @method Returns 3 random labels for user input
  * - Pick a random image
  * - Branch out to its labels
- * - Omit 'sky' and 'cloud', filter for over 60% confidence score
+ * - Omit certain labels, & filter for over 60% confidence score
  * - Randomly select X amount of labels
  *    - X ranges from 1 to 3
  * @returns a random collection of labels (e.g 'mountain blue sky')
  */
 export async function fetch_surprise_keys(): Promise<string> {
   const maxResults = Math.floor(Math.random() * 3) + 1;
-  const ignoredLabels = ['sky', 'cloud', 'stock.xchng']; // Some labels to skip over for now
   const result = await (
     await db.query(aql`
       With Labels
@@ -79,7 +79,7 @@ export async function fetch_surprise_keys(): Promise<string> {
         SORT RAND()
         LIMIT 1
         FOR v, e IN 1..1 INBOUND i LabelOf
-          FILTER LOWER(v.label) NOT IN ${ignoredLabels}
+          FILTER LOWER(v.label) NOT IN ${ignoredwords}
           FILTER e._score >= 0.60
           SORT RAND()
           LIMIT ${maxResults}

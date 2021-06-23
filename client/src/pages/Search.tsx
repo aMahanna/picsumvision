@@ -113,6 +113,7 @@ const Search = (props: any) => {
       suggestUser();
     } else if (persistedData[index]) {
       setSearchResult(persistedData[index].data);
+      setLastSearch(index);
     } else {
       const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/keyword?labels=${input}`;
       const response = await fetch(uri);

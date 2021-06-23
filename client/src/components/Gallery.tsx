@@ -46,7 +46,7 @@ const Gallery = (props: any) => {
               </Link>
               <ImageListItemBar
                 position="bottom"
-                title={item.author}
+                title={`${item.author} (${item._key})`}
                 actionIcon={
                   <IconButton
                     sx={{ color: 'white' }}

@@ -4,11 +4,13 @@
 
 import db from '../database';
 import fetch from 'node-fetch';
+import { URL } from 'url';
 
 interface labelModel {
   _key: string;
   mid: string;
   label: string;
+  labelTopic: string;
   data?: string;
 }
 
@@ -36,11 +38,13 @@ class LabelObject {
    * @returns the ArangoID of the Label inserted
    */
   public async insertLabel(document: labelModel): Promise<string> {
-    const labelAlreadyExists = await LabelCollection.document({ _key: document._key }, true);
-    if (labelAlreadyExists) {
-      return labelAlreadyExists._id;
+    const existingLabel = await LabelCollection.document({ _key: document._key }, true);
+    if (existingLabel) {
+      const data = existingLabel.data + ' ' + (await this.generateLabelData(document.label, document.labelTopic));
+      await LabelCollection.update(document._key, { data }, { waitForSync: true });
+      return existingLabel._id;
     }
-    document.data = await this.generateLabelData(document.label.trim().split(' ').join('+'));
+    document.data = await this.generateLabelData(document.label, document.labelTopic);
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 
@@ -57,23 +61,23 @@ class LabelObject {
    * @param word The word to generate more metadata from
    * @returns
    */
-  public async generateLabelData(word: string) {
-    let mlResult: museModel[] = [];
-    let synResult: museModel[] = [];
-    let trgResult: museModel[] = [];
+  public async generateLabelData(word: string, topics: string): Promise<string> {
+    topics = topics.trim();
+    word = word.trim().replace(' ', '%20');
+
+    let datamuseLabels: museModel[] = [];
+    const datamuseParams = ['ml', 'rel_syn', 'rel_spc', 'rel_com'];
+
     try {
-      mlResult = await (await fetch(`https://api.datamuse.com/words?ml=${word}&max=10`)).json();
-      synResult = await (await fetch(`https://api.datamuse.com/words?rel_syn=${word}&max=10`)).json();
-      trgResult = await (await fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=10`)).json();
+      for (const param of datamuseParams) {
+        const data = await (await fetch(new URL(`https://api.datamuse.com/words?${param}=${word}&topics=${topics}`))).json();
+        datamuseLabels = datamuseLabels.concat(data.slice(0, 3));
+      }
     } catch (error: any) {
-      return '';
+      console.log('Error: ', error);
     }
 
-    const labelData: museModel[] = (mlResult.length !== 0 ? mlResult : []).concat(
-      synResult.length !== 0 ? synResult : [],
-      trgResult.length !== 0 ? trgResult : [],
-    );
-    return [...new Map(labelData.map(elem => [elem.word, elem.word])).values()].join(' ');
+    return [...new Map(datamuseLabels.map(elem => [elem.word, elem.word])).values()].join(' ');
   }
 }
 
@@ -97,6 +101,6 @@ export const labelOfObject: LabelOfObject = new LabelOfObject();
  * A small function to mess around with the Datamuse API
  */
 // (async () => {
-//   const labelData = await labelObject.generateLabelData('NYC+Horse+Carriage+Rides+EST.1979');
+//   const labelData = await labelObject.generateLabelData('Pulpit Rock', 'Fjord,Water,Mountain,Nærøyfjord,Travel');
 //   console.log(labelData);
 // })();

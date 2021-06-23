@@ -28,7 +28,6 @@ const options = {
 const Visualize = (props: any) => {
   const [t] = useTranslation();
   const visualizationType = props.match.params.id ? 'image' : 'search';
-  const [sorryAlert, setSorryAlert] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [graph, setGraph]: any = useState({
     nodes: [],

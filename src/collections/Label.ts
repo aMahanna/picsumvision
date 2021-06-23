@@ -40,10 +40,11 @@ class LabelObject {
   public async insertLabel(document: labelModel): Promise<string> {
     const existingLabel = await LabelCollection.document({ _key: document._key }, true);
     if (existingLabel) {
-      const data = existingLabel.data + ' ' + (await this.generateLabelData(document.label, document.labelTopic));
-      await LabelCollection.update(document._key, { data }, { waitForSync: true });
+      const newData = await this.generateLabelData(document.label, document.labelTopic);
+      await LabelCollection.update(document._key, { data: newData + ' ' + existingLabel.data }, { waitForSync: true });
       return existingLabel._id;
     }
+
     document.data = await this.generateLabelData(document.label, document.labelTopic);
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
@@ -66,15 +67,16 @@ class LabelObject {
     word = word.trim().replace(' ', '%20');
 
     let datamuseLabels: museModel[] = [];
-    const datamuseParams = ['ml', 'rel_syn', 'rel_spc', 'rel_com'];
+    const datamuseParams = ['ml', 'rel_spc', 'rel_com', 'rel_gen', 'rel_trg'];
 
     try {
       for (const param of datamuseParams) {
         const data = await (await fetch(new URL(`https://api.datamuse.com/words?${param}=${word}&topics=${topics}`))).json();
+        // console.log(param + ': ' + data.slice(0,3).map(elem => elem.word));
         datamuseLabels = datamuseLabels.concat(data.slice(0, 3));
       }
-    } catch (error: any) {
-      console.log('Error: ', error);
+    } catch (error) {
+      console.log('Error: ', error); // eslint-disable-line no-console
     }
 
     return [...new Map(datamuseLabels.map(elem => [elem.word, elem.word])).values()].join(' ');
@@ -101,6 +103,6 @@ export const labelOfObject: LabelOfObject = new LabelOfObject();
  * A small function to mess around with the Datamuse API
  */
 // (async () => {
-//   const labelData = await labelObject.generateLabelData('Pulpit Rock', 'Fjord,Water,Mountain,Nærøyfjord,Travel');
+//   const labelData = await labelObject.generateLabelData('Cloud', 'Cloud');
 //   console.log(labelData);
 // })();

@@ -67,15 +67,15 @@ const Search = (props: any) => {
    * - Set random tags as the input placeholder for search inspiration
    */
   useEffect(() => {
-    const historyIndex: string = props.location?.state?.fromHistory;
-    if (historyIndex) {
-      if (persistedData[historyIndex]) {
-        setTextFieldInput(persistedData[historyIndex].input || historyIndex);
-        setSearchResult(persistedData[historyIndex].data);
-        setLastSearch(historyIndex);
+    const redirectIndex: string = props.location?.state?.fromRedirect;
+    if (redirectIndex) {
+      if (persistedData[redirectIndex]) {
+        setTextFieldInput(persistedData[redirectIndex].input || redirectIndex);
+        setSearchResult(persistedData[redirectIndex].data);
+        setLastSearch(redirectIndex);
       } else {
-        setTextFieldInput(historyIndex);
-        query(historyIndex);
+        setTextFieldInput(redirectIndex);
+        query(redirectIndex);
       }
     } else if (lastSearch !== '') {
       setTextFieldInput(persistedData[lastSearch].input || lastSearch);

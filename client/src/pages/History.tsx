@@ -58,7 +58,7 @@ const History = () => {
         <TableCell align="center">{results}</TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
         <TableCell align="center" className="search">
-          <Link to={{ pathname: '/search', state: { fromHistory: key } }}>{t('historyPage.view')}</Link>
+          <Link to={{ pathname: '/search', state: { fromRedirect: key } }}>{t('historyPage.view')}</Link>
         </TableCell>
       </TableRow>
     );
@@ -104,7 +104,7 @@ const History = () => {
     <Container component="main" maxWidth="md">
       {!history && (
         <div className="search">
-          <Link to={{ pathname: '/search', state: { fromHistory: makeHistory } }}>{t('historyPage.makehistory')}</Link>
+          <Link to={{ pathname: '/search', state: { fromRedirect: makeHistory } }}>{t('historyPage.makehistory')}</Link>
         </div>
       )}
       {(history || favourites || imageClicks) && (

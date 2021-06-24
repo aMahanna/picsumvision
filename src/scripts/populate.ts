@@ -55,7 +55,7 @@ function stringToASCII(data: string): string {
  * - Parse through the metadata and insert correspondingly in ArangoDB
  */
 async function populateDB() {
-  const limit = 10; // The number of images to return per page (max 100)
+  const limit = 2; // The number of images to return per page (max 100)
 
   let PICSUM_LIST: PicsumImage[] = [];
   let PICSUM_RESULT: PicsumImage[] = [];
@@ -84,6 +84,7 @@ async function populateDB() {
     });
 
     const imageID = image.id;
+    const imageKey = image.id.split('/')[1];
     if (image.alreadyExists) {
       console.log(`Duplicate image: ${imageID}, skipping...`);
       continue; // Skip the image if it is already inserted
@@ -132,7 +133,7 @@ async function populateDB() {
 
           await tagOfController.insert({
             _type: 'landmark',
-            _key: _key,
+            _key: _key + imageKey,
             _from: landmarkID,
             _to: imageID,
             _score: _score,
@@ -163,7 +164,7 @@ async function populateDB() {
 
           await tagOfController.insert({
             _type: 'object',
-            _key: _key,
+            _key: _key + imageKey,
             _from: objectID,
             _to: imageID,
             _score: _score,
@@ -210,7 +211,7 @@ async function populateDB() {
 
           await tagOfController.insert({
             _type: 'label',
-            _key: _key,
+            _key: _key + imageKey,
             _from: labelID,
             _to: imageID,
             _score: _score,

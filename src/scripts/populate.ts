@@ -55,7 +55,7 @@ function stringToASCII(data: string): string {
  * - Parse through the metadata and insert correspondingly in ArangoDB
  */
 async function populateDB() {
-  const limit = 2; // The number of images to return per page (max 100)
+  const limit = 100; // The number of images to return per page (max 100)
 
   let PICSUM_LIST: PicsumImage[] = [];
   let PICSUM_RESULT: PicsumImage[] = [];

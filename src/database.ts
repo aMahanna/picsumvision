@@ -29,7 +29,7 @@ db.version().then(
   error => console.error(error),
 );
 
-export const documentCollections: string[] = ['Image', 'Author', 'Label', 'BestGuess', 'Object', 'Landmark'];
-export const edgeCollections: string[] = ['LabelOf', 'AuthorOf', 'BestGuessOf', 'ObjectOf', 'LandmarkOf'];
+export const documentCollections: string[] = ['Image', 'Author', 'Tag', 'BestGuess'];
+export const edgeCollections: string[] = ['AuthorOf', 'TagOf', 'BestGuessOf'];
 export const view = 'searchview';
 export default db;

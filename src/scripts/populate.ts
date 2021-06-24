@@ -18,11 +18,9 @@ import { VisionAnnotation, PicsumImage } from '../interfaces';
 
 // Import the current ArangoDB Collections in-use
 import { imageController } from '../collections/Image';
-import { labelController, labelOfController } from '../collections/Label';
 import { authorController, authorOfController } from '../collections/Author';
+import { tagController, tagOfController } from '../collections/Tag';
 import { bestGuessController, bestGuessOfController } from '../collections/BestGuess';
-import { objectController, objectOfController } from '../collections/Object';
-import { landmarkController, landmarkOfController } from '../collections/Landmark';
 
 // Import assets
 import ignoredwords from '../assets/misc/ignoredwords';
@@ -41,7 +39,7 @@ if (process.env.NODE_ENV !== 'production') {
  */
 function stringToASCII(data: string): string {
   let _key = '';
-  data.split('').forEach(char => {
+  data.trim().split('').forEach(char => {
     _key += char.charCodeAt(0);
   });
   return _key;
@@ -54,7 +52,7 @@ function stringToASCII(data: string): string {
  * - Parse through the metadata and insert correspondingly in ArangoDB
  */
 async function populateDB() {
-  const limit = 25; // The number of images to return per page (max 100)
+  const limit = 10; // The number of images to return per page (max 100)
 
   let PICSUM_LIST: PicsumImage[] = [];
   let PICSUM_RESULT: PicsumImage[] = [];
@@ -112,24 +110,26 @@ async function populateDB() {
     }
 
     /**
-     * @Landmark & @LandmarkOf Collection Logic
+     * VISION LANDMARK ANNOTATIONS (@Tag & @TagOf Collection Logic)
      */
     const LANDMARK_DATA = VISION_DATA.landmarkAnnotations;
     if (LANDMARK_DATA) {
       for (const landmark of LANDMARK_DATA) {
-        if (landmark.description && landmark.mid && landmark.score >= 0.20) {
+        if (landmark.description && landmark.mid && landmark.score >= 0.2) {
           const _key = stringToASCII(landmark.description);
           const _score = landmark.score > 1 ? 0.99999 : landmark.score;
           const _latitude: number = landmark.locations ? landmark.locations[0].latLng.latitude : 0;
           const _longitude: number = landmark.locations ? landmark.locations[0].latLng.longitude : 0;
 
-          const landmarkID = await landmarkController.insert({
+          const landmarkID = await tagController.insert({
             _key: _key,
             mid: landmark.mid,
-            landmark: landmark.description,
+            tag: landmark.description,
           });
 
-          await landmarkOfController.insert({
+          await tagOfController.insert({
+            _type: 'landmark',
+            _key: _key,
             _from: landmarkID,
             _to: imageID,
             _score: _score,
@@ -141,37 +141,37 @@ async function populateDB() {
     }
 
     /**
-     * @Object & @ObjectOf Collection Logic
+     * VISION LOCALIZED OBJECT ANNOTATIONS (@Tag & @TagOf Collection Logic)
      */
     const OBJECT_DATA = VISION_DATA.localizedObjectAnnotations;
     if (OBJECT_DATA) {
       for (const object of OBJECT_DATA) {
-        if (object.name && object.mid && object.score >= 0.20) {
+        if (object.name && object.mid && object.score >= 0.2) {
           const _key = stringToASCII(object.name);
           const _score = object.score > 1 ? 0.99999 : object.score;
           const _coord: number[][] = object.boundingPoly?.normalizedVertices.map(Object.values) as number[][];
           _coord.push(_coord[0]);
 
-          if (!(await landmarkController.exists(_key))) {
-            const objectID = await objectController.insert({
-              _key: _key,
-              mid: object.mid,
-              object: object.name,
-            });
+          const objectID = await tagController.insert({
+            _key: _key,
+            mid: object.mid,
+            tag: object.name,
+          });
 
-            await objectOfController.insert({
-              _from: objectID,
-              _to: imageID,
-              _score: _score,
-              _coord: _coord,
-            });
-          }
+          await tagOfController.insert({
+            _type: 'object',
+            _key: _key,
+            _from: objectID,
+            _to: imageID,
+            _score: _score,
+            _coord: _coord,
+          });
         }
       }
     }
 
     /**
-     * @Label & @LabelOf Collection Logic
+     * VISION LABEL ANNOTATIONS / WEB ENTITIES (@Tag & @TagOf Collection Logic)
      */
     let LABEL_DATA = VISION_DATA.labelAnnotations?.concat(
       VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
@@ -195,23 +195,23 @@ async function populateDB() {
         const id = labelObj.mid || labelObj.entityId;
         const label = labelObj.description || labelObj.name;
 
-        if (id && label && labelObj.score >= 0.20) {
+        if (id && label && labelObj.score >= 0.2) {
           const _key = stringToASCII(label);
           const _score = labelObj.score > 1 ? 0.99999 : labelObj.score;
 
-          if (!(await objectController.exists(_key))) {
-            const labelID = await labelController.insert({
-              _key: _key,
-              mid: id,
-              label: label,
-            });
+          const labelID = await tagController.insert({
+            _key: _key,
+            mid: id,
+            tag: label,
+          });
 
-            await labelOfController.insert({
-              _from: labelID,
-              _to: imageID,
-              _score: _score,
-            });
-          }
+          await tagOfController.insert({
+            _type: 'label',
+            _key: _key,
+            _from: labelID,
+            _to: imageID,
+            _score: _score,
+          });
         }
       }
     }

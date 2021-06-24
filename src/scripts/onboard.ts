@@ -66,11 +66,11 @@ async function onboardDB() {
         storeValues: 'none',
         trackListPositions: false,
       },
-      // Connect the Label vertices to the View
-      Label: {
+      // Connect the Tag vertices to the View
+      Tag: {
         analyzers: ['identity'],
         fields: {
-          label: {
+          tag: {
             analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },
           data: {
@@ -86,32 +86,6 @@ async function onboardDB() {
         analyzers: ['identity'],
         fields: {
           bestGuess: {
-            // Enable English search analyzer for .bestGuess field
-            analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
-          },
-        },
-        includeAllFields: true,
-        storeValues: 'none',
-        trackListPositions: false,
-      },
-      // Connect the Object vertices to the View
-      Object: {
-        analyzers: ['identity'],
-        fields: {
-          object: {
-            // Enable English search analyzer for .bestGuess field
-            analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
-          },
-        },
-        includeAllFields: true,
-        storeValues: 'none',
-        trackListPositions: false,
-      },
-      // Connect the Landmark vertices to the View
-      Landmark: {
-        analyzers: ['identity'],
-        fields: {
-          landmark: {
             // Enable English search analyzer for .bestGuess field
             analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },

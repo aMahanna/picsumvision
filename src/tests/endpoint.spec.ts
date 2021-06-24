@@ -21,7 +21,7 @@ test('Fetch Image information about Image/0', async () => {
   const res = await request.get(`/api/info/image?id=0`);
   expect(res.status).toBe(200);
   expect(res.body.data).toHaveProperty(['image']);
-  expect(res.body.data.image._id).toBe('Images/0');
+  expect(res.body.data.image._id).toBe('Image/0');
   expect(res.body.data.bestGuess.length).toBeGreaterThan(0);
   expect(res.body.data.labels.length).toBeGreaterThan(0);
   expect(res.body.data.similar.length).toBeGreaterThan(0);

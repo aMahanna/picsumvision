@@ -17,20 +17,21 @@ export const author = {
 export const authorOf = {
   _key: '1',
   _from: 'Author/1',
-  _to: 'Images/525252',
+  _to: 'Image/525252',
   _score: 1,
 };
 
-export const label = {
+export const tag = {
   _key: '1',
   mid: 'm/machineid1',
-  label: 'computer',
+  tag: 'computer',
 };
 
-export const labelOf = {
+export const tagOf = {
   _key: '1',
   _from: 'Label/1',
-  _to: 'Images/525252',
+  _to: 'Image/525252',
+  _type: 'label',
   _score: 1,
 };
 
@@ -42,6 +43,6 @@ export const bestGuess = {
 export const bestGuessOf = {
   _key: '1',
   _from: 'BestGuess/1',
-  _to: 'Images/525252',
+  _to: 'Image/525252',
   _score: 1,
 };

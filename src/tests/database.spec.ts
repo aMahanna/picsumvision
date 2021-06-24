@@ -11,16 +11,16 @@ import db from '../database';
 
 import { imageController } from '../collections/Image';
 import { authorController, authorOfController } from '../collections/Author';
-import { labelController, labelOfController } from '../collections/Label';
+import { tagController, tagOfController } from '../collections/Tag';
 import { bestGuessController, bestGuessOfController } from '../collections/BestGuess';
 
-import { image, author, authorOf, label, labelOf, bestGuess, bestGuessOf } from '../assets/spec/sampleCRUDData';
+import { image, author, authorOf, tag, tagOf, bestGuess, bestGuessOf } from '../assets/spec/sampleCRUDData';
 
 const ImageCollection = db.collection('Image');
 const AuthorCollection = db.collection('Author');
 const AuthorOfCollection = db.collection('AuthorOf');
-const LabelCollection = db.collection('Label');
-const LabelOfCollection = db.collection('LabelOf');
+const TagCollection = db.collection('Label');
+const TagOfCollection = db.collection('LabelOf');
 const BestGuessCollection = db.collection('BestGuess');
 const BestGuessOfCollection = db.collection('BestGuessOf');
 
@@ -47,7 +47,7 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
   expect(authorDoc.name).toBe('John Doe');
 
   const authorAlreadyExists = await authorController.insert(author);
-  expect(authorAlreadyExists).toBe(`Authors/${author._key}`);
+  expect(authorAlreadyExists).toBe(`Author/${author._key}`);
 
   await authorOfController.insert(authorOf);
   const authorOfDoc = await AuthorOfCollection.document(authorOf._key);
@@ -59,23 +59,23 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
 });
 
 test('perform basic insert/delete for the Label & LabelOf collections', async () => {
-  await labelController.insert(label);
-  const labelDoc = await LabelCollection.document(label._key);
-  expect(labelDoc._key).toBe(label._key);
+  await tagController.insert(tag);
+  const tagDoc = await TagCollection.document(tag._key);
+  expect(tagDoc._key).toBe(tag._key);
   //expect(labelDoc.data.split(' ')).toContain('calculator');
 
-  const labelAlreadyExists = await labelController.insert(label);
-  expect(labelAlreadyExists).toBe(`Labels/${label._key}`);
+  const labelAlreadyExists = await tagController.insert(tag);
+  expect(labelAlreadyExists).toBe(`Label/${tag._key}`);
 
-  await labelOfController.insert(labelOf);
-  const labelOfDoc = await LabelOfCollection.document(labelOf._key);
-  expect(labelOfDoc._key).toBe(labelOf._key);
+  await tagOfController.insert(tagOf);
+  const tagOfDoc = await TagOfCollection.document(tagOf._key);
+  expect(tagOfDoc._key).toBe(tagOf._key);
 
-  await LabelCollection.remove(label._key, { silent: true });
-  await LabelOfCollection.remove(labelOf._key, { silent: true });
+  await TagCollection.remove(tag._key, { silent: true });
+  await TagCollection.remove(tagOf._key, { silent: true });
 
-  expect(await LabelCollection.documentExists(label._key)).toBe(false);
-  expect(await LabelOfCollection.documentExists(labelOf._key)).toBe(false);
+  expect(await TagCollection.documentExists(tag._key)).toBe(false);
+  expect(await TagOfCollection.documentExists(tagOf._key)).toBe(false);
 });
 
 test('perform basic insert/delete for the BestGuess & BestGuessOf collections', async () => {

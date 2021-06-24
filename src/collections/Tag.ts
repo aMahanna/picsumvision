@@ -6,29 +6,34 @@ import db from '../database';
 import fetch from 'node-fetch';
 import { URL } from 'url';
 
-interface labelModel {
+interface tagModel {
   _key: string;
   mid: string;
-  label: string;
-  data?: string;
+  tag: string;
+  datamuse?: string;
 }
 
-interface museModel {
+interface tagOfModel {
+  _key: string;
+  _from: string;
+  _to: string;
+  _type: string;
+  _score: number;
+  _coord?: number[][];
+  _latitude?: number;
+  _longitude?: number;
+}
+
+interface datamuseModel {
   word: string;
   score?: number;
   tags?: string[];
 }
 
-interface labelOfModel {
-  _from: string;
-  _to: string;
-  _score: number;
-}
+const TagCollection = db.collection('Tag');
+const TagOfCollection = db.collection('TagOf');
 
-const LabelCollection = db.collection('Label');
-const LabelOfCollection = db.collection('LabelOf');
-
-class LabelController {
+class TagController {
   /**
    * @method used to insert the label metadata of a particular image
    * Avoids Vision Label duplicates by checking the MID of each label
@@ -36,16 +41,20 @@ class LabelController {
    * @param document implements the labelModel interface
    * @returns the ArangoID of the Label inserted
    */
-  public async insert(document: labelModel): Promise<string> {
-    const existingLabel = await LabelCollection.document({ _key: document._key }, true);
-    if (existingLabel) {
+  public async insert(document: tagModel): Promise<string> {
+    const existingTag = await TagCollection.document({ _key: document._key }, true);
+    if (existingTag) {
       // const newData = await this.generateLabelData(document.label, labelTopic);
       // await LabelCollection.update(document._key, { data: newData + ' ' + existingLabel.data }, { waitForSync: true });
-      return existingLabel._id;
+      return existingTag._id;
     }
 
     // document.data = await this.generateLabelData(document.label, labelTopic);
-    return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
+    return (await TagCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
+  }
+
+  public async exists(_key: string): Promise<boolean> {
+    return (await TagCollection.document({ _key }, true)) ? true : false;
   }
 
   /**
@@ -65,7 +74,7 @@ class LabelController {
     topics = topics.trim();
     word = word.trim().replace(' ', '%20');
 
-    let datamuseLabels: museModel[] = [];
+    let datamuseLabels: datamuseModel[] = [];
     const datamuseParams = ['ml', 'rel_spc', 'rel_com', 'rel_gen', 'rel_trg'];
 
     try {
@@ -82,20 +91,20 @@ class LabelController {
   }
 }
 
-class LabelOfController {
+class TagOfController {
   /**
    * @method inserts the LabelOf Edge linking an Image and a Label metadata
    *
    * @param edge implements the labelOfModel interface
    * @returns The ArangoID of the inserted LabelOf edge
    */
-  async insert(edge: labelOfModel): Promise<void> {
-    await LabelOfCollection.save(edge, { silent: true, waitForSync: true });
+  public async insert(edge: tagOfModel): Promise<void> {
+    await TagOfCollection.save(edge, { silent: true, waitForSync: true, overwriteMode: 'ignore' });
   }
 }
 
-export const labelController: LabelController = new LabelController();
-export const labelOfController: LabelOfController = new LabelOfController();
+export const tagController: TagController = new TagController();
+export const tagOfController: TagOfController = new TagOfController();
 
 /**
  * @todo - remove

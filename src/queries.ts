@@ -17,15 +17,15 @@ import ignoredwords from './assets/misc/ignoredwords';
  * - @todo Maybe reintroduce "doc.data IN t" to also search by Datamuse Keywords... (for closeMatches)
  * - @todo Maybe reintroduce SORT e._score to track highest match scores... (for closeMatches)
  *
- * @param targetLabels An array of targetted words
+ * @param keyword The search input
  * @returns an array of ArangoImages, or an empty array
  */
-export async function fetch_images(targetLabels: string): Promise<ArangoImage[]> {
+export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
   const matches = await (
     await db.query(aql`
       WITH Image, Author, Tag, BestGuess
-      LET normTokens = TOKENS(${targetLabels}, 'norm_accent_lower')[0]
-      LET textTokens = TOKENS(${targetLabels}, 'text_en_stopwords')
+      LET normTokens = TOKENS(${keyword}, 'norm_accent_lower')[0]
+      LET textTokens = TOKENS(${keyword}, 'text_en_stopwords')
       LET exactMatches = (
         FOR doc IN searchview
           SEARCH ANALYZER(
@@ -62,15 +62,15 @@ export async function fetch_images(targetLabels: string): Promise<ArangoImage[]>
 }
 
 /**
- * @method Returns 3 random labels for user input
+ * @method Returns 3 random tags for user input
  * - Pick a random image
- * - Branch out to its labels
- * - Omit certain labels, & filter for over 60% confidence score
- * - Randomly select X amount of labels
+ * - Branch out to its tags
+ * - Omit certain tags, & filter for over 60% confidence score
+ * - Randomly select X amount of tags
  *    - X ranges from 1 to 3
- * @returns a random collection of labels (e.g 'mountain blue sky')
+ * @returns a random collection of tags (e.g 'mountain blue sky')
  */
-export async function fetch_surprise_keys(): Promise<string> {
+export async function fetch_surprise_tags(): Promise<string> {
   const maxResults = Math.floor(Math.random() * 3) + 1;
   const result = await (
     await db.query(aql`
@@ -94,7 +94,7 @@ export async function fetch_surprise_keys(): Promise<string> {
  * @method Returns information about an Image
  * - Fetches first the Image object (through a simple FILTER query)
  * - Fetches the image's best guess
- * - Fetches all the image's labels, containing their confidence score
+ * - Fetches all the image's tags, containing their confidence score
  * - Fetches the top 4 similar images, according to shared metadata
  */
 export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
@@ -120,8 +120,8 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
 
 /**
  * @method Returns images similar to the user's visited Images
- * - Traverses the graphs starting from click images to find common labels
- * - Returns the images that have the most "collisions" to those labels
+ * - Traverses the graphs starting from click images to find common tags
+ * - Returns the images that have the most "collisions" to those tags
  *
  * @todo Maybe also include favourited images? Or does that become too "vague"
  *  - A user may click on similar images, but may favourite a collection of completely different ones
@@ -156,19 +156,19 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
  * - Fetches the vertices and color-codes them by similarity to the user's search
  * - Collects the edge documents related to each Image contained in the collection @param
  *
- * @param collection - The images to visualize
- * @param labels - The labels that queried the search results
+ * @param keyword - The user search input
+ * @param imageResults - The search's images result
  * @returns the nodes & edges for VISJS to use client-side
  *
  */
 export async function fetch_search_visualization(
-  searchResult: ArangoImage[],
-  searchInput: string,
+  keyword: string,
+  imageResults: ArangoImage[],
 ): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
   const result = await (
     await db.query(aql`
       WITH Image, Author, Tag, BestGuess
-      LET textTokens = TOKENS(${searchInput}, 'text_en_stopwords')
+      LET textTokens = TOKENS(${keyword}, 'text_en_stopwords')
       LET matchList = (
         FOR doc IN searchview
           SEARCH ANALYZER(
@@ -179,7 +179,7 @@ export async function fetch_search_visualization(
           RETURN doc
       )
       LET vertices = (
-        FOR i IN ${searchResult}
+        FOR i IN ${imageResults}
           FOR v, e IN 1..1 INBOUND i._id AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             LET vertice = {
               _key: v._key,
@@ -190,7 +190,7 @@ export async function fetch_search_visualization(
             RETURN DISTINCT vertice
       )
       LET connections = (
-        FOR i IN ${searchResult}
+        FOR i IN ${imageResults}
           LET edges = (FOR v, e IN 1..1 INBOUND i._id AuthorOf, TagOf, BestGuessOf RETURN e)
           RETURN {i, edges}
       )
@@ -203,8 +203,8 @@ export async function fetch_search_visualization(
 
 /**
  * @method Returns vertices & edges of image relationships for visualization
- * @param collection - The images to visualize
- * @param labels - The labels that queried the search results
+ * @param clickedImages - The images the user has previously clicked on
+ * @param maxResults - The max number of images to return
  * @returns the nodes & edges for VISJS to use client-side
  *
  */
@@ -257,7 +257,7 @@ export async function fetch_image_visualization(
 
 /**
  * @method Fetches database metrics for users to see
- * @returns counts for images, labels, edges, authors & guesses
+ * @returns counts for images, tags, edges, authors & guesses
  */
 export async function fetch_db_metrics(): Promise<ArangoDBMetrics> {
   const result = await (

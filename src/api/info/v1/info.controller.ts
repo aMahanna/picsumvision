@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ArangoImageInfo } from '../../../interfaces';
-import { fetch_image_info, fetch_surprise_keys, fetch_db_metrics } from '../../../queries';
+import { fetch_image_info, fetch_surprise_tags, fetch_db_metrics } from '../../../queries';
 
 /**
  * The @namespace for orchestrating Info operations
@@ -8,7 +8,7 @@ import { fetch_image_info, fetch_surprise_keys, fetch_db_metrics } from '../../.
 namespace InfoController {
   /**
    * Handles request to the @endpoint /api/info/image
-   * Returns information about an image, such as its author, url, associated labels, and similar images
+   * Returns information about an image, such as its author, url, associated tags, and similar images
    *
    * @param req Request
    * @param res Response
@@ -23,17 +23,17 @@ namespace InfoController {
   }
 
   /**
-   * Handles request to the @endpoint /api/info/randomkeys
-   * Returns random labels to the client user for query inspiration
+   * Handles request to the @endpoint /api/info/randomtags
+   * Returns random tags to the client user for query inspiration
    *
    * @param req Request
    * @param res Response
    */
-  export async function fetch_surprise(req: Request, res: Response): Promise<void> {
-    const labels: string = await fetch_surprise_keys();
-    if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
+  export async function fetch_tags(req: Request, res: Response): Promise<void> {
+    const tags: string = await fetch_surprise_tags();
+    if (tags.length === 0) res.status(500).json('Error fetching surprise keys');
     else {
-      res.status(200).json({ labels });
+      res.status(200).json({ tags });
     }
   }
 

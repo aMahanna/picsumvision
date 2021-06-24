@@ -7,22 +7,22 @@ import getPersistedState from '../hooks/getPersistedState';
 
 const History = () => {
   const [t, i18n] = useTranslation();
-  const [makeHistory, setMakeHistory] = useState(''); // Provide some random labels for a quick search
+  const [makeHistory, setMakeHistory] = useState(''); // Provide some random tags for a quick search
 
   const [history] = getPersistedState('data');
   const [favourites] = getPersistedState('favourites');
   const [imageClicks] = getPersistedState('clicks');
 
   /**
-   * @useEffect Sets some random labels for a quick search
+   * @useEffect Sets some random tags for a quick search
    * (if user has no history)
    */
   useEffect(() => {
     if (!history) {
-      fetch('/api/info/randomkeys')
+      fetch('/api/info/randomtags')
         .then(result => result.json())
         .then(response => {
-          setMakeHistory(response.labels);
+          setMakeHistory(response.tags);
         });
     }
   }, [history]);

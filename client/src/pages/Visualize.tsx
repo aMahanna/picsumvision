@@ -60,7 +60,7 @@ const Visualize = (props: any) => {
       method: 'POST',
       body: JSON.stringify({
         imageID: isSearch ? undefined : props.match.params.id,
-        labels: isSearch ? lastSearch : undefined,
+        keyword: isSearch ? lastSearch : undefined,
         lastSearchResult: isSearch ? persistedData[lastSearch].data : undefined,
       }),
       headers: {

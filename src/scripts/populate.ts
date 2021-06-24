@@ -4,7 +4,7 @@
  *
  * - Fetches the 993 Picsum images
  * - Calls the Vision API for each image to create its metadata
- * - Inserts the image as well as author & label documents / edges into ArrangoDB
+ * - Inserts the image as well as author & tags documents / edges into ArrangoDB
  * - Prints a success message on every iteration if all data is inserted
  */
 
@@ -39,9 +39,12 @@ if (process.env.NODE_ENV !== 'production') {
  */
 function stringToASCII(data: string): string {
   let _key = '';
-  data.trim().split('').forEach(char => {
-    _key += char.charCodeAt(0);
-  });
+  data
+    .trim()
+    .split('')
+    .forEach(char => {
+      _key += char.charCodeAt(0);
+    });
   return _key;
 }
 

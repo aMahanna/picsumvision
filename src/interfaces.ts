@@ -1,7 +1,7 @@
 /**
  * Interfaces commonly used by API & Collection functions.
  * @interface Vertice represents a Label
- * @interface Connection represents an Image, and its Edge links to labels or an author
+ * @interface Connection represents an Image, and its Edge links to tags or an author
  * @interface VisionResult represents the metadata structure returned by the Vision API
  * @interface VisionAnnotation represents certain metadata objects returned by the Vision API
  * @interface ArangoImage represents the Image structure stored in Arango
@@ -84,7 +84,7 @@ export interface ArangoImage {
 export interface ArangoImageInfo {
   image: ArangoImage;
   bestGuess: string[];
-  labels: {
+  tags: {
     _id: number;
     score: number;
     label: string;

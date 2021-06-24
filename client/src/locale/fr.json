@@ -56,6 +56,11 @@
     "aboutPage": {
       "heading": "About"
     },
+    "infoPage": {
+      "tags": "Étiquettes",
+      "visualize": "Visualizer",
+      "visualizeTip": "Visualizer les images similaires sous forme de graphique"
+    },
     "visualizerPage": {
       "search": "Recherche: ",
       "image": "Image: "

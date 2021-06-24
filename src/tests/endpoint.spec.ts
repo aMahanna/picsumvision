@@ -1,7 +1,7 @@
 /**
  * @file Hits all endpoint variations of the application
  * - /api/info/image
- * - /api/info/randomkeys
+ * - /api/info/randomtags
  * - /api/search/keyword
  * - /api/search/extimage
  * - /api/search/surpriseme
@@ -23,42 +23,42 @@ test('Fetch Image information about Image/0', async () => {
   expect(res.body.data).toHaveProperty(['image']);
   expect(res.body.data.image._id).toBe('Image/0');
   expect(res.body.data.bestGuess.length).toBeGreaterThan(0);
-  expect(res.body.data.labels.length).toBeGreaterThan(0);
+  expect(res.body.data.tags.length).toBeGreaterThan(0);
   expect(res.body.data.similar.length).toBeGreaterThan(0);
 });
 
-test('Return random labels from ArangoDB', async () => {
-  const res = await request.get(`/api/info/randomkeys`);
+test('Return random tags from ArangoDB', async () => {
+  const res = await request.get(`/api/info/randomtags`);
   expect(res.status).toBe(200);
-  expect(res.body.labels).toBeDefined();
-  expect(res.body.labels.split(' ').length).toBeGreaterThan(0);
+  expect(res.body.tags).toBeDefined();
+  expect(res.body.tags.split(' ').length).toBeGreaterThan(0);
 });
 
 test('Search for Images using "Water" and "Sky"', async () => {
-  const res = await request.get(`/api/search/keyword?labels=coffee`);
+  const res = await request.get(`/api/search/keyword?keyword=coffee`);
   expect(res.status).toBe(200);
   expect(res.body.data.length).toBeGreaterThan(0);
 
   const resEmpty = await request.get(`/api/search/keyword`);
   expect(resEmpty.status).toBe(400);
-  expect(resEmpty.body).toBe('User must pass labels as a string to search');
+  expect(resEmpty.body).toBe('User must pass a keyword as a string to search');
 });
 
 test('Search for images using an external image URL', async () => {
-  const res = await request.get(`/api/search/extimage?url=https://picsum.photos/id/1056/3988/2720`);
+  const res = await request.get(`/api/search/url?url=https://picsum.photos/id/0/400/400`);
   expect(res.status).toBe(200);
-  expect(res.body.labels.split(' ').length).toBeGreaterThan(0);
+  expect(res.body.tags.split(' ').length).toBeGreaterThan(0);
 
-  const resEmpty = await request.get(`/api/search/extimage`);
+  const resEmpty = await request.get(`/api/search/url`);
   expect(resEmpty.status).toBe(400);
 });
 
-test('Search for an image using labels randomly selected from ArangoDB', async () => {
+test('Search for an image using tags randomly selected from ArangoDB', async () => {
   const res = await request.get(`/api/search/surpriseme`);
   expect(res.status).toBe(200);
   expect(res.body.data.length).toBeGreaterThan(0);
-  expect(res.body.labels).toBeDefined();
-  expect(res.body.labels.split(' ').length).toBeGreaterThan(0);
+  expect(res.body.tags).toBeDefined();
+  expect(res.body.tags.split(' ').length).toBeGreaterThan(0);
 });
 
 test('Discover images similar to user search & click history', async () => {
@@ -70,7 +70,7 @@ test('Discover images similar to user search & click history', async () => {
 test('Visualize image results', async () => {
   const resSearch = await request
     .post('/api/search/visualize?type=search')
-    .send({ labels: 'computer', lastSearchResult })
+    .send({ keyword: 'computer', lastSearchResult })
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/);
   expect(resSearch.status).toBe(200);

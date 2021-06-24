@@ -25,24 +25,24 @@ export default async function fetchVisionMetadata(url: string): Promise<VisionRe
       {
         features: [
           {
-            maxResults: 25,
+            maxResults: 30,
             type: 'LABEL_DETECTION',
           },
           {
-            maxResults: 25,
+            maxResults: 30,
             type: 'WEB_DETECTION',
           },
           {
-            maxResults: 25,
+            maxResults: 30,
             type: 'OBJECT_LOCALIZATION',
           },
           {
             maxResults: 10,
-            type: 'IMAGE_PROPERTIES',
+            type: 'LANDMARK_DETECTION',
           },
           {
-            maxResults: 1,
-            type: 'LANDMARK_DETECTION',
+            maxResults: 10,
+            type: 'IMAGE_PROPERTIES',
           },
           // {
           //   maxResults: 10,

@@ -54,13 +54,13 @@ Simply create a new `export async function...` in `/src/queries.ts`, and you can
 ## Routes
 
 * GET `/api/search/keyword` - Queries images based the keyword provided (e.g 'cloud sky plant')
-* GET `/api/search/extimage` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
-* GET `/api/search/surpriseme` - Queries images based on random labels (generated from ArangoDB)
+* GET `/api/search/url` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
+* GET `/api/search/surpriseme` - Queries images based on random tags (generated from ArangoDB)
 * GET `/api/search/discover` - Recommends images a user may like based on history
 * GET `/api/search/visualize` - Represents the user's last search results as a graph network
 
 * GET `/api/info/image` - Returns metadata of an image using its ID
-* GET `/api/info/randomkeys` - Returns random labels (generated from ArangoDB)
+* GET `/api/info/randomtags` - Returns random tags (picked from a random image)
 * GET `/api/info/metrics` - Returns database collection counts
 
 ### An idea of what the ArangoDB graph looks like:

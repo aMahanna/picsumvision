@@ -64,7 +64,7 @@ const Search = (props: any) => {
    * @useEffect Determines whether to:
    * - Render search results based on previous history (if the user has requested to do so)
    * - Render search results based on the user's last search (if the user has exited the Search tab)
-   * - Set random labels as the input placeholder for search inspiration
+   * - Set random tags as the input placeholder for search inspiration
    */
   useEffect(() => {
     const historyIndex: string = props.location?.state?.fromHistory;
@@ -81,10 +81,10 @@ const Search = (props: any) => {
       setTextFieldInput(persistedData[lastSearch].input || lastSearch);
       setSearchResult(persistedData[lastSearch].data);
     } else {
-      fetch('/api/info/randomkeys')
+      fetch('/api/info/randomtags')
         .then(result => (result.status === 200 ? result.json() : undefined))
         .then(response => {
-          setInputPlaceholder(response ? response.labels : 'cloud sky plant');
+          setInputPlaceholder(response ? response.tags : 'cloud sky plant');
         });
     }
   }, []);
@@ -115,12 +115,13 @@ const Search = (props: any) => {
       setSearchResult(persistedData[index].data);
       setLastSearch(index);
     } else {
-      const uri = isURLImageInput(input) ? `/api/search/extimage?url=${input}` : `/api/search/keyword?labels=${input}`;
+      const isURL = isURLImageInput(input);
+      const uri = isURL ? `/api/search/url?url=${input}` : `/api/search/keyword?keyword=${input}`;
       const response = await fetch(uri);
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        updateCache(input, index, result.data);
+        updateCache(input, isURL ? result.tags : index, result.data);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -142,10 +143,10 @@ const Search = (props: any) => {
     const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
       const result = await response.json();
-      setTextFieldInput(result.labels);
+      setTextFieldInput(result.tags);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.labels, result.labels.split(' ').sort().join(' ').toLowerCase(), result.data);
+      updateCache(result.tags, result.tags.split(' ').sort().join(' ').toLowerCase(), result.data);
     } else {
       setSorryAlert(true);
     }
@@ -183,15 +184,15 @@ const Search = (props: any) => {
     setIsLoading(false);
   };
 
-  // Fetches random labels to user for search inspiration
+  // Fetches random tags to user for search inspiration
   const suggestUser = async () => {
     setIsLoading(true);
 
-    const response = await fetch('/api/info/randomkeys');
+    const response = await fetch('/api/info/randomtags');
     if (response.status === 200) {
       const result = await response.json();
       setSuggestInput(true);
-      setInputPlaceholder(result.labels);
+      setInputPlaceholder(result.tags);
     }
 
     setIsLoading(false);

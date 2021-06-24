@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
+import { withStyles } from '@material-ui/core/styles';
 import {
   Container,
   Box,
@@ -10,16 +11,23 @@ import {
   Tooltip,
   Button,
   Accordion,
-  AccordionSummary,
+  AccordionSummary as MuiAccordionSummary,
   AccordionDetails,
 } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 // Import hooks
 import usePersistedState from '../hooks/usePersistedState';
 
+const AccordionSummary = withStyles({
+  content: {
+    flexGrow: 0,
+  },
+})(MuiAccordionSummary);
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Info = (props: any) => {
   const [t] = useTranslation();
+
   const [id] = useState(props.match.params.id);
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
@@ -60,7 +68,7 @@ const Info = (props: any) => {
   }, [id, props.history]);
 
   return (
-    <Container component="main" maxWidth="sm">
+    <Container component="main" maxWidth="md">
       <Box mt={4}>
         {url !== '' && author !== '' && (
           <div>
@@ -76,18 +84,20 @@ const Info = (props: any) => {
             </div>
           ))}
         {tags.length !== 0 && (
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}></AccordionSummary>
-            <AccordionDetails>
-              {tags.map((tag: { tag: string; score: number }) => (
-                <Box key={tag.tag} mt={1}>
-                  <span>
-                    <b>{tag.tag}</b>: {tag.score.toFixed(2)}%
-                  </span>
-                </Box>
-              ))}
-            </AccordionDetails>
-          </Accordion>
+          <Container maxWidth="sm">
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>{t('infoPage.tags')}</AccordionSummary>
+              <AccordionDetails>
+                {tags.map((tag: { tag: string; score: number }) => (
+                  <Box key={tag.tag} mt={1}>
+                    <span>
+                      <b>{tag.tag}</b>: {tag.score.toFixed(2)}%
+                    </span>
+                  </Box>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          </Container>
         )}
         {similar !== undefined && similar.length !== 0 && (
           <Container maxWidth="sm">

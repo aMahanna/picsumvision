@@ -58,6 +58,7 @@
       "heading": "About "
     },
     "infoPage": {
+      "tags": "Tags",
       "visualize": "Visualize",
       "visualizeTip": "Visualize similar images as a graph"
     },

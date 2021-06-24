@@ -3,7 +3,7 @@ import fetchVisionMetadata from '../../../vision';
 import { Vertice, Connection, VisionAnnotation, ArangoImage } from '../../../interfaces';
 import {
   fetch_images,
-  fetch_surprise_keys,
+  fetch_surprise_tags,
   fetch_discovery,
   fetch_image_visualization,
   fetch_search_visualization,
@@ -47,8 +47,8 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_keyword(req: Request, res: Response): Promise<void> {
-    const keyword: string | undefined = typeof req.query.labels === 'string' ? req.query.labels : undefined;
-    if (!keyword) res.status(400).json('User must pass labels as a string to search');
+    const keyword: string | undefined = typeof req.query.keyword === 'string' ? req.query.keyword : undefined;
+    if (!keyword) res.status(400).json('User must pass a keyword as a string to search');
     else {
       const data: ArangoImage[] = await fetch_images(keyword);
       res.status(data.length === 0 ? 204 : 200).json({ data });
@@ -63,15 +63,15 @@ namespace SearchController {
    * @param req Request
    * @param res Response
    */
-  export async function from_external_image(req: Request, res: Response): Promise<void> {
+  export async function from_url(req: Request, res: Response): Promise<void> {
     const url: string | undefined = typeof req.query.url === 'string' ? req.query.url : undefined;
     if (!url) res.status(400).json('Unacceptable URL');
     else {
-      const labels: string | undefined = await parseVisionData(url);
-      if (!labels) res.status(500).json('Error fetching surprise keys');
+      const tags: string | undefined = await parseVisionData(url);
+      if (!tags) res.status(500).json('Error fetching surprise keys');
       else {
-        const data: ArangoImage[] = await fetch_images(labels);
-        res.status(data.length === 0 ? 204 : 200).json({ data, labels });
+        const data: ArangoImage[] = await fetch_images(tags);
+        res.status(data.length === 0 ? 204 : 200).json({ data, tags });
       }
     }
   }
@@ -84,17 +84,17 @@ namespace SearchController {
    * @param res Response
    */
   export async function from_surprise(req: Request, res: Response): Promise<void> {
-    const labels: string = await fetch_surprise_keys();
-    if (labels.length === 0) res.status(500).json('Error fetching surprise keys');
+    const tags: string = await fetch_surprise_tags();
+    if (tags.length === 0) res.status(500).json('Error fetching surprise keys');
     else {
-      const data: ArangoImage[] = await fetch_images(labels);
-      res.status(200).json({ data, labels });
+      const data: ArangoImage[] = await fetch_images(tags);
+      res.status(200).json({ data, tags });
     }
   }
 
   /**
    * Handles requests to the @endpoint /api/search/discover
-   * Will return Images with similar labels to the images that the user has clicked on
+   * Will return Images with similar tags to the images that the user has clicked on
    * - Also takes into account the user's search history, as this provides better context
    *
    * @param req Request
@@ -120,16 +120,25 @@ namespace SearchController {
     const visualizationType: string = typeof req.query.type === 'string' ? req.query.type : 'search';
     let data: { vertices: Vertice[]; connections: Connection[] } = { vertices: [], connections: [] };
 
-    if (!visualizationType) res.status(400).json('Invalid visualization type. Must be "image" or "search".');
-    else if (visualizationType === 'image') {
+    if (!visualizationType) {
+      res.status(400).json('Invalid visualization type. Must be "image" or "search".');
+    } else if (visualizationType === 'image') {
       const imageID = req.body.imageID;
-      if (!imageID) res.status(400).json('Missing image ID for image visualization.');
-      else data = await fetch_image_visualization([imageID], 4);
+
+      if (!imageID) {
+        res.status(400).json('Missing image ID for image visualization.');
+      } else {
+        data = await fetch_image_visualization([imageID], 4);
+      }
     } else if (visualizationType === 'search') {
-      const keyword = req.body.labels;
+      const keyword = req.body.keyword;
       const lastSearchResult = req.body.lastSearchResult;
-      if (!keyword || !lastSearchResult) res.status(400).json('Missing keyword and/or search result for visualization');
-      else data = await fetch_search_visualization(lastSearchResult, keyword);
+
+      if (!keyword || !lastSearchResult) {
+        res.status(400).json('Missing keyword and/or search result for visualization');
+      } else {
+        data = await fetch_search_visualization(keyword, lastSearchResult);
+      }
     }
 
     if (data.vertices.length === 0) {
@@ -143,35 +152,28 @@ namespace SearchController {
   /**
    *
    * @param url The url to pass to the Vision API
-   * @returns An array of labels representing the image in question
+   * @returns A keyword representing the image in question
    */
   export async function parseVisionData(url: string): Promise<string | undefined> {
     const VISION_DATA = await fetchVisionMetadata(url); // Set max results to 3 for now
-    if (!VISION_DATA || VISION_DATA.error) {
+    if (!VISION_DATA || !VISION_DATA.labelAnnotations || VISION_DATA.error) {
       return undefined; // Exit early if Vision does not find anything
     }
 
     // Parse, sort & unify the metadata to ensure there are no conflicting values
-    let LABEL_DATA = VISION_DATA.labelAnnotations?.concat(
+    const LABEL_DATA = VISION_DATA.labelAnnotations.concat(
       VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
     );
-    if (LABEL_DATA) {
-      LABEL_DATA = [...new Map(LABEL_DATA.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values()].sort(
-        (a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1),
-      );
 
-      // Iterate through the Unique Labels array
-      const labelsObject: string[] = [];
-      for (let t = 0; t < LABEL_DATA.length; t++) {
-        const elem: VisionAnnotation = LABEL_DATA[t];
-        labelsObject.push((elem.description || elem.name)!.toLowerCase());
-      }
+    const uniqueLabelData = [
+      ...new Map(LABEL_DATA.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values(),
+    ].sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1));
 
-      // Return the Image's best guess if present, or simply return its labels in a string
-      return VISION_DATA.webDetection?.bestGuessLabels[0]?.label || labelsObject.join(' ');
-    }
-
-    return undefined;
+    // Return the Image's top 5 tags
+    return uniqueLabelData
+      .slice(0, 4)
+      .map(tag => tag.description || tag.name)
+      .join(' ');
   }
 }
 

@@ -3,7 +3,7 @@
  * Current collections tested:
  * - Image
  * - Author & AuthorOf
- * - Label & LabelOf
+ * - Tag & TagOf
  * - BestGuess & BestGuessOf
  */
 
@@ -19,8 +19,8 @@ import { image, author, authorOf, tag, tagOf, bestGuess, bestGuessOf } from '../
 const ImageCollection = db.collection('Image');
 const AuthorCollection = db.collection('Author');
 const AuthorOfCollection = db.collection('AuthorOf');
-const TagCollection = db.collection('Label');
-const TagOfCollection = db.collection('LabelOf');
+const TagCollection = db.collection('Tag');
+const TagOfCollection = db.collection('TagOf');
 const BestGuessCollection = db.collection('BestGuess');
 const BestGuessOfCollection = db.collection('BestGuessOf');
 
@@ -44,7 +44,7 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
   await authorController.insert(author);
   const authorDoc = await AuthorCollection.document(author._key);
   expect(authorDoc._key).toBe(author._key);
-  expect(authorDoc.name).toBe('John Doe');
+  expect(authorDoc.author).toBe('John Doe');
 
   const authorAlreadyExists = await authorController.insert(author);
   expect(authorAlreadyExists).toBe(`Author/${author._key}`);
@@ -58,21 +58,21 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
   await AuthorOfCollection.remove(authorOf._key, { silent: true });
 });
 
-test('perform basic insert/delete for the Label & LabelOf collections', async () => {
+test('perform basic insert/delete for the Tag & TagOf collections', async () => {
   await tagController.insert(tag);
   const tagDoc = await TagCollection.document(tag._key);
   expect(tagDoc._key).toBe(tag._key);
   //expect(labelDoc.data.split(' ')).toContain('calculator');
 
-  const labelAlreadyExists = await tagController.insert(tag);
-  expect(labelAlreadyExists).toBe(`Label/${tag._key}`);
+  const tagAlreadyExists = await tagController.insert(tag);
+  expect(tagAlreadyExists).toBe(`Tag/${tag._key}`);
 
   await tagOfController.insert(tagOf);
   const tagOfDoc = await TagOfCollection.document(tagOf._key);
   expect(tagOfDoc._key).toBe(tagOf._key);
 
   await TagCollection.remove(tag._key, { silent: true });
-  await TagCollection.remove(tagOf._key, { silent: true });
+  await TagOfCollection.remove(tagOf._key, { silent: true });
 
   expect(await TagCollection.documentExists(tag._key)).toBe(false);
   expect(await TagOfCollection.documentExists(tagOf._key)).toBe(false);

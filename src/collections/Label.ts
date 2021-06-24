@@ -25,10 +25,10 @@ interface labelOfModel {
   _score: number;
 }
 
-const LabelCollection = db.collection('Labels');
+const LabelCollection = db.collection('Label');
 const LabelOfCollection = db.collection('LabelOf');
 
-class LabelObject {
+class LabelController {
   /**
    * @method used to insert the label metadata of a particular image
    * Avoids Vision Label duplicates by checking the MID of each label
@@ -36,15 +36,15 @@ class LabelObject {
    * @param document implements the labelModel interface
    * @returns the ArangoID of the Label inserted
    */
-  public async insertLabel(document: labelModel, labelTopic: string): Promise<string> {
+  public async insert(document: labelModel): Promise<string> {
     const existingLabel = await LabelCollection.document({ _key: document._key }, true);
     if (existingLabel) {
-      const newData = await this.generateLabelData(document.label, labelTopic);
-      await LabelCollection.update(document._key, { data: newData + ' ' + existingLabel.data }, { waitForSync: true });
+      // const newData = await this.generateLabelData(document.label, labelTopic);
+      // await LabelCollection.update(document._key, { data: newData + ' ' + existingLabel.data }, { waitForSync: true });
       return existingLabel._id;
     }
 
-    document.data = await this.generateLabelData(document.label, labelTopic);
+    // document.data = await this.generateLabelData(document.label, labelTopic);
     return (await LabelCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 
@@ -82,20 +82,20 @@ class LabelObject {
   }
 }
 
-class LabelOfObject {
+class LabelOfController {
   /**
    * @method inserts the LabelOf Edge linking an Image and a Label metadata
    *
    * @param edge implements the labelOfModel interface
    * @returns The ArangoID of the inserted LabelOf edge
    */
-  async insertLabelOf(edge: labelOfModel): Promise<void> {
+  async insert(edge: labelOfModel): Promise<void> {
     await LabelOfCollection.save(edge, { silent: true, waitForSync: true });
   }
 }
 
-export const labelObject: LabelObject = new LabelObject();
-export const labelOfObject: LabelOfObject = new LabelOfObject();
+export const labelController: LabelController = new LabelController();
+export const labelOfController: LabelOfController = new LabelOfController();
 
 /**
  * @todo - remove

@@ -6,7 +6,7 @@ import db from '../database';
 
 interface authorModel {
   _key: string;
-  name: string;
+  author: string;
 }
 
 interface authorOfModel {
@@ -15,10 +15,10 @@ interface authorOfModel {
   _score: number;
 }
 
-const AuthorCollection = db.collection('Authors');
+const AuthorCollection = db.collection('Author');
 const AuthorOfCollection = db.collection('AuthorOf');
 
-class AuthorObject {
+class AuthorController {
   /**
    * @method used to insert the Author metadata of a particular image
    * Avoids  duplicates by checking if the name already exists
@@ -26,24 +26,24 @@ class AuthorObject {
    * @param document implements the authorModel interface
    * @returns the ArangoID of the Author inserted
    */
-  public async insertAuthor(document: authorModel): Promise<string> {
-    const authorAlreadyExists = await AuthorCollection.document({ _key: document._key }, true);
-    return authorAlreadyExists
-      ? authorAlreadyExists._id
+  public async insert(document: authorModel): Promise<string> {
+    const existingAuthor = await AuthorCollection.document({ _key: document._key }, true);
+    return existingAuthor
+      ? existingAuthor._id
       : (await AuthorCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 }
 
-class AuthorOfObject {
+class AuthorOfController {
   /**
    * @method inserts the AuthorOf Edge linking an Image and an Author
    *
    * @param edge implements the authorOfModel interface
    */
-  async insertAuthorOf(edge: authorOfModel): Promise<void> {
+  async insert(edge: authorOfModel): Promise<void> {
     await AuthorOfCollection.save(edge, { silent: true });
   }
 }
 
-export const authorObject: AuthorObject = new AuthorObject();
-export const authorOfObject: AuthorOfObject = new AuthorOfObject();
+export const authorController: AuthorController = new AuthorController();
+export const authorOfController: AuthorOfController = new AuthorOfController();

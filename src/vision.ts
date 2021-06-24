@@ -19,46 +19,34 @@ if (process.env.NODE_ENV !== 'production') {
  * @returns An object containing the compiled metadata
  */
 export default async function fetchVisionMetadata(url: string): Promise<VisionResult> {
-  const maxResults = 4; // The maximum number of results to get for each feature type
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [
       {
         features: [
           {
-            maxResults,
+            maxResults: 25,
             type: 'LABEL_DETECTION',
           },
           {
-            maxResults,
+            maxResults: 25,
+            type: 'WEB_DETECTION',
+          },
+          {
+            maxResults: 25,
             type: 'OBJECT_LOCALIZATION',
           },
           {
-            maxResults,
-            type: 'WEB_DETECTION',
+            maxResults: 10,
+            type: 'IMAGE_PROPERTIES',
           },
-          /**
-           * @todo Prepare ArangoDB for the rest of these features:
-           */
+          {
+            maxResults: 1,
+            type: 'LANDMARK_DETECTION',
+          },
           // {
-          //   maxResults,
-          //   type: 'IMAGE_PROPERTIES',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'LANDMARK_DETECTION',
-          // },
-          // {
-          //   maxResults,
+          //   maxResults: 10,
           //   type: 'FACE_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'SAFE_SEARCH_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   typeclear: 'LOGO_DETECTION',
           // },
           // {
           //   maxResults,
@@ -86,3 +74,12 @@ export default async function fetchVisionMetadata(url: string): Promise<VisionRe
   // Return undefined if no data was found
   return !result || Object.keys(result[0]).length === 0 ? undefined : result[0];
 }
+
+/**
+ * @todo - remove
+ * A small function to mess around with the Vision API
+ */
+// (async () => {
+//   const visionData = await fetchVisionMetadata('https://picsum.photos/id/736/3672/5508');
+//   console.dir(visionData, { depth: null });
+// })();

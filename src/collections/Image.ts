@@ -12,9 +12,9 @@ interface imageModel {
   date: string;
 }
 
-const ImageCollection = db.collection('Images');
+const ImageCollection = db.collection('Image');
 
-class ImageObject {
+class ImageController {
   /**
    * @method used to insert the Picsum images generated from the `yarn picsum` script
    * Avoids Picsum image duplicates by checking the ID of each Picsum Image
@@ -22,9 +22,9 @@ class ImageObject {
    * @param document implements the imageModel interface
    * @returns the ArangoID of the Image inserted
    */
-  public async insertImage(document: imageModel): Promise<{ id: string; alreadyExists?: true }> {
-    const imageAlreadyExists: ArangoImage = await ImageCollection.document({ _key: document._key }, true);
-    if (imageAlreadyExists) return { id: imageAlreadyExists._id, alreadyExists: true };
+  public async insert(document: imageModel): Promise<{ id: string; alreadyExists?: true }> {
+    const existingImage: ArangoImage = await ImageCollection.document({ _key: document._key }, true);
+    if (existingImage) return { id: existingImage._id, alreadyExists: true };
     else {
       const insert = await ImageCollection.save(document, { overwriteMode: 'ignore', waitForSync: true });
       return { id: insert._id };
@@ -37,9 +37,9 @@ class ImageObject {
    *
    * @param the id of the image
    */
-  public async removeImage(id: string): Promise<void> {
+  public async remove(id: string): Promise<void> {
     await ImageCollection.remove(id, { waitForSync: true });
   }
 }
 
-export const imageObject: ImageObject = new ImageObject();
+export const imageController: ImageController = new ImageController();

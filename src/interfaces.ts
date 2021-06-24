@@ -34,12 +34,11 @@ export interface Connection {
 }
 
 export interface VisionResult {
-  labelAnnotations: VisionAnnotation[];
-  webDetection: {
-    webEntities: VisionAnnotation[];
-    bestGuessLabels: { label: string; languageCode: string }[];
-  };
-  localizedObjectAnnotations: VisionAnnotation[];
+  labelAnnotations?: VisionAnnotation[];
+  webDetection?: { webEntities: VisionAnnotation[]; bestGuessLabels: { label: string; languageCode: string }[] };
+  localizedObjectAnnotations?: VisionAnnotation[];
+  landmarkAnnotations?: VisionAnnotation[];
+  imagePropertiesAnnotation?: { dominantColors: VisionDominantColors };
   error?: {
     code: number;
     message: string;
@@ -52,7 +51,16 @@ export interface VisionAnnotation {
   name?: string; // The name of the metadata, used in OBJECT_LOCALIZATION
   description?: string; // The description of the metadata, used in LABEL_DETECTION
   label?: string; // The field of a GCP Best Guess, used in WEB_DETECTION
+  locations?: { latLng: { latitude: number; longitude: number } }[];
+  boundingPoly?: { normalizedVertices: { x: number; y: number }[] };
   score: number; // The confidence score
+}
+
+export interface VisionDominantColors {
+  colors: {
+    color: { red: number; green: number; blue: number };
+    score: number;
+  }[];
 }
 
 export interface PicsumImage {
@@ -85,9 +93,9 @@ export interface ArangoImageInfo {
 }
 
 export interface ArangoDBMetrics {
-  image: number;
-  author: number;
-  label: number;
-  guess: number;
-  edge: number;
+  images: number;
+  authors: number;
+  tags: number;
+  guesses: number;
+  edges: number;
 }

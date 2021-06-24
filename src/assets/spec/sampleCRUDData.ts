@@ -11,12 +11,12 @@ export const image = {
 
 export const author = {
   _key: '1',
-  name: 'John Doe',
+  author: 'John Doe',
 };
 
 export const authorOf = {
   _key: '1',
-  _from: 'Authors/1',
+  _from: 'Author/1',
   _to: 'Images/525252',
   _score: 1,
 };
@@ -24,12 +24,12 @@ export const authorOf = {
 export const label = {
   _key: '1',
   mid: 'm/machineid1',
-  label: 'computer'
+  label: 'computer',
 };
 
 export const labelOf = {
   _key: '1',
-  _from: 'Labels/1',
+  _from: 'Label/1',
   _to: 'Images/525252',
   _score: 1,
 };

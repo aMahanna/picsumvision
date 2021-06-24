@@ -18,7 +18,7 @@ interface bestGuessOfModel {
 const BestGuessCollection = db.collection('BestGuess');
 const BestGuessOfCollection = db.collection('BestGuessOf');
 
-class BestGuessObject {
+class BestGuessController {
   /**
    * @method used to insert the BestGuess metadata of a particular image
    * Avoids  duplicates by checking if the guess already exists
@@ -26,24 +26,24 @@ class BestGuessObject {
    * @param document implements the buestGuessModel interface
    * @returns the ArangoID of the BestGuess inserted
    */
-  public async insertBestGuess(document: bestGuessModel): Promise<string> {
-    const bestGuessAlreadyExists = await BestGuessCollection.document({ _key: document._key }, true);
-    return bestGuessAlreadyExists
-      ? bestGuessAlreadyExists._id
+  public async insert(document: bestGuessModel): Promise<string> {
+    const existingBestGuess = await BestGuessCollection.document({ _key: document._key }, true);
+    return existingBestGuess
+      ? existingBestGuess._id
       : (await BestGuessCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 }
 
-class BestGuessOfObject {
+class BestGuessOfController {
   /**
    * @method inserts the BestGuessOf Edge linking an Image and a Vision Best Guess
    *
    * @param edge implements the bestGuessOfModel interface
    */
-  async insertBestGuessOf(edge: bestGuessOfModel): Promise<void> {
+  async insert(edge: bestGuessOfModel): Promise<void> {
     await BestGuessOfCollection.save(edge, { silent: true });
   }
 }
 
-export const bestGuessObject: BestGuessObject = new BestGuessObject();
-export const bestGuessOfObject: BestGuessOfObject = new BestGuessOfObject();
+export const bestGuessController: BestGuessController = new BestGuessController();
+export const bestGuessOfController: BestGuessOfController = new BestGuessOfController();

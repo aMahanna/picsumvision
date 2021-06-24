@@ -17,7 +17,7 @@ import {
  */
 function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }) {
   let nodes: { id: string; label: string; color: string }[] = [];
-  let edges: { id: string; from: string; to: string; label: string }[] = [];
+  let edges: { id: string; from: string; to: string }[] = [];
 
   for (let i = 0; i < info.vertices.length; i++) {
     const vertice: Vertice = info.vertices[i];
@@ -29,7 +29,7 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
     nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: connect.i.color || '#399E5A' }]);
     for (let t = 0; t < connect.edges.length; t++) {
       const edge = connect.edges[t];
-      edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to, label: String(edge._score) }]);
+      edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to }]);
     }
   }
   return { nodes, edges };
@@ -152,22 +152,26 @@ namespace SearchController {
     }
 
     // Parse, sort & unify the metadata to ensure there are no conflicting values
-    const VISION_LABEL_OBJECT_ANNOTATIONS: VisionAnnotation[] = VISION_DATA.labelAnnotations
-      ?.concat(VISION_DATA.localizedObjectAnnotations ? VISION_DATA.localizedObjectAnnotations : [])
-      .sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? 1 : a.score === b.score ? 0 : -1));
-    const UNIQUE_LABELS: VisionAnnotation[] = [
-      ...new Map(VISION_LABEL_OBJECT_ANNOTATIONS.map((elem: VisionAnnotation) => [elem.mid, elem])).values(),
-    ];
+    let LABEL_DATA = VISION_DATA.labelAnnotations?.concat(
+      VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
+    );
+    if (LABEL_DATA) {
+      LABEL_DATA = [...new Map(LABEL_DATA.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values()].sort(
+        (a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1),
+      );
 
-    // Iterate through the Unique Labels array
-    const labelsObject: string[] = [];
-    for (let t = 0; t < UNIQUE_LABELS.length; t++) {
-      const elem: VisionAnnotation = UNIQUE_LABELS[t];
-      labelsObject.push((elem.description || elem.name)!.toLowerCase());
+      // Iterate through the Unique Labels array
+      const labelsObject: string[] = [];
+      for (let t = 0; t < LABEL_DATA.length; t++) {
+        const elem: VisionAnnotation = LABEL_DATA[t];
+        labelsObject.push((elem.description || elem.name)!.toLowerCase());
+      }
+
+      // Return the Image's best guess if present, or simply return its labels in a string
+      return VISION_DATA.webDetection?.bestGuessLabels[0]?.label || labelsObject.join(' ');
     }
 
-    // Return the Image's best guess if present, or simply return its labels in a string
-    return VISION_DATA.webDetection?.bestGuessLabels[0]?.label || labelsObject.join(' ');
+    return undefined;
   }
 }
 

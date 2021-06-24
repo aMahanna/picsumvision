@@ -33,7 +33,7 @@ const Landing = () => {
 
   // Store the metrics of each collection
   const [imageCount, setImageCount] = useState('');
-  const [labelCount, setLabelCount] = useState('');
+  const [tagCount, setTagCount] = useState('');
   const [edgeCount, setEdgeCount] = useState('');
   const [authorCount, setAuthorCount] = useState('');
   const [bestGuessCount, setBestGuessCount] = useState('');
@@ -43,11 +43,11 @@ const Landing = () => {
       .then(result => (result.status === 200 ? result.json() : undefined))
       .then(response => {
         if (response) {
-          setImageCount(response.data.image);
-          setAuthorCount(response.data.author);
-          setLabelCount(response.data.label);
-          setBestGuessCount(response.data.guess);
-          setEdgeCount(response.data.edge);
+          setImageCount(response.data.images);
+          setAuthorCount(response.data.authors);
+          setTagCount(response.data.tags);
+          setBestGuessCount(response.data.guesses);
+          setEdgeCount(response.data.edges);
         }
       });
   });
@@ -75,8 +75,8 @@ const Landing = () => {
             <b>{authorCount}</b>
             {t('landingPage.authors')}
             {' | '}
-            <b>{labelCount}</b>
-            {t('landingPage.labels')}
+            <b>{tagCount}</b>
+            {t('landingPage.tags')}
           </div>
           <div>
             <b>{bestGuessCount}</b>

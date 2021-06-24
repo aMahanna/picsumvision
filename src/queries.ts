@@ -34,7 +34,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
             doc.author == normTokens
           , 'norm_accent_lower')
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            SORT e._score DESC
+            SORT e._type == 'landmark' DESC, e._type == 'object' DESC, e._score DESC
             LIMIT 10
             RETURN DISTINCT v
       )
@@ -48,7 +48,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
           SORT BM25(doc, 1.2, 0) DESC 
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             FILTER v NOT IN exactMatches
-            SORT e._score DESC
+            SORT e._type == 'landmark' DESC, e._type == 'object' DESC, e._score DESC
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
             LIMIT 10
@@ -71,7 +71,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
  * @returns a random collection of tags (e.g 'mountain blue sky')
  */
 export async function fetch_surprise_tags(): Promise<string> {
-  const maxResults = Math.floor(Math.random() * 3) + 1;
+  const maxResults = Math.floor(Math.random() * 4) + 1;
   const result = await (
     await db.query(aql`
       With Tag
@@ -80,7 +80,6 @@ export async function fetch_surprise_tags(): Promise<string> {
         LIMIT 1
         FOR v, e IN 1..1 INBOUND i TagOf
           FILTER LOWER(v.tag) NOT IN ${ignoredwords}
-          FILTER e._score >= 0.50
           SORT RAND()
           LIMIT ${maxResults}
           RETURN v.tag
@@ -134,21 +133,46 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
 export async function fetch_discovery(clickedImages: string[], maxResults: number): Promise<ArangoImage[]> {
   const result = await (
     await db.query(aql`
-      WITH Author, Tag, BestGuess
-      FOR i IN Image
-        FILTER i._key IN ${clickedImages}
-        FOR v, e IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
-          SORT e._score DESC
-          FOR v2, e2 IN 1..1 OUTBOUND v AuthorOf, TagOf, BestGuessOf
-            FILTER v2._key != i._key
-            COLLECT img = v2 WITH COUNT INTO num
-            SORT num DESC
-            LIMIT ${maxResults}
-            RETURN img
+    WITH Author, Tag, BestGuess
+    FOR i IN Image
+      FILTER i._key IN ${clickedImages}
+        LET landmarkMatches = (
+          FOR v1, e1 IN 1..1 INBOUND i TagOf
+            FILTER e1._type == 'landmark'
+            SORT e1._score DESC
+            FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
+                FILTER e2._type == 'landmark' AND v2._key != i._key 
+                SORT DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
+                LIMIT 2
+                RETURN v2
+        )
+        LET intersectMatches = (
+          FOR v1, e1 IN 1..1 INBOUND i TagOf
+            FILTER e1._type == 'object'
+            SORT e1._score DESC
+            FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
+              FILTER e2._type == 'object' AND v2._key != i._key 
+              FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
+              COLLECT img = v2 WITH COUNT INTO intersectCount
+              SORT intersectCount DESC
+              LIMIT ${maxResults}
+              RETURN img
+        )
+        LET commonMatches = (
+          FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
+            SORT e1._score DESC
+            FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf
+              FILTER v2._key != i._key
+              COLLECT img = v2 WITH COUNT INTO commonCount
+              SORT commonCount DESC
+              LIMIT ${maxResults}
+              RETURN img
+        )
+        RETURN APPEND(landmarkMatches, APPEND(intersectMatches, commonMatches, true), true)
     `)
   ).all();
 
-  return result;
+  return result[0];
 }
 
 /**

@@ -38,7 +38,7 @@ export interface VisionResult {
   webDetection?: { webEntities: VisionAnnotation[]; bestGuessLabels: { label: string; languageCode: string }[] };
   localizedObjectAnnotations?: VisionAnnotation[];
   landmarkAnnotations?: VisionAnnotation[];
-  imagePropertiesAnnotation?: { dominantColors: VisionDominantColors };
+  imagePropertiesAnnotation?: { dominantColors: { colors: VisionColor[] } };
   error?: {
     code: number;
     message: string;
@@ -56,11 +56,10 @@ export interface VisionAnnotation {
   score: number; // The confidence score
 }
 
-export interface VisionDominantColors {
-  colors: {
-    color: { red: number; green: number; blue: number };
-    score: number;
-  }[];
+export interface VisionColor {
+  color: { red: number; green: number; blue: number };
+  score: number;
+  pixelFraction: number;
 }
 
 export interface PicsumImage {

@@ -34,7 +34,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
             doc.author == normTokens
           , 'norm_accent_lower')
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            SORT e._type == 'landmark' DESC, e._type == 'object' DESC, e._score DESC
+            SORT e._score DESC
             LIMIT 5
             RETURN DISTINCT v
       )
@@ -48,7 +48,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
           SORT BM25(doc, 1.2, 0) DESC 
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             FILTER v NOT IN exactMatches
-            SORT e._type == 'landmark' DESC, e._type == 'object' DESC, e._score DESC
+            SORT  e._score DESC
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
             LIMIT 5
@@ -71,7 +71,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
  * @returns a random collection of tags (e.g 'mountain blue sky')
  */
 export async function fetch_surprise_tags(): Promise<string> {
-  const maxResults = Math.floor(Math.random() * 4) + 1;
+  const maxResults = Math.floor(Math.random() * 3) + 1;
   const result = await (
     await db.query(aql`
       With Tag
@@ -136,6 +136,16 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
     WITH Author, Tag, BestGuess
     FOR i IN Image
       FILTER i._key IN ${clickedImages}
+        LET commonMatches = (
+          FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
+            SORT e1._score DESC
+            FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf
+              FILTER v2._key != i._key
+              COLLECT img = v2 WITH COUNT INTO num
+              SORT num DESC
+              LIMIT ${maxResults}
+              RETURN img
+        )
         LET intersectMatches = (
           FOR v1, e1 IN 1..1 INBOUND i TagOf
             FILTER e1._type == 'object'
@@ -143,20 +153,9 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
             FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
               FILTER e2._type == 'object' AND v2._key != i._key 
               FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
-              COLLECT img = v2 WITH COUNT INTO intersectCount
-              SORT intersectCount DESC
-              LIMIT ${maxResults}
-              RETURN img
-        )
-        LET commonMatches = (
-          FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
-            SORT e1._score DESC
-            FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf
-              FILTER v2._key != i._key
-              COLLECT img = v2 WITH COUNT INTO commonCount
-              SORT commonCount DESC
-              LIMIT ${maxResults}
-              RETURN img
+              SORT e2._score DESC
+              LIMIT 2
+              RETURN v2
         )
         LET nearbyImages = (
           FOR v1, e1 IN 1..1 INBOUND i TagOf
@@ -169,9 +168,10 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
                   LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
                   FILTER dist <= 100000
                   SORT dist
+                  LIMIT 2
                   RETURN i2
         )
-        RETURN APPEND(APPEND(intersectMatches, commonMatches, true), nearbyImages, true)
+        RETURN APPEND(APPEND(commonMatches, intersectMatches, true), nearbyImages, true)
     `)
   ).all();
 
@@ -208,11 +208,12 @@ export async function fetch_search_visualization(
       LET vertices = (
         FOR i IN ${imageResults}
           FOR v, e IN 1..1 INBOUND i._id AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+            FILTER v IN matchList // temporary measure to avoid clutter
             LET vertice = {
               _key: v._key,
               _id: v._id,
               data: v.author OR v.tag OR v.bestGuess,
-              color: v IN matchList ? '#FC7753' : '#66D7D1'
+              color: v IN matchList ? '#FC7753' : '#66D7D1' // will always result to true for now
             }
             RETURN DISTINCT vertice
       )

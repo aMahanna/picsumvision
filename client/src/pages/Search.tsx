@@ -54,7 +54,7 @@ const Search = (props: any) => {
   const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
   const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
   const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
-  const [sorryAlert, setSorryAlert] = useState(false); // For times that I want to say apologize
+  const [sorryAlert, setSorryAlert] = useState(false); // For times that I want to say I apologize
 
   const [persistedData, setPersistedData] = usePersistedState('data', {}); // Persist previous results to use for search history
   const [lastSearch, setLastSearch] = usePersistedState('lastSearch', ''); // Persist last search to use for visualization

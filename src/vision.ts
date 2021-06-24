@@ -1,9 +1,5 @@
 /**
  * @file Calls the Vision API for a provided url
- * Currently supported features:
- * - LABEL_DETECTION
- * - OBJECT_LOCALIZATION
- * - WEB_DETECTION
  */
 
 import fetch from 'node-fetch';
@@ -25,25 +21,26 @@ export default async function fetchVisionMetadata(url: string): Promise<VisionRe
       {
         features: [
           {
-            maxResults: 30,
+            maxResults: 50,
             type: 'LABEL_DETECTION',
           },
           {
-            maxResults: 30,
+            maxResults: 50,
             type: 'WEB_DETECTION',
           },
           {
-            maxResults: 30,
+            maxResults: 50,
             type: 'OBJECT_LOCALIZATION',
           },
           {
-            maxResults: 10,
+            maxResults: 50,
             type: 'LANDMARK_DETECTION',
           },
           {
-            maxResults: 10,
+            maxResults: 5,
             type: 'IMAGE_PROPERTIES',
           },
+          /** @todo - Maybe what's next.. */
           // {
           //   maxResults: 10,
           //   type: 'FACE_DETECTION',
@@ -80,6 +77,6 @@ export default async function fetchVisionMetadata(url: string): Promise<VisionRe
  * A small function to mess around with the Vision API
  */
 // (async () => {
-//   const visionData = await fetchVisionMetadata('https://picsum.photos/id/736/3672/5508');
+//   const visionData = await fetchVisionMetadata('https://picsum.photos/id/900/2173/1449');
 //   console.dir(visionData, { depth: null });
 // })();

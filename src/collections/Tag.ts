@@ -1,5 +1,5 @@
 /**
- * This @file manages the Label & LabelOf Collections in our ArangoDB
+ * This @file manages the Tag & TagOf Collections in our ArangoDB
  */
 
 import db from '../database';
@@ -8,8 +8,9 @@ import { URL } from 'url';
 
 interface tagModel {
   _key: string;
-  mid: string;
   tag: string;
+  mid?: string;
+  hex?: string;
   datamuse?: string;
 }
 
@@ -22,6 +23,7 @@ interface tagOfModel {
   _coord?: number[][];
   _latitude?: number;
   _longitude?: number;
+  _pixelFraction?: number;
 }
 
 interface datamuseModel {
@@ -43,13 +45,8 @@ class TagController {
    */
   public async insert(document: tagModel): Promise<string> {
     const existingTag = await TagCollection.document({ _key: document._key }, true);
-    if (existingTag) {
-      // const newData = await this.generateLabelData(document.label, labelTopic);
-      // await LabelCollection.update(document._key, { data: newData + ' ' + existingLabel.data }, { waitForSync: true });
-      return existingTag._id;
-    }
+    if (existingTag) return existingTag._id;
 
-    // document.data = await this.generateLabelData(document.label, labelTopic);
     return (await TagCollection.save(document, { waitForSync: true, overwriteMode: 'ignore' }))._id;
   }
 
@@ -58,29 +55,28 @@ class TagController {
   }
 
   /**
+   * @OutOfOrder due to inconsistency :(
+   *
+   *
    * @method that attempts to create similar words to the parameter provided.
    * This ideally helps refine searching, but is currently unstable
    * - The contents of the metadata returned do not always match the target word
    * - Currently debating on whether to remove this or not, @todo
    * - Currently using the arbitrary DataMuse 'scoring' mecanism to filter out responses
    *
-   * - mlResult: Matches around "means like" results  (e.g ocean -> see)
-   * - synResult: Matches around synonyms (e.g boat -> gondola)
-   * - trgResult: Matches around "trigger" (e.g cow -> milking)
+   * - ml: Matches around "means like" results  (e.g ocean -> see)
+   * - rel_syn: Matches around synonyms (e.g boat -> gondola)
+   * - rel_trg: Matches around "trigger" (e.g cow -> milking)
    * @param word The word to generate more metadata from
    * @returns
    */
   public async generateLabelData(word: string, topics: string): Promise<string> {
-    topics = topics.trim();
-    word = word.trim().replace(' ', '%20');
-
     let datamuseLabels: datamuseModel[] = [];
     const datamuseParams = ['ml', 'rel_spc', 'rel_com', 'rel_gen', 'rel_trg'];
 
     try {
       for (const param of datamuseParams) {
         const data = await (await fetch(new URL(`https://api.datamuse.com/words?${param}=${word}&topics=${topics}`))).json();
-        // console.log(param + ': ' + data.slice(0,3).map(elem => elem.word));
         datamuseLabels = datamuseLabels.concat(data.slice(0, 3));
       }
     } catch (error) {
@@ -93,10 +89,10 @@ class TagController {
 
 class TagOfController {
   /**
-   * @method inserts the LabelOf Edge linking an Image and a Label metadata
+   * @method inserts the TagOf Edge linking an Image and a Label metadata
    *
-   * @param edge implements the labelOfModel interface
-   * @returns The ArangoID of the inserted LabelOf edge
+   * @param edge implements the tagOfModel interface
+   * @returns The ArangoID of the inserted TagOf edge
    */
   public async insert(edge: tagOfModel): Promise<void> {
     await TagOfCollection.save(edge, { silent: true, waitForSync: true, overwriteMode: 'ignore' });

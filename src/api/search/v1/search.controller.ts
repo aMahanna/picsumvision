@@ -15,9 +15,9 @@ import {
  * @param info An array of vertices, and an array of connections
  * @returns {nodes, edges}
  */
-function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }) {
+function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }, isSearchVisualization: boolean) {
   let nodes: { id: string; label: string; color: string }[] = [];
-  let edges: { id: string; from: string; to: string }[] = [];
+  let edges: { id: string; from: string; to: string; label?: string }[] = [];
 
   for (let i = 0; i < info.vertices.length; i++) {
     const vertice: Vertice = info.vertices[i];
@@ -29,7 +29,14 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
     nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: connect.i.color || '#399E5A' }]);
     for (let t = 0; t < connect.edges.length; t++) {
       const edge = connect.edges[t];
-      edges = edges.concat([{ id: edge._id, from: edge._from, to: edge._to }]);
+      edges = edges.concat([
+        {
+          id: edge._id,
+          from: edge._from,
+          to: edge._to,
+          label: isSearchVisualization ? String(edge._score.toFixed(2)) : undefined,
+        },
+      ]);
     }
   }
   return { nodes, edges };
@@ -144,7 +151,7 @@ namespace SearchController {
     if (data.vertices.length === 0) {
       res.status(204).json('No visualization info found :/');
     } else {
-      const graphObject = parseVisualizationInfo(data);
+      const graphObject = parseVisualizationInfo(data, visualizationType === 'search');
       res.status(200).json({ graphObject });
     }
   }

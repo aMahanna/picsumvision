@@ -35,7 +35,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
           , 'norm_accent_lower')
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT e._type == 'landmark' DESC, e._type == 'object' DESC, e._score DESC
-            LIMIT 10
+            LIMIT 5
             RETURN DISTINCT v
       )
       LET closeMatches = (
@@ -51,7 +51,7 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
             SORT e._type == 'landmark' DESC, e._type == 'object' DESC, e._score DESC
             COLLECT img = v WITH COUNT INTO num
             SORT num DESC
-            LIMIT 10
+            LIMIT 5
             RETURN img
       )
       RETURN APPEND(exactMatches, closeMatches)
@@ -136,16 +136,6 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
     WITH Author, Tag, BestGuess
     FOR i IN Image
       FILTER i._key IN ${clickedImages}
-        LET landmarkMatches = (
-          FOR v1, e1 IN 1..1 INBOUND i TagOf
-            FILTER e1._type == 'landmark'
-            SORT e1._score DESC
-            FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
-                FILTER e2._type == 'landmark' AND v2._key != i._key 
-                SORT DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
-                LIMIT 2
-                RETURN v2
-        )
         LET intersectMatches = (
           FOR v1, e1 IN 1..1 INBOUND i TagOf
             FILTER e1._type == 'object'
@@ -168,7 +158,20 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
               LIMIT ${maxResults}
               RETURN img
         )
-        RETURN APPEND(landmarkMatches, APPEND(intersectMatches, commonMatches, true), true)
+        LET nearbyImages = (
+          FOR v1, e1 IN 1..1 INBOUND i TagOf
+            FILTER e1._type == 'landmark'
+            SORT e1._score DESC
+            FOR i2 IN Image
+              FILTER i2._key != i._key
+              FOR v2, e2 IN 1..1 INBOUND i2 TagOf
+                  FILTER e2._type == 'landmark' AND v2._key != i._key 
+                  LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
+                  FILTER dist <= 100000
+                  SORT dist
+                  RETURN i2
+        )
+        RETURN APPEND(APPEND(intersectMatches, commonMatches, true), nearbyImages, true)
     `)
   ).all();
 

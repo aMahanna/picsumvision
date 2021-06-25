@@ -175,7 +175,10 @@ namespace SearchController {
     if (VISION_DATA.landmarkAnnotations) {
       return VISION_DATA.landmarkAnnotations[0].description;
     } else if (VISION_DATA.webDetection?.webEntities) {
-      return VISION_DATA.webDetection.webEntities[0].description;
+      return VISION_DATA.webDetection?.webEntities
+        .slice(0, 2)
+        .map(entity => entity.description)
+        .join(' ');
     } else if (VISION_DATA.localizedObjectAnnotations) {
       return VISION_DATA.localizedObjectAnnotations
         .slice(0, 3)
@@ -183,7 +186,7 @@ namespace SearchController {
         .join(' ');
     } else {
       return VISION_DATA.labelAnnotations
-        .slice(0, 3)
+        .slice(0, 4)
         .map(label => label.description)
         .join(' ');
     }

@@ -121,7 +121,7 @@ const Visualize = (props: any) => {
       {tagRedirect !== '' && <Redirect to={{ pathname: '/search', state: { fromRedirect: tagRedirect } }} />}
       <h3>
         {visualizationType === 'search'
-          ? `${t('visualizerPage.search')} "${persistedData[lastSearch].input}"`
+          ? `${t('visualizerPage.search')} "${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
           : `${t('visualizerPage.image')} #${props.match.params.id}`}
       </h3>
       <h4>{t('visualizerPage.interact')}</h4>

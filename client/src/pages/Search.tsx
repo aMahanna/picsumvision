@@ -121,7 +121,7 @@ const Search = (props: any) => {
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        updateCache(input, isImageURL ? result.tags : index, result.data);
+        updateCache(input, isImageURL ? result.tags : index, result.data, isImageURL);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -146,7 +146,7 @@ const Search = (props: any) => {
       setTextFieldInput(result.tags);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.tags, result.tags.split(' ').sort().join(' ').toLowerCase(), result.data);
+      updateCache(result.tags, result.tags.split(' ').sort().join(' ').toLowerCase(), result.data, false);
     } else {
       setSorryAlert(true);
     }
@@ -206,13 +206,14 @@ const Search = (props: any) => {
    * @param data  The data to store
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateCache = async (input: string, index: string, data: any[]) => {
+  const updateCache = async (input: string, index: string, data: any[], isImageURL: boolean) => {
     if (data.length !== 0) {
       setPersistedData({
         ...persistedData,
         [index]: {
           input,
           data,
+          isImageURL,
           date: Date(),
         },
       });

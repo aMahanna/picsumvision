@@ -45,7 +45,7 @@ test('Search for Images using "Water" and "Sky"', async () => {
 });
 
 test('Search for images using an external image URL', async () => {
-  const res = await request.get(`/api/search/url?url=https://picsum.photos/id/0/400/400`);
+  const res = await request.get('/api/search/url?url=https://picsum.photos/id/1/5616/3744');
   expect(res.status).toBe(200);
   expect(res.body.tags.split(' ').length).toBeGreaterThan(0);
 

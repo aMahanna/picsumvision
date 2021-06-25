@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import fetchVisionMetadata from '../../../vision';
-import { Vertice, Connection, VisionAnnotation, ArangoImage } from '../../../interfaces';
+import { Vertice, Connection, ArangoImage } from '../../../interfaces';
 import {
   fetch_images,
   fetch_surprise_tags,
@@ -168,24 +168,25 @@ namespace SearchController {
    */
   export async function parseVisionData(url: string): Promise<string | undefined> {
     const VISION_DATA = await fetchVisionMetadata(url); // Set max results to 3 for now
-    if (!VISION_DATA || !VISION_DATA.labelAnnotations || VISION_DATA.error) {
+    if (!VISION_DATA || VISION_DATA.error || !VISION_DATA.labelAnnotations) {
       return undefined; // Exit early if Vision does not find anything
     }
 
-    // Parse, sort & unify the metadata to ensure there are no conflicting values
-    const LABEL_DATA = VISION_DATA.labelAnnotations.concat(
-      VISION_DATA.webDetection?.webEntities ? VISION_DATA.webDetection.webEntities : [],
-    );
-
-    const uniqueLabelData = [
-      ...new Map(LABEL_DATA.map((elem: VisionAnnotation) => [(elem.mid || elem.entityId)!, elem])).values(),
-    ].sort((a: VisionAnnotation, b: VisionAnnotation) => (a.score > b.score ? -1 : a.score === b.score ? 0 : 1));
-
-    // Return the Image's top 5 tags
-    return uniqueLabelData
-      .slice(0, 4)
-      .map(tag => tag.description || tag.name)
-      .join(' ');
+    if (VISION_DATA.landmarkAnnotations) {
+      return VISION_DATA.landmarkAnnotations[0].description;
+    } else if (VISION_DATA.webDetection?.webEntities) {
+      return VISION_DATA.webDetection.webEntities[0].description;
+    } else if (VISION_DATA.localizedObjectAnnotations) {
+      return VISION_DATA.localizedObjectAnnotations
+        .slice(0, 3)
+        .map(object => object.name)
+        .join(' ');
+    } else {
+      return VISION_DATA.labelAnnotations
+        .slice(0, 3)
+        .map(label => label.description)
+        .join(' ');
+    }
   }
 }
 

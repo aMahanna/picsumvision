@@ -134,48 +134,51 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
 export async function fetch_discovery(clickedImages: string[], maxResults: number): Promise<ArangoImage[]> {
   const result = await (
     await db.query(aql`
-    WITH Author, Tag, BestGuess
-    FOR i IN Image
-      FILTER i._key IN ${clickedImages}
-        LET commonMatches = (
-          FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
-            SORT e1._score DESC
-            FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf
-              FILTER v2._key != i._key
-              COLLECT img = v2 WITH COUNT INTO num
-              SORT num DESC
-              LIMIT ${maxResults}
-              RETURN img
-        )
-        // LET intersectMatches = (
-        //   FOR v1, e1 IN 1..1 INBOUND i TagOf
-        //     FILTER e1._type == 'object'
-        //     SORT e1._score DESC
-        //     FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
-        //       FILTER e2._type == 'object' AND v2._key != i._key 
-        //       FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
-        //       COLLECT img = v2 WITH COUNT INTO num
-        //       SORT num DESC
-        //       LIMIT 1
-        //       RETURN img
-        // )
-        // LET nearbyImages = (
-        //   FOR v1, e1 IN 1..1 INBOUND i TagOf
-        //     FILTER e1._type == 'landmark'
-        //     SORT e1._score DESC
-        //     FOR i2 IN Image
-        //       FILTER i2._key != i._key
-        //       FOR v2, e2 IN 1..1 INBOUND i2 TagOf
-        //           FILTER e2._type == 'landmark' AND v2._key != i._key 
-        //           LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
-        //           FILTER dist <= 100000
-        //           SORT dist
-        //           LIMIT 0
-        //           RETURN i2
-        // )
-        // RETURN APPEND(APPEND(commonMatches, intersectMatches, true), nearbyImages, true)
-        RETURN commonMatches
-        
+      WITH Author, Tag, BestGuess
+      LET commonMatches = (
+        FOR i IN Image
+          FILTER i._key IN ${clickedImages}
+            FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
+              SORT e1._score DESC
+              FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf
+                FILTER v2._key NOT IN ${clickedImages}
+                COLLECT img = v2 WITH COUNT INTO num
+                SORT num DESC
+                LIMIT ${maxResults}
+                RETURN img
+      )
+      // LET intersectMatches = (
+      //   FOR i IN Image
+      //     FILTER i._key IN ${clickedImages}
+      //     FOR v1, e1 IN 1..1 INBOUND i TagOf
+      //       FILTER e1._type == 'object'
+      //       SORT e1._score DESC
+      //       FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
+      //         FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages}
+      //         FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
+      //         COLLECT img = v2 WITH COUNT INTO num
+      //         SORT num DESC
+      //         LIMIT 2
+      //         RETURN img
+      // )
+      // LET nearbyImages = (
+      //   FOR i IN Image
+      //     FILTER i._key IN ${clickedImages}
+      //     FOR v1, e1 IN 1..1 INBOUND i TagOf
+      //       FILTER e1._type == 'landmark'
+      //       SORT e1._score DESC
+      //       FOR i2 IN Image
+      //         FILTER i2._key != i._key
+      //         FOR v2, e2 IN 1..1 INBOUND i2 TagOf
+      //             FILTER e2._type == 'landmark' AND v2._key NOT IN ${clickedImages}
+      //             LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
+      //             FILTER dist <= 100000
+      //             SORT dist
+      //             LIMIT 2
+      //             RETURN i2
+      // )
+      //RETURN APPEND(APPEND(commonMatches, intersectMatches, true), nearbyImages, true)
+      RETURN commonMatches
     `)
   ).all();
 

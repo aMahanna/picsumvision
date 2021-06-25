@@ -35,17 +35,17 @@ export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
           , 'norm_accent_lower')
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             SORT e._score DESC
-            LIMIT 5
+            LIMIT 10
             RETURN DISTINCT v
       )
       LET closeMatches = (
         FOR doc IN searchview 
           SEARCH ANALYZER(
-            BOOST(doc.tag IN textTokens, 2) ||
-            BOOST(doc.bestGuess IN textTokens, 3) ||
+            BOOST(doc.bestGuess IN textTokens, 2) ||
+            BOOST(doc.tag IN textTokens, 3) ||
             BOOST(doc.author IN textTokens, 4)
           , 'text_en') 
-          SORT BM25(doc, 1.2, 0) DESC 
+          SORT BM25(doc, 2.4, 1) DESC
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
             FILTER v NOT IN exactMatches
             SORT  e._score DESC
@@ -74,15 +74,16 @@ export async function fetch_surprise_tags(): Promise<string> {
   const maxResults = Math.floor(Math.random() * 3) + 1;
   const result = await (
     await db.query(aql`
-      With Tag
+      With Tag, Author
       FOR i IN Image
         SORT RAND()
         LIMIT 1
-        FOR v, e IN 1..1 INBOUND i TagOf
+        FOR v, e IN 1..1 INBOUND i TagOf, AuthorOf
           FILTER LOWER(v.tag) NOT IN ${ignoredwords}
+          FILTER e._score >= 0.60
           SORT RAND()
           LIMIT ${maxResults}
-          RETURN v.tag
+          RETURN v.tag OR v.author
     `)
   ).all();
 
@@ -112,7 +113,7 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
   ).all();
 
   // Fetch similar images in respect to the shared metadata
-  result[0].similar = await fetch_discovery([id], 4);
+  result[0].similar = await fetch_discovery([id], 6);
 
   return result[0];
 }
@@ -146,32 +147,35 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
               LIMIT ${maxResults}
               RETURN img
         )
-        LET intersectMatches = (
-          FOR v1, e1 IN 1..1 INBOUND i TagOf
-            FILTER e1._type == 'object'
-            SORT e1._score DESC
-            FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
-              FILTER e2._type == 'object' AND v2._key != i._key 
-              FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
-              SORT e2._score DESC
-              LIMIT 2
-              RETURN v2
-        )
-        LET nearbyImages = (
-          FOR v1, e1 IN 1..1 INBOUND i TagOf
-            FILTER e1._type == 'landmark'
-            SORT e1._score DESC
-            FOR i2 IN Image
-              FILTER i2._key != i._key
-              FOR v2, e2 IN 1..1 INBOUND i2 TagOf
-                  FILTER e2._type == 'landmark' AND v2._key != i._key 
-                  LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
-                  FILTER dist <= 100000
-                  SORT dist
-                  LIMIT 2
-                  RETURN i2
-        )
-        RETURN APPEND(APPEND(commonMatches, intersectMatches, true), nearbyImages, true)
+        // LET intersectMatches = (
+        //   FOR v1, e1 IN 1..1 INBOUND i TagOf
+        //     FILTER e1._type == 'object'
+        //     SORT e1._score DESC
+        //     FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
+        //       FILTER e2._type == 'object' AND v2._key != i._key 
+        //       FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
+        //       COLLECT img = v2 WITH COUNT INTO num
+        //       SORT num DESC
+        //       LIMIT 1
+        //       RETURN img
+        // )
+        // LET nearbyImages = (
+        //   FOR v1, e1 IN 1..1 INBOUND i TagOf
+        //     FILTER e1._type == 'landmark'
+        //     SORT e1._score DESC
+        //     FOR i2 IN Image
+        //       FILTER i2._key != i._key
+        //       FOR v2, e2 IN 1..1 INBOUND i2 TagOf
+        //           FILTER e2._type == 'landmark' AND v2._key != i._key 
+        //           LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
+        //           FILTER dist <= 100000
+        //           SORT dist
+        //           LIMIT 0
+        //           RETURN i2
+        // )
+        // RETURN APPEND(APPEND(commonMatches, intersectMatches, true), nearbyImages, true)
+        RETURN commonMatches
+        
     `)
   ).all();
 
@@ -213,7 +217,7 @@ export async function fetch_search_visualization(
               _key: v._key,
               _id: v._id,
               data: v.author OR v.tag OR v.bestGuess,
-              color: v IN matchList ? '#FC7753' : '#66D7D1' // will always result to true for now
+              color: v.author ? '#E9D758' : (v.tag ? '#297373' : '#FF8552')
             }
             RETURN DISTINCT vertice
       )
@@ -255,7 +259,7 @@ export async function fetch_image_visualization(
               _key: i._key,
               author: i.author,
               url: i.url,
-              color: '#FC7753',
+              color: '#FF36AB',
             },
             edges
           }
@@ -267,7 +271,8 @@ export async function fetch_image_visualization(
             LET vertice = {
               _key: v._key,
               _id: v._id,
-              data: v.author OR v.tag OR v.bestGuess
+              data: v.author OR v.tag OR v.bestGuess,
+              color: v.author ? '#E9D758' : (v.tag ? '#297373' : '#FF8552')
             }
             RETURN DISTINCT vertice
       )

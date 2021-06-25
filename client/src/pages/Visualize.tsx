@@ -9,14 +9,25 @@ const options = {
     hierarchical: false,
     improvedLayout: true,
   },
-  edges: {
-    color: '#2f2d2e',
+  nodes: {
+    shape: 'circle',
   },
   interaction: {
     hover: true,
     hideEdgesOnDrag: true,
     hideEdgesOnZoom: true,
     zoomSpeed: 0.8,
+  },
+  physics: {
+    enabled: true,
+    barnesHut: {
+      centralGravity: 0.01,
+      springLength: 250,
+      springConstant: 0.01,
+      damping: 0.5,
+      avoidOverlap: 1,
+    },
+    solver: 'barnesHut',
   },
 };
 
@@ -115,9 +126,7 @@ const Visualize = (props: any) => {
       </h3>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
-      {graph.nodes.length !== 0 && (
-        <Graph graph={graph} options={options} events={events} style={{ border: 'solid', borderRadius: '1cm', height: '70vh' }} />
-      )}
+      {graph.nodes.length !== 0 && <Graph graph={graph} options={options} events={events} style={{ border: 'solid', height: '80vh' }} />}
     </Container>
   );
 };

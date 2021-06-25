@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @file A script to populare the database
  *
- * - Fetches the 993 Picsum images
+ * - Fetches the ~990 Picsum images
  * - Calls the Vision API for each image to create its metadata
  * - Inserts the image as well as author & tags documents / edges into ArrangoDB
  * - Prints a success message on every iteration if all data is inserted
@@ -48,7 +49,7 @@ function stringToASCII(data: string): string {
 
 /**
  * @method handles DB data insertion
- * - Fetches all 993 Picsum Images
+ * - Fetches all ~990 Picsum Images
  * - Calls the Vision API on each one of them to create metadata
  * - Parse through the metadata and insert correspondingly in ArangoDB
  */
@@ -64,7 +65,7 @@ async function populateDB() {
 
     PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
     pageCount++;
-  } while (PICSUM_RESULT.length !== 0 && pageCount !== 2); /** @attention Remove `&& pageCount !== 2` to get all +990 images */
+  } while (PICSUM_RESULT.length !== 0); /** @attention Remove `&& pageCount !== 2` to get all +990 images */
 
   console.log(`Generating metadata for ${PICSUM_LIST.length} images. Please standby...`);
   for (const PICSUM_IMAGE of PICSUM_LIST) {
@@ -144,21 +145,26 @@ async function populateDB() {
           const _latitude: number = landmark.locations ? landmark.locations[0].latLng.latitude : 0;
           const _longitude: number = landmark.locations ? landmark.locations[0].latLng.longitude : 0;
 
-          const landmarkID = await tagController.insert({
-            _key: _key,
-            mid: landmark.mid,
-            tag: landmark.description,
-          });
+          try {
+            const landmarkID = await tagController.insert({
+              _key: _key,
+              mid: landmark.mid,
+              tag: landmark.description,
+            });
 
-          await tagOfController.insert({
-            _type: 'landmark',
-            _key: _key + imageKey,
-            _from: landmarkID,
-            _to: imageID,
-            _score: _score,
-            _latitude: _latitude,
-            _longitude: _longitude,
-          });
+            await tagOfController.insert({
+              _type: 'landmark',
+              _key: _key + imageKey,
+              _from: landmarkID,
+              _to: imageID,
+              _score: _score,
+              _latitude: _latitude,
+              _longitude: _longitude,
+            });
+          } catch (error: any) {
+            console.log('ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Landmark:');
+            console.dir(landmark, { depth: null });
+          }
         }
       }
     }
@@ -175,20 +181,25 @@ async function populateDB() {
           const _coord: number[][] = object.boundingPoly?.normalizedVertices.map(Object.values) as number[][];
           _coord.push(_coord[0]);
 
-          const objectID = await tagController.insert({
-            _key: _key,
-            mid: object.mid,
-            tag: object.name,
-          });
+          try {
+            const objectID = await tagController.insert({
+              _key: _key,
+              mid: object.mid,
+              tag: object.name,
+            });
 
-          await tagOfController.insert({
-            _type: 'object',
-            _key: _key + imageKey,
-            _from: objectID,
-            _to: imageID,
-            _score: _score,
-            _coord: _coord,
-          });
+            await tagOfController.insert({
+              _type: 'object',
+              _key: _key + imageKey,
+              _from: objectID,
+              _to: imageID,
+              _score: _score,
+              _coord: _coord,
+            });
+          } catch (error: any) {
+            console.log('ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Object:');
+            console.dir(object, { depth: null });
+          }
         }
       }
     }
@@ -203,19 +214,24 @@ async function populateDB() {
           const _key = stringToASCII(entity.description);
           const _score = entity.score > 1 ? 0.99999 : entity.score;
 
-          const entityID = await tagController.insert({
-            _key: _key,
-            mid: entity.mid,
-            tag: entity.description,
-          });
+          try {
+            const entityID = await tagController.insert({
+              _key: _key,
+              mid: entity.mid,
+              tag: entity.description,
+            });
 
-          await tagOfController.insert({
-            _type: 'label',
-            _key: _key + imageKey,
-            _from: entityID,
-            _to: imageID,
-            _score: _score,
-          });
+            await tagOfController.insert({
+              _type: 'label',
+              _key: _key + imageKey,
+              _from: entityID,
+              _to: imageID,
+              _score: _score,
+            });
+          } catch (error: any) {
+            console.log('ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Entity:');
+            console.dir(entity, { depth: null });
+          }
         }
       }
     }
@@ -230,19 +246,24 @@ async function populateDB() {
           const _key = stringToASCII(label.description);
           const _score = label.score > 1 ? 0.99999 : label.score;
 
-          const labelID = await tagController.insert({
-            _key: _key,
-            mid: label.mid,
-            tag: label.description,
-          });
+          try {
+            const labelID = await tagController.insert({
+              _key: _key,
+              mid: label.mid,
+              tag: label.description,
+            });
 
-          await tagOfController.insert({
-            _type: 'label',
-            _key: _key + imageKey,
-            _from: labelID,
-            _to: imageID,
-            _score: _score,
-          });
+            await tagOfController.insert({
+              _type: 'label',
+              _key: _key + imageKey,
+              _from: labelID,
+              _to: imageID,
+              _score: _score,
+            });
+          } catch (error: any) {
+            console.log('ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Label:');
+            console.dir(label, { depth: null });
+          }
         }
       }
     }
@@ -266,20 +287,25 @@ async function populateDB() {
           const _score = visionColor.score;
           const _pixelFraction = visionColor.pixelFraction;
 
-          const colorID = await tagController.insert({
-            _key: _key,
-            hex: colorMatch.hex,
-            tag: colorName,
-          });
+          try {
+            const colorID = await tagController.insert({
+              _key: _key,
+              hex: colorMatch.hex,
+              tag: colorName,
+            });
 
-          await tagOfController.insert({
-            _type: 'label',
-            _key: _key + imageKey,
-            _from: colorID,
-            _to: imageID,
-            _score: _score,
-            _pixelFraction: _pixelFraction,
-          });
+            await tagOfController.insert({
+              _type: 'label',
+              _key: _key + imageKey,
+              _from: colorID,
+              _to: imageID,
+              _score: _score,
+              _pixelFraction: _pixelFraction,
+            });
+          } catch (error: any) {
+            console.log('ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Color:');
+            console.dir(colorMatch, { depth: null });
+          }
         }
       }
     }

@@ -16,17 +16,21 @@ import {
  * @returns {nodes, edges}
  */
 function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connection[] }, isSearchVisualization: boolean) {
-  let nodes: { id: string; label: string; color: string }[] = [];
-  let edges: { id: string; from: string; to: string; label?: string }[] = [];
+  const edgeColors = ['#241023', '#4464AD', '#DC0073', '#47A025', '#FF7700', '#6B0504'];
+  let nodes: { id: string; label: string; font: { color: string }; color: string }[] = [];
+  let edges: { id: string; from: string; to: string; label?: string; color?: string }[] = [];
 
   for (let i = 0; i < info.vertices.length; i++) {
     const vertice: Vertice = info.vertices[i];
-    nodes = nodes.concat([{ id: vertice._id, label: vertice.data!, color: vertice.color }]);
+    nodes = nodes.concat([{ id: vertice._id, label: vertice.data!, font: { color: 'white' }, color: vertice.color }]);
   }
 
   for (let j = 0; j < info.connections.length; j++) {
     const connect: Connection = info.connections[j];
-    nodes = nodes.concat([{ id: connect.i._id, label: connect.i._key, color: connect.i.color || '#399E5A' }]);
+    const edgeColor = edgeColors[j];
+    nodes = nodes.concat([
+      { id: connect.i._id, label: connect.i._key, font: { color: 'white' }, color: connect.i.color || '#422040' },
+    ]);
     for (let t = 0; t < connect.edges.length; t++) {
       const edge = connect.edges[t];
       edges = edges.concat([
@@ -35,6 +39,7 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
           from: edge._from,
           to: edge._to,
           label: isSearchVisualization ? String(edge._score.toFixed(2)) : undefined,
+          color: edgeColor,
         },
       ]);
     }
@@ -135,7 +140,7 @@ namespace SearchController {
       if (!imageID) {
         res.status(400).json('Missing image ID for image visualization.');
       } else {
-        data = await fetch_image_visualization([imageID], 4);
+        data = await fetch_image_visualization([imageID], 3);
       }
     } else if (visualizationType === 'search') {
       const keyword = req.body.keyword;

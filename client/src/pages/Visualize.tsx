@@ -54,7 +54,7 @@ const Visualize = (props: any) => {
         const nodeID = nodes[0];
         const type = nodeID.split('/')[0];
 
-        if (type === 'Tag' || type === 'Author') {
+        if (type === 'Tag' || type === 'Author' || type === 'BestGuess') {
           const tag = graph.nodes.find((node: any) => node.id === nodeID).label;
           setTagRedirect(tag);
         }

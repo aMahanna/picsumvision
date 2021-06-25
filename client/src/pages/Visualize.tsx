@@ -25,7 +25,7 @@ const options = {
       springLength: 300,
       springConstant: 0.01,
       damping: 0.3,
-      avoidOverlap: 0.5,
+      avoidOverlap: 1,
     },
     solver: 'barnesHut',
   },

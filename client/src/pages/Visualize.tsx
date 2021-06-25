@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
 import Graph from 'react-graph-vis';
-import { CircularProgress, Container } from '@material-ui/core';
+import { CircularProgress, Container, Box } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
 
 const options = {
@@ -22,10 +22,10 @@ const options = {
     enabled: true,
     barnesHut: {
       centralGravity: 0.01,
-      springLength: 250,
+      springLength: 300,
       springConstant: 0.01,
-      damping: 0.5,
-      avoidOverlap: 1,
+      damping: 0.3,
+      avoidOverlap: 0.5,
     },
     solver: 'barnesHut',
   },
@@ -126,7 +126,11 @@ const Visualize = (props: any) => {
       </h3>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
-      {graph.nodes.length !== 0 && <Graph graph={graph} options={options} events={events} style={{ border: 'solid', height: '80vh' }} />}
+      {graph.nodes.length !== 0 && (
+        <Box mb={5}>
+          <Graph graph={graph} options={options} events={events} style={{ border: 'solid', height: '80vh' }} />
+        </Box>
+      )}
     </Container>
   );
 };

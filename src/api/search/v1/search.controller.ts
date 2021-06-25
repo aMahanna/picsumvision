@@ -38,7 +38,7 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
           id: edge._id,
           from: edge._from,
           to: edge._to,
-          label: isSearchVisualization ? String(edge._score.toFixed(2)) : undefined,
+          label: isSearchVisualization ? `${edge._score.toFixed(2)}%` : undefined,
           color: edgeColor,
         },
       ]);

@@ -74,11 +74,11 @@ export async function fetch_surprise_tags(): Promise<string> {
   const maxResults = Math.floor(Math.random() * 3) + 1;
   const result = await (
     await db.query(aql`
-      With Tag, Author
+      With Tag
       FOR i IN Image
         SORT RAND()
         LIMIT 1
-        FOR v, e IN 1..1 INBOUND i TagOf, AuthorOf
+        FOR v, e IN 1..1 INBOUND i TagOf
           FILTER LOWER(v.tag) NOT IN ${ignoredwords}
           FILTER e._score >= 0.60
           SORT RAND()

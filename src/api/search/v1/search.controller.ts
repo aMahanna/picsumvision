@@ -140,7 +140,7 @@ namespace SearchController {
       if (!imageID) {
         res.status(400).json('Missing image ID for image visualization.');
       } else {
-        data = await fetch_image_visualization([imageID], 3);
+        data = await fetch_image_visualization([imageID], 6);
       }
     } else if (visualizationType === 'search') {
       const keyword = req.body.keyword;

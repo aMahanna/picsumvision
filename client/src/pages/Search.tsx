@@ -115,13 +115,13 @@ const Search = (props: any) => {
       setSearchResult(persistedData[index].data);
       setLastSearch(index);
     } else {
-      const isURL = isURLImageInput(input);
-      const uri = isURL ? `/api/search/url?url=${input}` : `/api/search/keyword?keyword=${input}`;
+      const isImageURL = await isValidURL(input);
+      const uri = isImageURL ? `/api/search/url?url=${input}` : `/api/search/keyword?keyword=${input}`;
       const response = await fetch(uri);
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        updateCache(input, isURL ? result.tags : index, result.data);
+        updateCache(input, isImageURL ? result.tags : index, result.data);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -221,22 +221,17 @@ const Search = (props: any) => {
   };
 
   /**
-   * Returns whether the string is a url or not
-   * - Removes the query parameter when comparing for easier Regex matching
+   * Returns whether the string is an image url or not
    * @param inputAttempt The url attempt
    * @returns boolean
    */
-  const isURLImageInput = (inputAttempt: string) => {
-    const pattern = new RegExp(
-      '^(https?:\\/\\/)?' + // protocol
-        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-        '(\\#[-a-z\\d_]*)?$',
-      'i',
-    ); // fragment locator
-    return pattern.test(inputAttempt.split('?')[0]);
+  const isValidURL = (inputAttempt: string): Promise<boolean> => {
+    return new Promise(resolve => {
+      const image = new Image();
+      image.onload = () => resolve(true);
+      image.onerror = () => resolve(false);
+      image.src = inputAttempt;
+    });
   };
 
   return (

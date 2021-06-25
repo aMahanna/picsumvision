@@ -1,9 +1,5 @@
 /**
  * @file Calls the Vision API for a provided url
- * Currently supported features:
- * - LABEL_DETECTION
- * - OBJECT_LOCALIZATION
- * - WEB_DETECTION
  */
 
 import fetch from 'node-fetch';
@@ -19,46 +15,35 @@ if (process.env.NODE_ENV !== 'production') {
  * @returns An object containing the compiled metadata
  */
 export default async function fetchVisionMetadata(url: string): Promise<VisionResult> {
-  const maxResults = 4; // The maximum number of results to get for each feature type
   const uri = 'https://vision.googleapis.com/v1/images:annotate?' + 'key=' + process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const body = {
     requests: [
       {
         features: [
           {
-            maxResults,
+            maxResults: 50,
             type: 'LABEL_DETECTION',
           },
           {
-            maxResults,
+            maxResults: 50,
+            type: 'WEB_DETECTION',
+          },
+          {
+            maxResults: 50,
             type: 'OBJECT_LOCALIZATION',
           },
           {
-            maxResults,
-            type: 'WEB_DETECTION',
+            maxResults: 50,
+            type: 'LANDMARK_DETECTION',
           },
-          /**
-           * @todo Prepare ArangoDB for the rest of these features:
-           */
+          {
+            maxResults: 5,
+            type: 'IMAGE_PROPERTIES',
+          },
+          /** @todo - Maybe what's next.. */
           // {
-          //   maxResults,
-          //   type: 'IMAGE_PROPERTIES',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'LANDMARK_DETECTION',
-          // },
-          // {
-          //   maxResults,
+          //   maxResults: 10,
           //   type: 'FACE_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   type: 'SAFE_SEARCH_DETECTION',
-          // },
-          // {
-          //   maxResults,
-          //   typeclear: 'LOGO_DETECTION',
           // },
           // {
           //   maxResults,
@@ -86,3 +71,12 @@ export default async function fetchVisionMetadata(url: string): Promise<VisionRe
   // Return undefined if no data was found
   return !result || Object.keys(result[0]).length === 0 ? undefined : result[0];
 }
+
+/**
+ * @todo - remove
+ * A small function to mess around with the Vision API
+ */
+// (async () => {
+//   const visionData = await fetchVisionMetadata('https://picsum.photos/id/900/2173/1449');
+//   console.dir(visionData, { depth: null });
+// })();

@@ -3,24 +3,24 @@
  * Current collections tested:
  * - Image
  * - Author & AuthorOf
- * - Label & LabelOf
+ * - Tag & TagOf
  * - BestGuess & BestGuessOf
  */
 
 import db from '../database';
 
-import { imageObject } from '../collections/Image';
-import { authorObject, authorOfObject } from '../collections/Author';
-import { labelObject, labelOfObject } from '../collections/Label';
-import { bestGuessObject, bestGuessOfObject } from '../collections/BestGuess';
+import { imageController } from '../collections/Image';
+import { authorController, authorOfController } from '../collections/Author';
+import { tagController, tagOfController } from '../collections/Tag';
+import { bestGuessController, bestGuessOfController } from '../collections/BestGuess';
 
-import { image, author, authorOf, label, labelOf, bestGuess, bestGuessOf } from '../assets/spec/sampleCRUDData';
+import { image, author, authorOf, tag, tagOf, bestGuess, bestGuessOf } from '../assets/spec/sampleCRUDData';
 
-const ImageCollection = db.collection('Images');
-const AuthorCollection = db.collection('Authors');
+const ImageCollection = db.collection('Image');
+const AuthorCollection = db.collection('Author');
 const AuthorOfCollection = db.collection('AuthorOf');
-const LabelCollection = db.collection('Labels');
-const LabelOfCollection = db.collection('LabelOf');
+const TagCollection = db.collection('Tag');
+const TagOfCollection = db.collection('TagOf');
 const BestGuessCollection = db.collection('BestGuess');
 const BestGuessOfCollection = db.collection('BestGuessOf');
 
@@ -29,11 +29,11 @@ test('confirm database connection', async () => {
 });
 
 test('perform basic insert/delete for the Image collections', async () => {
-  await imageObject.insertImage(image);
+  await imageController.insert(image);
   const imageDoc = await ImageCollection.document(image._key, true);
   expect(imageDoc._key).toBe(image._key);
 
-  const imageInsert = await imageObject.insertImage(image);
+  const imageInsert = await imageController.insert(image);
   expect(imageInsert.alreadyExists).toBe(true);
 
   await ImageCollection.remove(image._key, { silent: true });
@@ -41,15 +41,15 @@ test('perform basic insert/delete for the Image collections', async () => {
 });
 
 test('should perform basic insert/delete for the Author & AuthorOf collections', async () => {
-  await authorObject.insertAuthor(author);
+  await authorController.insert(author);
   const authorDoc = await AuthorCollection.document(author._key);
   expect(authorDoc._key).toBe(author._key);
-  expect(authorDoc.name).toBe('John Doe');
+  expect(authorDoc.author).toBe('John Doe');
 
-  const authorAlreadyExists = await authorObject.insertAuthor(author);
-  expect(authorAlreadyExists).toBe(`Authors/${author._key}`);
+  const authorAlreadyExists = await authorController.insert(author);
+  expect(authorAlreadyExists).toBe(`Author/${author._key}`);
 
-  await authorOfObject.insertAuthorOf(authorOf);
+  await authorOfController.insert(authorOf);
   const authorOfDoc = await AuthorOfCollection.document(authorOf._key);
   expect(authorOfDoc._key).toBe(authorOf._key);
   expect(authorOfDoc._score).toBe(1);
@@ -58,36 +58,36 @@ test('should perform basic insert/delete for the Author & AuthorOf collections',
   await AuthorOfCollection.remove(authorOf._key, { silent: true });
 });
 
-test('perform basic insert/delete for the Label & LabelOf collections', async () => {
-  await labelObject.insertLabel(label);
-  const labelDoc = await LabelCollection.document(label._key);
-  expect(labelDoc._key).toBe(label._key);
+test('perform basic insert/delete for the Tag & TagOf collections', async () => {
+  await tagController.insert(tag);
+  const tagDoc = await TagCollection.document(tag._key);
+  expect(tagDoc._key).toBe(tag._key);
   //expect(labelDoc.data.split(' ')).toContain('calculator');
 
-  const labelAlreadyExists = await labelObject.insertLabel(label);
-  expect(labelAlreadyExists).toBe(`Labels/${label._key}`);
+  const tagAlreadyExists = await tagController.insert(tag);
+  expect(tagAlreadyExists).toBe(`Tag/${tag._key}`);
 
-  await labelOfObject.insertLabelOf(labelOf);
-  const labelOfDoc = await LabelOfCollection.document(labelOf._key);
-  expect(labelOfDoc._key).toBe(labelOf._key);
+  await tagOfController.insert(tagOf);
+  const tagOfDoc = await TagOfCollection.document(tagOf._key);
+  expect(tagOfDoc._key).toBe(tagOf._key);
 
-  await LabelCollection.remove(label._key, { silent: true });
-  await LabelOfCollection.remove(labelOf._key, { silent: true });
+  await TagCollection.remove(tag._key, { silent: true });
+  await TagOfCollection.remove(tagOf._key, { silent: true });
 
-  expect(await LabelCollection.documentExists(label._key)).toBe(false);
-  expect(await LabelOfCollection.documentExists(labelOf._key)).toBe(false);
+  expect(await TagCollection.documentExists(tag._key)).toBe(false);
+  expect(await TagOfCollection.documentExists(tagOf._key)).toBe(false);
 });
 
 test('perform basic insert/delete for the BestGuess & BestGuessOf collections', async () => {
-  await bestGuessObject.insertBestGuess(bestGuess);
+  await bestGuessController.insert(bestGuess);
   const bestGuessDoc = await BestGuessCollection.document(bestGuess._key);
   expect(bestGuessDoc._key).toBe(bestGuess._key);
   expect(bestGuess.bestGuess).toBe('A puppy sitting on grass');
 
-  const bestGuessAlreadyExists = await bestGuessObject.insertBestGuess(bestGuess);
+  const bestGuessAlreadyExists = await bestGuessController.insert(bestGuess);
   expect(bestGuessAlreadyExists).toBe(`BestGuess/${bestGuess._key}`);
 
-  await bestGuessOfObject.insertBestGuessOf(bestGuessOf);
+  await bestGuessOfController.insert(bestGuessOf);
   const bestGuessOfDoc = await BestGuessOfCollection.document(bestGuessOf._key);
   expect(bestGuessOfDoc._key).toBe(bestGuessOfDoc._key);
 

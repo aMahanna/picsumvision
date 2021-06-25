@@ -20,7 +20,7 @@
       "info": "Powered by Lorem Picsum, Google Vision, and ArangoDB.",
       "images": " viewable images",
       "authors": " distinguished authors",
-      "labels": " searchable labels",
+      "tags": " searchable tags",
       "guesses": " best guesses",
       "edges": " connecting edges"
     },
@@ -58,12 +58,14 @@
       "heading": "About "
     },
     "infoPage": {
+      "tags": "Tags",
       "visualize": "Visualize",
       "visualizeTip": "Visualize similar images as a graph"
     },
     "visualizerPage": {
       "search": "Search: ",
-      "image": "Image: "
+      "image": "Image: ",
+      "interact": "Double click on a node to see related results."
     }
   }
 }

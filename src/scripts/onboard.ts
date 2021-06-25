@@ -55,10 +55,10 @@ async function onboardDB() {
   await searchView.updateProperties({
     links: {
       // Connect the Author vertices to the View
-      Authors: {
+      Author: {
         analyzers: ['identity'], // Set default analyzer for fields not defined below
         fields: {
-          name: {
+          author: {
             analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },
         },
@@ -66,11 +66,11 @@ async function onboardDB() {
         storeValues: 'none',
         trackListPositions: false,
       },
-      // Connect the Label vertices to the View
-      Labels: {
+      // Connect the Tag vertices to the View
+      Tag: {
         analyzers: ['identity'],
         fields: {
-          label: {
+          tag: {
             analyzers: ['text_en_stopwords', 'norm_accent_lower', 'text_en'],
           },
           data: {

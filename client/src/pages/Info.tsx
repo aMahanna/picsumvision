@@ -2,18 +2,37 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container, Box, ImageList, ImageListItem, Tooltip, Button } from '@material-ui/core';
+import { withStyles } from '@material-ui/core/styles';
+import {
+  Container,
+  Box,
+  ImageList,
+  ImageListItem,
+  Tooltip,
+  Button,
+  Accordion,
+  AccordionSummary as MuiAccordionSummary,
+  AccordionDetails,
+} from '@material-ui/core';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 // Import hooks
 import usePersistedState from '../hooks/usePersistedState';
+
+const AccordionSummary = withStyles({
+  content: {
+    flexGrow: 0,
+  },
+})(MuiAccordionSummary);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Info = (props: any) => {
   const [t] = useTranslation();
+
   const [id] = useState(props.match.params.id);
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
   const [bestGuess, setBestGuess] = useState([]);
-  const [labels, setLabels] = useState([]);
+  const [tags, setTags] = useState([]);
   const [similar, setSimilar] = useState([]);
 
   const [imageIDs, setImageIDs] = usePersistedState('clicks', {}); // Persist user clicks to use for Discovery searches
@@ -32,7 +51,7 @@ const Info = (props: any) => {
           setURL(result.data.image.url);
           setAuthor(result.data.image.author);
           setBestGuess(result.data.bestGuess);
-          setLabels(result.data.labels);
+          setTags(result.data.tags);
           setSimilar(result.data.similar);
 
           setImageIDs({
@@ -64,14 +83,22 @@ const Info = (props: any) => {
               <h4>{`« ${guess} »`}</h4>
             </div>
           ))}
-        {labels.length !== 0 &&
-          labels.map((label: { label: string; score: number }) => (
-            <Box key={label.label} mt={1}>
-              <span>
-                <b>{label.label}</b>: {label.score.toFixed(2)}%
-              </span>
-            </Box>
-          ))}
+        {tags.length !== 0 && (
+          <Container maxWidth="sm">
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>{t('infoPage.tags')}</AccordionSummary>
+              <AccordionDetails>
+                {tags.map((tag: { tag: string; score: number }) => (
+                  <Box key={tag.tag} mt={1}>
+                    <span>
+                      <b>{tag.tag}</b>: {tag.score.toFixed(2)}%
+                    </span>
+                  </Box>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          </Container>
+        )}
         {similar !== undefined && similar.length !== 0 && (
           <Container maxWidth="sm">
             <Box mt={4}>

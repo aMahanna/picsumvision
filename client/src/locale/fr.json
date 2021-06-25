@@ -20,7 +20,7 @@
       "info": "Propulsé par Lorem Picsum, Google Vision et ArangoDB.",
       "images": " images visibles",
       "authors": " auteurs distingués",
-      "labels": " étiquettes recherchables",
+      "tags": " étiquettes recherchables",
       "guesses": " meilleures suppositions",
       "edges": " arêtes de connexion"
     },
@@ -56,9 +56,15 @@
     "aboutPage": {
       "heading": "About"
     },
+    "infoPage": {
+      "tags": "Étiquettes",
+      "visualize": "Visualizer",
+      "visualizeTip": "Visualizer les images similaires sous forme de graphique"
+    },
     "visualizerPage": {
       "search": "Recherche: ",
-      "image": "Image: "
+      "image": "Image: ",
+      "interact": "Double-cliquez sur un sommet pour voir les résultats associés."
     }
   }
 }

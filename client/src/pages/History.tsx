@@ -7,22 +7,22 @@ import getPersistedState from '../hooks/getPersistedState';
 
 const History = () => {
   const [t, i18n] = useTranslation();
-  const [makeHistory, setMakeHistory] = useState(''); // Provide some random labels for a quick search
+  const [makeHistory, setMakeHistory] = useState(''); // Provide some random tags for a quick search
 
   const [history] = getPersistedState('data');
   const [favourites] = getPersistedState('favourites');
   const [imageClicks] = getPersistedState('clicks');
 
   /**
-   * @useEffect Sets some random labels for a quick search
+   * @useEffect Sets some random tags for a quick search
    * (if user has no history)
    */
   useEffect(() => {
     if (!history) {
-      fetch('/api/info/randomkeys')
+      fetch('/api/info/randomtags')
         .then(result => result.json())
         .then(response => {
-          setMakeHistory(response.labels);
+          setMakeHistory(response.tags);
         });
     }
   }, [history]);
@@ -58,7 +58,7 @@ const History = () => {
         <TableCell align="center">{results}</TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
         <TableCell align="center" className="search">
-          <Link to={{ pathname: '/search', state: { fromHistory: key } }}>{t('historyPage.view')}</Link>
+          <Link to={{ pathname: '/search', state: { fromRedirect: key } }}>{t('historyPage.view')}</Link>
         </TableCell>
       </TableRow>
     );
@@ -104,7 +104,7 @@ const History = () => {
     <Container component="main" maxWidth="md">
       {!history && (
         <div className="search">
-          <Link to={{ pathname: '/search', state: { fromHistory: makeHistory } }}>{t('historyPage.makehistory')}</Link>
+          <Link to={{ pathname: '/search', state: { fromRedirect: makeHistory } }}>{t('historyPage.makehistory')}</Link>
         </div>
       )}
       {(history || favourites || imageClicks) && (

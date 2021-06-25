@@ -28,7 +28,7 @@ test('confirm database connection', async () => {
   expect(await db.exists()).toBe(true);
 });
 
-test('perform basic insert/delete for the Image collections', async () => {
+test('perform basic insert/delete for the Image collection', async () => {
   await imageController.insert(image);
   const imageDoc = await ImageCollection.document(image._key, true);
   expect(imageDoc._key).toBe(image._key);

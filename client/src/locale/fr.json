@@ -63,7 +63,6 @@
     },
     "visualizerPage": {
       "search": "Recherche: ",
-      "image": "Image: ",
       "interact": "Double-cliquez sur un sommet pour voir les résultats associés."
     }
   }

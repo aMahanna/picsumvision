@@ -27,7 +27,7 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
 
   for (let j = 0; j < info.connections.length; j++) {
     const connect: Connection = info.connections[j];
-    const edgeColor = edgeColors[j];
+    const edgeColor = edgeColors[j % 6];
     nodes = nodes.concat([
       { id: connect.i._id, label: connect.i._key, font: { color: 'white' }, color: connect.i.color || '#422040' },
     ]);
@@ -140,7 +140,7 @@ namespace SearchController {
       if (!imageID) {
         res.status(400).json('Missing image ID for image visualization.');
       } else {
-        data = await fetch_image_visualization([imageID], 6);
+        data = await fetch_image_visualization(imageID, 6);
       }
     } else if (visualizationType === 'search') {
       const keyword = req.body.keyword;

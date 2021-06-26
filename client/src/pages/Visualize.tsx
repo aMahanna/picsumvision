@@ -20,13 +20,7 @@ const options = {
   },
   physics: {
     enabled: true,
-    barnesHut: {
-      centralGravity: 0.01,
-      springLength: 300,
-      springConstant: 0.01,
-      damping: 0.3,
-      avoidOverlap: 1,
-    },
+    barnesHut: {},
     solver: 'barnesHut',
   },
 };
@@ -49,12 +43,13 @@ const Visualize = (props: any) => {
   });
 
   const events = {
-    doubleClick: ({ nodes }: { nodes: any }) => {
+    doubleClick: ({ nodes }: { nodes: string[] }) => {
       if (nodes.length === 1) {
         const nodeID = nodes[0];
         const type = nodeID.split('/')[0];
 
         if (type === 'Tag' || type === 'Author' || type === 'BestGuess') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const tag = graph.nodes.find((node: any) => node.id === nodeID).label;
           setTagRedirect(tag);
         }
@@ -83,8 +78,8 @@ const Visualize = (props: any) => {
    * - Updates the state of the graph with the endpoint's response
    */
   useEffect(() => {
-    const isSearch = visualizationType === 'search';
-    if (isSearch && (lastSearch === '' || !persistedData[lastSearch])) {
+    const isImageVisualization = visualizationType === 'image';
+    if (!isImageVisualization && (lastSearch === '' || !persistedData[lastSearch])) {
       props.history.push('/');
       return;
     }
@@ -92,9 +87,9 @@ const Visualize = (props: any) => {
     fetch(`/api/search/visualize?type=${visualizationType}`, {
       method: 'POST',
       body: JSON.stringify({
-        imageID: isSearch ? undefined : props.match.params.id,
-        keyword: isSearch ? lastSearch : undefined,
-        lastSearchResult: isSearch ? persistedData[lastSearch].data : undefined,
+        imageID: isImageVisualization ? props.match.params.id.split(',') : undefined,
+        keyword: isImageVisualization ? undefined : lastSearch,
+        lastSearchResult: isImageVisualization ? undefined : persistedData[lastSearch].data,
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -105,6 +100,14 @@ const Visualize = (props: any) => {
         if (response) {
           const nodes: { id: string; label: string; color: string }[] = response.graphObject.nodes;
           const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
+          options.physics.barnesHut = {
+            centralGravity: 0,
+            springLength: 10 * nodes.length,
+            springConstant: 0.5 / nodes.length,
+            damping: 1,
+            avoidOverlap: 0.75,
+          };
+
           setGraph({
             nodes,
             edges,
@@ -121,8 +124,8 @@ const Visualize = (props: any) => {
       {tagRedirect !== '' && <Redirect to={{ pathname: '/search', state: { fromRedirect: tagRedirect } }} />}
       <h3>
         {visualizationType === 'search'
-          ? `${t('visualizerPage.search')} "${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
-          : `${t('visualizerPage.image')} #${props.match.params.id}`}
+          ? `"${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
+          : `${props.match.params.id}`}
       </h3>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}

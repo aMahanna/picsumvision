@@ -51,6 +51,7 @@ const Search = (props: any) => {
   const [inputPlaceholder, setInputPlaceholder] = useState(''); // The placeholder of the search bar
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isDiscoveryMode, setIsDiscoveryMode] = useState(false); // When a user clicks on "Discover"
   const [suggestInput, setSuggestInput] = useState(false); // Opens an alert to suggest a search topic
   const [frenchWarning, setFrenchWarning] = useState(true); // Opens an alert to warn about french searching
   const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
@@ -106,6 +107,7 @@ const Search = (props: any) => {
   const query = async (forceInput?: string) => {
     setIsLoading(true);
     setResultIsEmpty(false);
+    setIsDiscoveryMode(false);
 
     const input: string = (forceInput || textFieldInput).trim();
     const index: string = input.split(' ').sort().join(' ').toLowerCase(); // For indexing the client-cache
@@ -139,6 +141,7 @@ const Search = (props: any) => {
   const surpriseMe = async () => {
     setIsLoading(true);
     setResultIsEmpty(false);
+    setIsDiscoveryMode(false);
 
     const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
@@ -173,7 +176,8 @@ const Search = (props: any) => {
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        setTextFieldInput(t('searchPage.discoverInput'));
+        setTextFieldInput('');
+        setIsDiscoveryMode(true);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -187,6 +191,7 @@ const Search = (props: any) => {
   // Fetches random tags to user for search inspiration
   const suggestUser = async () => {
     setIsLoading(true);
+    setIsDiscoveryMode(false);
 
     const response = await fetch('/api/info/randomtags');
     if (response.status === 200) {
@@ -277,7 +282,12 @@ const Search = (props: any) => {
               </Tooltip>
               <Tooltip title={`${t('searchPage.visualizeTip')}`} placement="right">
                 <span className={classes.button}>
-                  <Button id="search-surprise" to="/visualize" component={Link} disabled={lastSearch === ''}>
+                  <Button
+                    id="search-surprise"
+                    to={isDiscoveryMode && imageClicks ? `/visualize/${imageClicks.map(elem => Object.keys(elem)[0])}` : `/visualize`}
+                    component={Link}
+                    disabled={lastSearch === ''}
+                  >
                     {t('searchPage.visualize')}
                   </Button>
                 </span>

@@ -79,7 +79,7 @@ test('Visualize image results', async () => {
 
   const resImage = await request
     .post('/api/search/visualize?type=image')
-    .send({ imageID: '1' })
+    .send({ imageID: ['1'] })
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/);
   expect(resImage.status).toBe(200);

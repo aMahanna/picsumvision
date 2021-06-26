@@ -20,13 +20,7 @@ const options = {
   },
   physics: {
     enabled: true,
-    barnesHut: {
-      centralGravity: 0,
-      springLength: 300,
-      springConstant: 0.01,
-      damping: 1,
-      avoidOverlap: 1,
-    },
+    barnesHut: {},
     solver: 'barnesHut',
   },
 };
@@ -106,17 +100,13 @@ const Visualize = (props: any) => {
         if (response) {
           const nodes: { id: string; label: string; color: string }[] = response.graphObject.nodes;
           const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
-
-          if (isImageVisualization) {
-            const numImages: number = props.match.params.id.split(',').length;
-            options.physics.barnesHut = {
-              centralGravity: 0,
-              springLength: 300 * numImages,
-              springConstant: 0.01 / numImages,
-              damping: 1,
-              avoidOverlap: 1,
-            };
-          }
+          options.physics.barnesHut = {
+            centralGravity: 0,
+            springLength: 10 * nodes.length,
+            springConstant: 0.5 / nodes.length,
+            damping: 1,
+            avoidOverlap: 0.75,
+          };
 
           setGraph({
             nodes,

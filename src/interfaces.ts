@@ -4,6 +4,8 @@
  * @interface Connection represents an Image, and its Edge links to tags or an author
  * @interface VisionResult represents the metadata structure returned by the Vision API
  * @interface VisionAnnotation represents certain metadata objects returned by the Vision API
+ * @interface AbstractImage represents the Image structure required to be passed to the populateDB function
+ * @interface PicsumImage represents the Image structure returned by Lorem Picsum Photos
  * @interface ArangoImage represents the Image structure stored in Arango
  * @interface ArangoImageInfo represents the result of an Image Info query
  */
@@ -60,6 +62,12 @@ export interface VisionColor {
   color: { red: number; green: number; blue: number };
   score: number;
   pixelFraction: number;
+}
+
+export interface AbstractImage {
+  id: string; // An Image ID
+  author: string; // An Image author
+  url: string; // Image original URL (source site)
 }
 
 export interface PicsumImage {

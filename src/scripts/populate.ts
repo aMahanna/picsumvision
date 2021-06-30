@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * @file A script to populare the database
+ * A script to populare the database
  *
- * - Fetches the ~990 Picsum images
- * - Calls the Vision API for each image to create its metadata
- * - Inserts the image as well as author & tags documents / edges into ArrangoDB
- * - Prints a success message on every iteration if all data is inserted
+ * For any image datset provided:
+ *    - Calls the Vision API for each image to create its metadata
+ *    - Inserts the image as well as author & tag documents / edges into ArrangoDB
+ *    - Prints a success message on every iteration if all data is inserted
  */
 
 import '../database';
@@ -16,7 +16,7 @@ import colornamer from 'color-namer';
 // Import the Vision API
 import fetchVisionMetadata from '../vision';
 // Import the interfaces used
-import { PicsumImage } from '../interfaces';
+import { AbstractImage, PicsumImage } from '../interfaces';
 
 // Import the current ArangoDB Collections in-use
 import { imageController } from '../collections/Image';
@@ -48,42 +48,32 @@ function stringToASCII(data: string): string {
 }
 
 /**
- * @method handles DB data insertion
- * - Fetches all ~990 Picsum Images
- * - Calls the Vision API on each one of them to create metadata
- * - Parse through the metadata and insert correspondingly in ArangoDB
+ * Populates the ArangoDB with a set of images that fit the @interface AbstractImage structure
+ *
+ * For each Image:
+ *  - Call the Vision API to fetch image classification metadata
+ *  - Insert image into Image collection
+ *  - Insert author relationship into Author & AuthorOf colletions
+ *  - Insert Google Vision metadata into Tag & TagOf collections
+ *
+ * @param imageDataset An abstract set of images
  */
-async function populateDB() {
-  const limit = 100; // The number of images to return per page (max 100)
-
-  let PICSUM_LIST: PicsumImage[] = [];
-  let PICSUM_RESULT: PicsumImage[] = [];
-  let pageCount = 1;
-  do {
-    const PICSUM_RESPONSE = await fetch(`https://picsum.photos/v2/list?page=${pageCount}&limit=${limit}`);
-    PICSUM_RESULT = await PICSUM_RESPONSE.json();
-
-    PICSUM_LIST = PICSUM_LIST.concat(PICSUM_RESULT);
-    pageCount++;
-  } while (PICSUM_RESULT.length !== 0); /** @attention Remove `&& pageCount !== 2` to get all +990 images */
-
-  console.log(`Generating metadata for ${PICSUM_LIST.length} images. Please standby...`);
-  for (const PICSUM_IMAGE of PICSUM_LIST) {
-    const PICSUM_URL = PICSUM_IMAGE.download_url;
-
+async function populateDB(imageDataset: AbstractImage[]) {
+  console.log(`Generating metadata for ${imageDataset.length} images. Please standby...`);
+  for (const image of imageDataset) {
     /**
      * @Image Collection Insertion Logic
      */
-    const image = await imageController.insert({
-      _key: String(PICSUM_IMAGE.id),
-      author: PICSUM_IMAGE.author,
-      url: PICSUM_URL,
+    const imageInsertResult = await imageController.insert({
+      _key: image.id,
+      author: image.author,
+      url: image.url,
       date: Date(),
     });
 
-    const imageID = image.id;
-    const imageKey = image.id.split('/')[1];
-    if (image.alreadyExists) {
+    const imageID = imageInsertResult.id;
+    const imageKey = imageInsertResult.id.split('/')[1];
+    if (imageInsertResult.alreadyExists) {
       console.log(`Duplicate image: ${imageID}, skipping...`);
       continue; // Skip the image if it is already inserted
     }
@@ -91,7 +81,7 @@ async function populateDB() {
     /**
      * @GoogleVision Metadata Generation Logic
      */
-    const VISION_DATA = await fetchVisionMetadata(PICSUM_URL);
+    const VISION_DATA = await fetchVisionMetadata(image.url);
     if (!VISION_DATA || VISION_DATA.error) {
       await imageController.remove(imageID);
       console.log('Vision uncooperative, skipping...', VISION_DATA?.error);
@@ -101,10 +91,10 @@ async function populateDB() {
     /**
      * @Author & @AuthorOf Collection Insertion Logic
      */
-    if (PICSUM_IMAGE.author) {
+    if (image.author) {
       const authorID = await authorController.insert({
-        _key: stringToASCII(PICSUM_IMAGE.author),
-        author: PICSUM_IMAGE.author,
+        _key: stringToASCII(image.author),
+        author: image.author,
       });
 
       await authorOfController.insert({
@@ -316,4 +306,44 @@ async function populateDB() {
   console.log('Success: Populating DB complete.');
 }
 
-populateDB();
+async function fetchLoremPicsumImages(): Promise<AbstractImage[]> {
+  const limit = 1; // The number of images to return per page (max 100)
+
+  const dataset: AbstractImage[] = [];
+  let picsumResult: PicsumImage[] = [];
+  let pageCount = 1;
+  do {
+    const picsumResponse = await fetch(`https://picsum.photos/v2/list?page=${pageCount}&limit=${limit}`);
+    picsumResult = await picsumResponse.json();
+
+    for (const picsumImage of picsumResult) {
+      dataset.push({
+        id: String(picsumImage.id),
+        author: picsumImage.author,
+        url: picsumImage.download_url,
+      });
+    }
+
+    pageCount++;
+  } while (picsumResult.length !== 0 && pageCount !== 2); /** @attention Remove `&& pageCount !== 2` to get all +990 images */
+
+  return dataset;
+}
+
+/**
+ * Fetches an image dataset from a source, then calls populateDB() for that dataset.
+ *
+ * Currently supported Image sources:
+ *  1. Lorem Picsum Photos (https://picsum.photos/)
+ *
+ * Future supported Image sources:
+ *  1. Unsplash (https://unsplash.com/)
+ */
+async function main() {
+  const picsumDataset: AbstractImage[] = await fetchLoremPicsumImages();
+  // const unsplashDataset : AbstractImage[] = await fetchUnsplashImages();
+
+  await populateDB(picsumDataset); // Populate the database for any support image dataset
+}
+
+main();

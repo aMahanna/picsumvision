@@ -147,7 +147,8 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
                 LIMIT ${maxResults}
                 RETURN img
       )
-      // LET intersectMatches = (
+      // (This is still a Work in Progress)
+      // LET intersectMatches = ( 
       //   FOR i IN Image
       //     FILTER i._key IN ${clickedImages}
       //     FOR v1, e1 IN 1..1 INBOUND i TagOf
@@ -161,6 +162,7 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
       //         LIMIT 2
       //         RETURN img
       // )
+      // (This is still a Work in Progress)
       // LET nearbyImages = (
       //   FOR i IN Image
       //     FILTER i._key IN ${clickedImages}
@@ -172,12 +174,11 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
       //         FOR v2, e2 IN 1..1 INBOUND i2 TagOf
       //             FILTER e2._type == 'landmark' AND v2._key NOT IN ${clickedImages}
       //             LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
-      //             FILTER dist <= 100000
-      //             SORT dist
+      //             FILTER dist <= 10000
+      //             SORT dist ASC
       //             LIMIT 2
       //             RETURN i2
       // )
-      //RETURN APPEND(APPEND(commonMatches, intersectMatches, true), nearbyImages, true)
       RETURN commonMatches
     `)
   ).all();

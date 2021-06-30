@@ -83,7 +83,7 @@ export async function fetch_surprise_tags(): Promise<string> {
           FILTER e._score >= 0.60
           SORT RAND()
           LIMIT ${maxResults}
-          RETURN v.tag OR v.author
+          RETURN v.tag
     `)
   ).all();
 

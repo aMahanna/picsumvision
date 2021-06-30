@@ -307,7 +307,7 @@ async function populateDB(imageDataset: AbstractImage[]) {
 }
 
 async function fetchLoremPicsumImages(): Promise<AbstractImage[]> {
-  const limit = 1; // The number of images to return per page (max 100)
+  const limit = 100; // The number of images to return per page (max 100)
 
   const dataset: AbstractImage[] = [];
   let picsumResult: PicsumImage[] = [];

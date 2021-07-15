@@ -11,6 +11,9 @@ const options = {
   },
   nodes: {
     shape: 'circle',
+    widthConstraint: {
+      maximum: 140,
+    },
   },
   interaction: {
     hover: true,
@@ -102,8 +105,8 @@ const Visualize = (props: any) => {
           const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
           options.physics.barnesHut = {
             centralGravity: 0,
-            springLength: 10 * nodes.length,
-            springConstant: 0.5 / nodes.length,
+            springLength: 15 * nodes.length,
+            springConstant: 0.1 / nodes.length,
             damping: 1,
             avoidOverlap: 0.75,
           };

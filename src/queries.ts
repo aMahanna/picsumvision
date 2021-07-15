@@ -23,36 +23,36 @@ import ignoredwords from './assets/misc/ignoredwords';
 export async function fetch_images(keyword: string): Promise<ArangoImage[]> {
   const matches = await (
     await db.query(aql`
-      WITH Image, Author, Tag, BestGuess
-      LET normTokens = TOKENS(${keyword}, 'norm_accent_lower')[0]
-      LET textTokens = TOKENS(${keyword}, 'text_en_stopwords')
+      WITH Image, Author, Tag, BestGuess                            // Import Required Collections
+      LET normTokens = TOKENS(${keyword}, 'norm_accent_lower')[0]   // Tokenize user input for exact matching
+      LET textTokens = TOKENS(${keyword}, 'text_en_stopwords')      // Tokenize user input for close matching
       LET exactMatches = (
-        FOR doc IN searchview
-          SEARCH ANALYZER(
-            doc.tag == normTokens ||
-            doc.bestGuess == normTokens ||
-            doc.author == normTokens
+        FOR doc IN searchview                                       // Iterate through View documents
+          SEARCH ANALYZER(                                          // Search with an overrided analyzer
+            doc.tag == normTokens ||                                // Search for exact Tag matches 
+            doc.bestGuess == normTokens ||                          // Search for exact BestGuess matches 
+            doc.author == normTokens                                // Search for exact Author matches 
           , 'norm_accent_lower')
-          FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
+          FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' } // For each View document found, perform a Graph Traversal
             SORT e._score DESC
             LIMIT 10
-            RETURN DISTINCT v
+            RETURN DISTINCT v                                       // Return the images with the highest confidence scores
       )
       LET closeMatches = (
-        FOR doc IN searchview 
-          SEARCH ANALYZER(
-            BOOST(doc.bestGuess IN textTokens, 2) ||
-            BOOST(doc.tag IN textTokens, 3) ||
-            BOOST(doc.author IN textTokens, 4)
+        FOR doc IN searchview                                       // Iterate through View documents
+          SEARCH ANALYZER(                                          // Search with the text_en analyzer
+            BOOST(doc.bestGuess IN textTokens, 2) ||                // Boost by 2 if match is a bestGuess
+            BOOST(doc.tag IN textTokens, 3) ||                      // Boost by 3 if match is a Tag
+            BOOST(doc.author IN textTokens, 4)                      // Boost by 4 if match is an Author
           , 'text_en') 
-          SORT BM25(doc, 2.4, 1) DESC
-          FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            FILTER v NOT IN exactMatches
-            SORT  e._score DESC
-            COLLECT img = v WITH COUNT INTO num
+          SORT BM25(doc, 2.4, 1) DESC                               // Sort by BM25 Ranking Function
+          FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' } // For each View document, perform a Graph Traversal
+            FILTER v NOT IN exactMatches                            // Skip images already found
+            SORT  e._score DESC                                     // Sort results by confidence score
+            COLLECT img = v WITH COUNT INTO num                     // Collect all vertices (i.e Images), count their number of occurences
             SORT num DESC
             LIMIT 5
-            RETURN img
+            RETURN img                                              // Return the top 5
       )
       RETURN APPEND(exactMatches, closeMatches)
     `)
@@ -113,7 +113,7 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
   ).all();
 
   // Fetch similar images in respect to the shared metadata
-  result[0].similar = await fetch_discovery([id], 6);
+  result[0].similar = await fetch_discovery([id]);
 
   return result[0];
 }
@@ -128,58 +128,55 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
  *  - This would water down the attempt of trying to find a pattern, not sure yet
  *
  * @param clickedImages The images the user has viewed
- * @param maxResults Number of "similar" images to return
  * @returns An array of images
  */
-export async function fetch_discovery(clickedImages: string[], maxResults: number): Promise<ArangoImage[]> {
+export async function fetch_discovery(clickedImages: string[]): Promise<ArangoImage[]> {
   const result = await (
     await db.query(aql`
-      WITH Author, Tag, BestGuess
+      WITH Author, Tag, BestGuess                                           // Import collections
       LET commonMatches = (
-        FOR i IN Image
-          FILTER i._key IN ${clickedImages}
-            FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf
-              SORT e1._score DESC
-              FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf
-                FILTER v2._key NOT IN ${clickedImages}
-                COLLECT img = v2 WITH COUNT INTO num
+        FOR i IN Image                                                      // Iterate through images
+          FILTER i._key IN ${clickedImages}                                 // Filter for images already clicked
+            FOR v1, e1 IN 1..1 INBOUND i AuthorOf, TagOf, BestGuessOf       // For each visited image, traverse its vertices (metadata)
+              SORT e1._score DESC                                           // Sort metadata relationships by confidence
+              FOR v2, e2 IN 1..1 OUTBOUND v1 AuthorOf, TagOf, BestGuessOf   // For each metadata vertice, traverse its vertices (images)
+                FILTER v2._key NOT IN ${clickedImages}                      // Filter for images not already clicked
+                COLLECT img = v2 WITH COUNT INTO num                        // Collect all vertices (i.e Images), count their number of occurences
                 SORT num DESC
-                LIMIT ${maxResults}
-                RETURN img
+                LIMIT 6
+                RETURN img                                                  // Return the top 6
       )
       // (This is still a Work in Progress)
-      // LET intersectMatches = ( 
-      //   FOR i IN Image
-      //     FILTER i._key IN ${clickedImages}
-      //     FOR v1, e1 IN 1..1 INBOUND i TagOf
-      //       FILTER e1._type == 'object'
-      //       SORT e1._score DESC
-      //       FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
-      //         FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages}
-      //         FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
-      //         COLLECT img = v2 WITH COUNT INTO num
-      //         SORT num DESC
-      //         LIMIT 2
-      //         RETURN img
-      // )
+      LET localizationMatches = (
+        FOR i IN Image                                                      // Iterate through images
+          FILTER i._key IN ${clickedImages}                                 // Filter for clicked images
+          FOR v1, e1 IN 1..1 INBOUND i TagOf                                // For each image, traverse its Tag vertices
+              FILTER e1._type == 'object'                                   // Filter for 'object' relationships
+              FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf                          // For each Tag vertice, traverse its vertices (images)
+                FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages} // Filter for new 'object' relationships
+                FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord)) // Filter for object coordinate intersection
+                FILTER e2._score > 0.85
+                SORT e2._score DESC                                         // Sort by confidence score
+                LIMIT 4
+                RETURN DISTINCT v2                                          // Return the top 4
+      )
       // (This is still a Work in Progress)
-      // LET nearbyImages = (
-      //   FOR i IN Image
-      //     FILTER i._key IN ${clickedImages}
-      //     FOR v1, e1 IN 1..1 INBOUND i TagOf
-      //       FILTER e1._type == 'landmark'
-      //       SORT e1._score DESC
-      //       FOR i2 IN Image
-      //         FILTER i2._key != i._key
-      //         FOR v2, e2 IN 1..1 INBOUND i2 TagOf
-      //             FILTER e2._type == 'landmark' AND v2._key NOT IN ${clickedImages}
-      //             LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
-      //             FILTER dist <= 10000
-      //             SORT dist ASC
-      //             LIMIT 2
-      //             RETURN i2
-      // )
-      RETURN commonMatches
+      LET landmarkMatches = (
+        FOR i IN Image                                                      // Iterate through images
+          FILTER i._key IN ${clickedImages}                                 // Filter for clicked images
+          FOR v1, e1 IN 1..1 INBOUND i TagOf                                // For each image, traverse its Tag vertices
+            FILTER e1._type == 'landmark'                                   // Filter for 'landmark' relationships
+            SORT e1._score DESC
+            FOR i2 IN Image                                                 // Iterate through images (again)
+              FILTER i2._key != i._key                                      // Filter for images not prev. clicked
+              FOR v2, e2 IN 1..1 INBOUND i2 TagOf                           // For each non-clicked image, traverse its Tag vertices
+                  FILTER e2._type == 'landmark' AND v2._key NOT IN ${clickedImages} // Filter for new 'landmark' relationships
+                  LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude) // Calculate distance between landmark metadata
+                  FILTER dist < 1000
+                  SORT dist
+                  RETURN DISTINCT i2                                        // Return all images within 1km
+      )
+      RETURN APPEND(landmarkMatches, APPEND(localizationMatches, commonMatches), true)
     `)
   ).all();
 
@@ -240,15 +237,13 @@ export async function fetch_search_visualization(
 /**
  * @method Returns vertices & edges of image relationships for visualization
  * @param clickedImages - The images the user has previously clicked on
- * @param maxResults - The max number of images to return
  * @returns the nodes & edges for VISJS to use client-side
  *
  */
 export async function fetch_image_visualization(
-  clickedImages: string[],
-  maxResults: number,
+  clickedImages: string[]
 ): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
-  const similarImages = await fetch_discovery(clickedImages, maxResults);
+  const similarImages = await fetch_discovery(clickedImages);
 
   const result = await (
     await db.query(aql`

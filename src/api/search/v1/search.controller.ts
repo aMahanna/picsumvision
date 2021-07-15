@@ -116,7 +116,7 @@ namespace SearchController {
     const imageIDs: string[] | undefined = typeof req.query.IDs === 'string' ? req.query.IDs.split(',') : undefined;
     if (!imageIDs) res.status(400).json('Unacceptable image IDs format');
     else {
-      const data: ArangoImage[] = await fetch_discovery(imageIDs, 6);
+      const data: ArangoImage[] = await fetch_discovery(imageIDs);
       res.status(data.length === 0 ? 204 : 200).json({ data });
     }
   }
@@ -140,7 +140,7 @@ namespace SearchController {
       if (!imageID) {
         res.status(400).json('Missing image ID for image visualization.');
       } else {
-        data = await fetch_image_visualization(imageID, 6);
+        data = await fetch_image_visualization(imageID);
       }
     } else if (visualizationType === 'search') {
       const keyword = req.body.keyword;

@@ -4,7 +4,10 @@
 [![peerDependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg?type=peer)](https://david-dm.org/aMahanna/picsumvision?type=peer)
 
 # Picsum Vision
-Searchable images powered by Lorem Picsum, Google Vision, and ArangoDB.
+An image repository powered by Lorem Picsum, Google Vision, and ArangoDB allowing you to:
+* Search for images by keyword or URL
+* Discover images similar to click history
+* Visualize image results as a graph network
 
 **[Show, don't tell](https://picsumvision.mahanna.dev/)**
 
@@ -14,19 +17,17 @@ _Disclaimer: Searching is far from being optimized._
 
 ## How to run
 
-1. Copy the `env.example` into a new `.env` file. For fast setup, **do not modify anything**.
-2. Run `yarn install && yarn client:install`.
-3. Run `yarn build`.
-4. Run `docker-compose up -d` to create your local DB instance
-    * Login at `http://localhost:8529/` with `root` // `rootpassword`
-5. Run `yarn db:onboard` to configure your DB with Collections, Analyzers, and a View.
-6. Run `yarn db:restore` to restore your DB with data from previous ArangoDB dumps
+1. Run `git clone https://github.com/aMahanna/picsumvision.git`
+2. Run `cd picsumvision`
+3. Run `cp .env.example .env` (For fast setup, **do not modify anything**.)
+4. Run `yarn install && yarn client:install`
+5. Run `docker-compose up -d` to create your local DB instance
+    * Verify at `http://localhost:8529/` with `root` // `rootpassword`
+5. Run `yarn db:onboard` (configures your DB with Collections, Analyzers, and a View)
+6. Run `yarn db:restore` (restores your DB with data from latest ArangoDB dump)
 
 **Good to go:**
 * Run `yarn dev`.
-
-When you get bored:
-* Run `docker kill picsumvision_arangodb_db_container_1`
 
 ## Google Vision API Usage
 
@@ -39,7 +40,25 @@ If you would like to mess around with any of these, you will need a Google Visio
 
 For fast setup, I recommend you use the `yarn db:restore` command instead of `yarn db:populate`, as the former doesn't require a Google Vision API key. **Keep in mind however that you will not be able to search for images via image URls without a Vision key..**
 
+## Configuring New Image Datasets
+
+Context: The `populate.ts` script.
+
+If you want to substitute Lorem Picsum for another image dataset (e.g Unsplash), add a handler function in `populate.ts`, similar to `fetchLoremPicsumImages()`. This method will need to fetch your JSON payload from the dataset source, and format each image to the `AbstractImage` interface standard:
+
+```typescript
+export interface AbstractImage {
+  id: string; // An Image ID
+  author: string; // An Image author
+  url: string; // Image original URL (source site)
+}
+```
+
+Once you have an array of type `AbstractImage[]`, you can pass it to the `populateDB()`  function, which takes care of the rest. 
+
 ## Configuring New Collections
+
+Context: The `picsumvision/src/collections` directory.
 
 Adding a new collections is a simple as creating a file under `/src/collections`, and updating the `documentCollections` and `edgeCollections` arrays in `database.ts` to indicate that you have added new collections.
 
@@ -48,6 +67,8 @@ Keep in mind that collections are created in pairs. You create a Document collec
 If you would like as well, you can update the `populate.ts` to generate some data into your new collections. However, you do not need to modify the `onboard.ts` or `clear.ts` scripts, as it will take into account your changes, based on the `documentCollections` and `edgeCollections` values.
 
 ## Configuring New Queries
+
+Context: The `queries.ts` file.
 
 Simply create a new `export async function...` in `/src/queries.ts`, and you can begin to reference it in an existing Search / Info API Route, or create a new API / Endpoint.
 

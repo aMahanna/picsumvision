@@ -113,7 +113,7 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
   ).all();
 
   // Fetch similar images in respect to the shared metadata
-  result[0].similar = await fetch_discovery([id], 6);
+  result[0].similar = await fetch_discovery([id]);
 
   return result[0];
 }
@@ -128,10 +128,9 @@ export async function fetch_image_info(id: string): Promise<ArangoImageInfo[]> {
  *  - This would water down the attempt of trying to find a pattern, not sure yet
  *
  * @param clickedImages The images the user has viewed
- * @param maxResults Number of "similar" images to return
  * @returns An array of images
  */
-export async function fetch_discovery(clickedImages: string[], maxResults: number): Promise<ArangoImage[]> {
+export async function fetch_discovery(clickedImages: string[]): Promise<ArangoImage[]> {
   const result = await (
     await db.query(aql`
       WITH Author, Tag, BestGuess
@@ -144,42 +143,39 @@ export async function fetch_discovery(clickedImages: string[], maxResults: numbe
                 FILTER v2._key NOT IN ${clickedImages}
                 COLLECT img = v2 WITH COUNT INTO num
                 SORT num DESC
-                LIMIT ${maxResults}
+                LIMIT 4
                 RETURN img
       )
       // (This is still a Work in Progress)
-      // LET intersectMatches = ( 
-      //   FOR i IN Image
-      //     FILTER i._key IN ${clickedImages}
-      //     FOR v1, e1 IN 1..1 INBOUND i TagOf
-      //       FILTER e1._type == 'object'
-      //       SORT e1._score DESC
-      //       FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
-      //         FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages}
-      //         FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
-      //         COLLECT img = v2 WITH COUNT INTO num
-      //         SORT num DESC
-      //         LIMIT 2
-      //         RETURN img
-      // )
+      LET localizationMatches = (
+        FOR i IN Image
+          FILTER i._key IN ${clickedImages}
+          FOR v1, e1 IN 1..1 INBOUND i TagOf
+              FILTER e1._type == 'object'
+              FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
+                FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages}
+                FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
+                SORT e2._score DESC
+                LIMIT 3
+                RETURN DISTINCT v2 
+      )
       // (This is still a Work in Progress)
-      // LET nearbyImages = (
-      //   FOR i IN Image
-      //     FILTER i._key IN ${clickedImages}
-      //     FOR v1, e1 IN 1..1 INBOUND i TagOf
-      //       FILTER e1._type == 'landmark'
-      //       SORT e1._score DESC
-      //       FOR i2 IN Image
-      //         FILTER i2._key != i._key
-      //         FOR v2, e2 IN 1..1 INBOUND i2 TagOf
-      //             FILTER e2._type == 'landmark' AND v2._key NOT IN ${clickedImages}
-      //             LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
-      //             FILTER dist <= 10000
-      //             SORT dist ASC
-      //             LIMIT 2
-      //             RETURN i2
-      // )
-      RETURN commonMatches
+      LET landmarkMatches = (
+        FOR i IN Image
+          FILTER i._key IN ${clickedImages}
+          FOR v1, e1 IN 1..1 INBOUND i TagOf
+            FILTER e1._type == 'landmark'
+            SORT e1._score DESC
+            FOR i2 IN Image
+              FILTER i2._key != i._key
+              FOR v2, e2 IN 1..1 INBOUND i2 TagOf
+                  FILTER e2._type == 'landmark' AND v2._key NOT IN ${clickedImages}
+                  LET dist = DISTANCE(e1._latitude, e1._longitude, e2._latitude, e2._longitude)
+                  FILTER dist < 1000
+                  SORT dist
+                  RETURN DISTINCT i2
+      )
+      RETURN APPEND(landmarkMatches, APPEND(localizationMatches, commonMatches), true)
     `)
   ).all();
 
@@ -240,15 +236,13 @@ export async function fetch_search_visualization(
 /**
  * @method Returns vertices & edges of image relationships for visualization
  * @param clickedImages - The images the user has previously clicked on
- * @param maxResults - The max number of images to return
  * @returns the nodes & edges for VISJS to use client-side
  *
  */
 export async function fetch_image_visualization(
-  clickedImages: string[],
-  maxResults: number,
+  clickedImages: string[]
 ): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
-  const similarImages = await fetch_discovery(clickedImages, maxResults);
+  const similarImages = await fetch_discovery(clickedImages);
 
   const result = await (
     await db.query(aql`

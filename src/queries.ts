@@ -143,7 +143,7 @@ export async function fetch_discovery(clickedImages: string[]): Promise<ArangoIm
                 FILTER v2._key NOT IN ${clickedImages}
                 COLLECT img = v2 WITH COUNT INTO num
                 SORT num DESC
-                LIMIT 4
+                LIMIT 6
                 RETURN img
       )
       // (This is still a Work in Progress)
@@ -155,8 +155,9 @@ export async function fetch_discovery(clickedImages: string[]): Promise<ArangoIm
               FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf
                 FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages}
                 FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord))
+                FILTER e2._score > 0.85
                 SORT e2._score DESC
-                LIMIT 3
+                LIMIT 4
                 RETURN DISTINCT v2 
       )
       // (This is still a Work in Progress)

@@ -176,7 +176,7 @@ export async function fetch_discovery(clickedImages: string[]): Promise<ArangoIm
                   SORT dist
                   RETURN DISTINCT i2                                        // Return all images within 1km
       )
-      RETURN APPEND(landmarkMatches, APPEND(localizationMatches, commonMatches), true)
+      RETURN APPEND(landmarkMatches, commonMatches, true)
     `)
   ).all();
 

@@ -151,14 +151,15 @@ export async function fetch_discovery(clickedImages: string[]): Promise<ArangoIm
         FOR i IN Image                                                      // Iterate through images
           FILTER i._key IN ${clickedImages}                                 // Filter for clicked images
           FOR v1, e1 IN 1..1 INBOUND i TagOf                                // For each image, traverse its Tag vertices
-              FILTER e1._type == 'object'                                   // Filter for 'object' relationships
+              FILTER v1.tag NOT IN ['Person', 'Building', 'Lighting']       // Filter out "vague" tags
+              FILTER e1._type == 'object' AND e1._score > 0.75              // Filter for confident 'object' relationships
               FOR v2, e2 IN 1..1 OUTBOUND v1 TagOf                          // For each Tag vertice, traverse its vertices (images)
-                FILTER e2._type == 'object' AND v2._key NOT IN ${clickedImages} // Filter for new 'object' relationships
+                FILTER v2._key NOT IN ${clickedImages}
+                FILTER e2._type == 'object' AND e2._score > 0.80            // Filter for new confident 'object' relationships
                 FILTER GEO_INTERSECTS(GEO_LINESTRING(e1._coord), GEO_LINESTRING(e2._coord)) // Filter for object coordinate intersection
-                FILTER e2._score > 0.85
                 SORT e2._score DESC                                         // Sort by confidence score
                 LIMIT 4
-                RETURN DISTINCT v2                                          // Return the top 4
+                RETURN DISTINCT v2                                          // Return the top 2
       )
       // (This is still a Work in Progress)
       LET landmarkMatches = (
@@ -176,7 +177,7 @@ export async function fetch_discovery(clickedImages: string[]): Promise<ArangoIm
                   SORT dist
                   RETURN DISTINCT i2                                        // Return all images within 1km
       )
-      RETURN APPEND(landmarkMatches, commonMatches, true)
+      RETURN APPEND(landmarkMatches, APPEND(localizationMatches, commonMatches), true)
     `)
   ).all();
 

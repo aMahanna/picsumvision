@@ -1,10 +1,11 @@
+# picsumvision
+
 [![Travis CI](https://travis-ci.com/aMahanna/picsumvision.svg?branch=main)]()
 [![dependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg)](https://david-dm.org/aMahanna/picsumvision)
 [![devDependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg?type=dev)](https://david-dm.org/aMahanna/picsumvision?type=dev)
 [![peerDependencies Status](https://status.david-dm.org/gh/aMahanna/picsumvision.svg?type=peer)](https://david-dm.org/aMahanna/picsumvision?type=peer)
 
-# Picsum Vision
-An image repository powered by Lorem Picsum, Google Vision, and ArangoDB allowing you to:
+An image repository powered by Lorem Picsum, Google Vision, and ArangoDB, allowing you to:
 * Search for images by keyword or URL
 * Discover images similar to click history
 * Visualize image results as a graph network

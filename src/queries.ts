@@ -161,7 +161,6 @@ export async function fetch_discovery(clickedImages: string[]): Promise<ArangoIm
                 LIMIT 4
                 RETURN DISTINCT v2                                          // Return the top 2
       )
-      // (This is still a Work in Progress)
       LET landmarkMatches = (
         FOR i IN Image                                                      // Iterate through images
           FILTER i._key IN ${clickedImages}                                 // Filter for clicked images
@@ -242,7 +241,7 @@ export async function fetch_search_visualization(
  *
  */
 export async function fetch_image_visualization(
-  clickedImages: string[]
+  clickedImages: string[],
 ): Promise<{ vertices: Vertice[]; connections: Connection[] }> {
   const similarImages = await fetch_discovery(clickedImages);
 

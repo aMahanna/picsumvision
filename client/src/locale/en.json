@@ -64,7 +64,8 @@
     },
     "visualizerPage": {
       "search": "Search: ",
-      "interact": "Double click on a node to see related results."
+      "interact": "Double click on a node to see related results.",
+      "labels": "labels"
     }
   }
 }

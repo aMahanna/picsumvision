@@ -39,6 +39,8 @@ const Visualize = (props: any) => {
   const visualizationType = props.match.params.id ? 'image' : 'search';
   const [imageRedirect, setImageRedirect] = useState('');
   const [tagRedirect, setTagRedirect] = useState('');
+  const [verticeCount, setVerticeCount] = useState('');
+  const [imageCount, setImageCount] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [graph, setGraph]: any = useState({
     nodes: [],
@@ -101,8 +103,11 @@ const Visualize = (props: any) => {
       .then(result => (result.status === 200 ? result.json() : undefined))
       .then(response => {
         if (response) {
+          setVerticeCount(response.verticeCount);
+          setImageCount(response.imageCount);
           const nodes: { id: string; label: string; color: string }[] = response.graphObject.nodes;
           const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
+
           options.physics.barnesHut = {
             centralGravity: 0,
             springLength: 15 * nodes.length,
@@ -130,6 +135,9 @@ const Visualize = (props: any) => {
           ? `"${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
           : `${props.match.params.id}`}
       </h3>
+      <h4>
+        ({imageCount} images, {verticeCount} {t('visualizerPage.labels')})
+      </h4>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
       {graph.nodes.length !== 0 && (

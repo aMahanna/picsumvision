@@ -1,18 +1,14 @@
-from . import routes
-from flask import Flask, send_from_directory
 import logging
-import os
 from os.path import exists, join
+from flask import send_from_directory
 
-logging.basicConfig(
-    format=f"[%(asctime)s] [{os.getpid()}] [%(levelname)s] - %(name)s - %(message)s",
-    level=logging.INFO,
-    datefmt="%Y/%m/%d %H:%M:%S %z",
-)
+from . import routes
+from server import app
+
 
 logger = logging.getLogger(__file__)
 
-app = Flask(__name__, static_folder="build")
+routes.init_app(app)
 
 
 @app.route("/", defaults={"path": ""})
@@ -23,8 +19,6 @@ def catch_all(path):
     )
     return send_from_directory(app.static_folder, file_to_serve)
 
-
-routes.init_app(app)
 
 if __name__ == "main":
     app.run()

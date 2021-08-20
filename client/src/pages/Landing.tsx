@@ -50,7 +50,7 @@ const Landing = () => {
           setEdgeCount(response.data.edges);
         }
       });
-  });
+  }, []);
 
   return (
     <Container component="main" maxWidth="sm">

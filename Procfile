@@ -1,1 +1,1 @@
-web: node dist/start.js
+web: python server.py

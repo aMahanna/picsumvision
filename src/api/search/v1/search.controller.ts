@@ -27,7 +27,7 @@ function parseVisualizationInfo(info: { vertices: Vertice[]; connections: Connec
 
   for (let j = 0; j < info.connections.length; j++) {
     const connect: Connection = info.connections[j];
-    const edgeColor = edgeColors[j % 6];
+    const edgeColor = edgeColors[j % edgeColors.length];
     nodes = nodes.concat([
       { id: connect.i._id, label: connect.i._key, font: { color: 'white' }, color: connect.i.color || '#422040' },
     ]);
@@ -80,7 +80,7 @@ namespace SearchController {
     if (!url) res.status(400).json('Unacceptable URL');
     else {
       const tags: string | undefined = await parseVisionData(url);
-      if (!tags) res.status(500).json('Error fetching surprise keys');
+      if (!tags) res.status(500).json('Error fetching vision tags');
       else {
         const data: ArangoImage[] = await fetch_images(tags);
         res.status(data.length === 0 ? 204 : 200).json({ data, tags });

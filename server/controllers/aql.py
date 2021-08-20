@@ -1,7 +1,7 @@
-from ..services.arango import db
 import random
 import math
-from ..utils import ignored_words
+from server import db
+from server.utils import ignored_words
 
 
 def fetch_images(keyword):
@@ -42,7 +42,7 @@ def fetch_images(keyword):
 
     bindVars = {"keyword": keyword}
 
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1, bindVars=bindVars)
+    result = db.query(aql, rawResults=True, batchSize=1, bindVars=bindVars)
     return result[0]
 
 
@@ -61,7 +61,7 @@ def fetch_surprise_tags():
           RETURN v.tag
     """
     bindVars = {"max_results": max_results, "ignored_words": ignored_words}
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1, bindVars=bindVars)
+    result = db.query(aql, rawResults=True, batchSize=1, bindVars=bindVars)
 
     return " ".join(result)
 
@@ -75,7 +75,7 @@ def fetch_image_info(id):
       RETURN {image, bestGuess, tags}
     """
     bindVars = {"id": id}
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1, bindVars=bindVars)
+    result = db.query(aql, rawResults=True, batchSize=1, bindVars=bindVars)
     result[0]["similar"] = fetch_discovery([id])
 
     return result[0]
@@ -129,7 +129,7 @@ def fetch_discovery(clicked_images):
       RETURN APPEND(landmarkMatches, APPEND(localizationMatches, commonMatches), true)
     """
     bindVars = {"clicked_images": clicked_images}
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1, bindVars=bindVars)
+    result = db.query(aql, rawResults=True, batchSize=1, bindVars=bindVars)
 
     return result[0]
 
@@ -167,7 +167,7 @@ def fetch_search_visualization(keyword, image_results):
       RETURN {vertices, connections}
     """
     bindVars = {"keyword": keyword, "image_results": image_results}
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1, bindVars=bindVars)
+    result = db.query(aql, rawResults=True, batchSize=1, bindVars=bindVars)
 
     return result[0]
 
@@ -212,7 +212,7 @@ def fetch_image_visualization(clicked_images):
       RETURN {vertices, connections: APPEND(startEdges, endEdges)}
     """
     bindVars = {"clicked_images": clicked_images, "similar_images": similar_images}
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1, bindVars=bindVars)
+    result = db.query(aql, rawResults=True, batchSize=1, bindVars=bindVars)
 
     return result[0]
 
@@ -227,6 +227,6 @@ def fetch_db_metrics():
         edges: LENGTH(AuthorOf) + LENGTH(TagOf) + LENGTH(BestGuessOf)
       }
     """
-    result = db.AQLQuery(aql, rawResults=True, batchSize=1)
+    result = db.query(aql, rawResults=True, batchSize=1)
 
     return result[0]

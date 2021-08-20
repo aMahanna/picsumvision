@@ -1,18 +1,17 @@
-import os
-from dotenv import load_dotenv
 from pyArango.connection import Connection
 
-load_dotenv()
 
-conn = Connection(
-    arangoURL=os.environ.get("ARANGO_DB_URL"),
-    username=os.environ.get("ARANGO_USER"),
-    password=os.environ.get("ARANGO_PASS"),
-)
-db = conn[os.environ.get("ARANGO_DB_NAME")]
+class ArangoDriver:
+    document_collections = ["Image", "Author", "Tag", "BestGuess"]
+    edge_collections = ["AuthorOf", "TagOf", "BestGuessOf"]
+    view_name = "searchview"
 
-print(db, conn.getVersion())
+    def __init__(self, url, user, auth, db_name):
+        conn = Connection(arangoURL=url, username=user, password=auth)
+        self.db = conn[db_name]
+        print(self.db, conn.getVersion())
 
-document_collections = ['Image', 'Author', 'Tag', 'BestGuess']
-edge_collections = ['AuthorOf', 'TagOf', 'BestGuessOf']
-view_name = 'searchview'
+    def query(self, aql, rawResults=True, batchSize=1, bindVars=None):
+        return self.db.AQLQuery(
+            aql, rawResults=rawResults, batchSize=batchSize, bindVars=bindVars
+        )

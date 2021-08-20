@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from ..controllers import aql
-import logging
 
 info_bp = Blueprint("info_bp", __name__)
 

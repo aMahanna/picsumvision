@@ -1,6 +1,3 @@
-from .services import google
-
-
 def parse_visualization_info(info, is_search_visualization):
     nodes = []
     edges = []
@@ -45,29 +42,6 @@ def parse_visualization_info(info, is_search_visualization):
             )
 
     return {"nodes": nodes, "edges": edges}
-
-
-def parse_vision_info(url):
-    vision_data = google.fetch_vision_metadata(url)
-    if not vision_data or "error" in vision_data:
-        return None
-
-    if "landmarkAnnotations" in vision_data:
-        return vision_data["landmarkAnnotations"][0]["description"]
-    elif "webDetection" in vision_data:
-        return fetch_vision_keyword(
-            vision_data["webDetection"]["webEntities"][0:3], "description"
-        )
-    elif "localizedObjectAnnotations" in vision_data:
-        return fetch_vision_keyword(
-            vision_data["localizedObjectAnnotations"][0:3], "name"
-        )
-    else:
-        return fetch_vision_keyword(vision_data["labelAnnotations"][0:4], "description")
-
-
-def fetch_vision_keyword(vision_object, string_key):
-    return " ".join(map(lambda x: x[string_key], vision_object))
 
 
 ignored_words = [

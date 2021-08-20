@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
-from ..controllers import aql
-from ..utils import parse_visualization_info, parse_vision_info
+from server.controllers import aql
+from server.services.google import parse_vision_info
+from server.utils import parse_visualization_info
 
 
 search_bp = Blueprint("search_bp", __name__)

@@ -12,3 +12,7 @@ conn = Connection(
 db = conn[os.environ.get("ARANGO_DB_NAME")]
 
 print(db, conn.getVersion())
+
+document_collections = ['Image', 'Author', 'Tag', 'BestGuess']
+edge_collections = ['AuthorOf', 'TagOf', 'BestGuessOf']
+view_name = 'searchview'

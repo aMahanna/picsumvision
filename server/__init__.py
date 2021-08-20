@@ -2,6 +2,8 @@ from flask import Flask
 import logging
 import os
 
+from services import arango, google
+
 logging.basicConfig(
     format=f"[%(asctime)s] [{os.getpid()}] [%(levelname)s] - %(name)s - %(message)s",
     level=logging.INFO,

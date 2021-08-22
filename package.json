@@ -19,7 +19,7 @@
     "db:restore": "tsc && node dist/src/scripts/restore.js",
     "db:populate": "tsc && node dist/src/scripts/populate.js",
     "clean-temp": "rimraf dist",
-    "build-temp": "tsc",
+    "build": "yarn run client:install && yarn run client:build",
     "postinstall-temp": "tsc",
     "test-temp": "jest && yarn client:install && yarn client:test",
     "heroku-postbuild": "yarn run client:install && yarn run client:build",

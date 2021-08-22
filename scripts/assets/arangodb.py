@@ -1,7 +1,7 @@
-from arango import ArangoClient
-
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+
+from arango import ArangoClient
 
 load_dotenv()
 
@@ -14,7 +14,7 @@ class ArangoDriver:
     def __init__(self, url, user, auth, db_name):
         client = ArangoClient(hosts=url)
         self.db = client.db(db_name, username=user, password=auth)
-        print(self.db.name, self.db.version())
+        print(f"Arango: {self.db.name} database")
 
     def create_collection(self, name, is_edge_collection=False):
         print(f"Creating {name} collection...")

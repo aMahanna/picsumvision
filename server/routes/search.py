@@ -38,7 +38,7 @@ def from_url():
 def from_surprise():
     tags = aql.fetch_surprise_tags()
     if not tags:
-        jsonify("Error fetching surprise keys"), 500
+        return jsonify("Error fetching surprise keys"), 500
     else:
         data = aql.fetch_images(tags)
         return jsonify({"data": data, "tags": tags}), 200
@@ -49,7 +49,7 @@ def from_surprise():
 def from_discovery():
     clicked_images = request.args.get("IDs").split(",")
     if not clicked_images:
-        jsonify("Invalid image IDs"), 500
+        return jsonify("Invalid image IDs"), 500
     else:
         data = aql.fetch_discovery(clicked_images)
         return jsonify({"data": data}), 200 if len(data) > 0 else 204

@@ -1,5 +1,6 @@
 import os
 import logging
+from pathlib import Path
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -17,7 +18,9 @@ logging.basicConfig(
 
 logger = logging.getLogger(__file__)
 app = Flask(
-    __name__, static_folder=f"{os.getcwd()}/../client/build", static_url_path=""
+    __name__,
+    static_folder=f"{Path(__file__).parent.parent}/client/build/",
+    static_url_path="",
 )
 cors = CORS(app)
 

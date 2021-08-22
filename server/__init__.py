@@ -21,10 +21,12 @@ app = Flask(
 )
 cors = CORS(app)
 
-vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
-arango = ArangoDriver(
-    os.environ.get("ARANGO_DB_URL"),
-    os.environ.get("ARANGO_USER"),
-    os.environ.get("ARANGO_PASS"),
-    os.environ.get("ARANGO_DB_NAME"),
-)
+logging.info('Anthony')
+logging.info(os.environ.get("ARANGO_DB_URL"))
+# vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
+# arango = ArangoDriver(
+#     os.environ.get("ARANGO_DB_URL"),
+#     os.environ.get("ARANGO_USER"),
+#     os.environ.get("ARANGO_PASS"),
+#     os.environ.get("ARANGO_DB_NAME"),
+# )

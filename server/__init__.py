@@ -16,7 +16,9 @@ logging.basicConfig(
 
 
 logger = logging.getLogger(__file__)
-app = Flask(__name__, static_folder="client/build", static_url_path='')
+app = Flask(
+    __name__, static_folder=f"{os.getcwd()}/../client/build", static_url_path=""
+)
 cors = CORS(app)
 
 vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))

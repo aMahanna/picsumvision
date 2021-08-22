@@ -1,10 +1,12 @@
 from flask import Blueprint, jsonify, request
+from flask_cors import cross_origin
 from server import aql
 
 info_bp = Blueprint("info_bp", __name__)
 
 
 @info_bp.route("/info/image")
+@cross_origin()
 def fetch_image():
     id = request.args.get("id")
     if not (id or id.isdigit()):
@@ -15,6 +17,7 @@ def fetch_image():
 
 
 @info_bp.route("/info/randomtags")
+@cross_origin()
 def fetch_random_tags():
     tags = aql.fetch_surprise_tags()
     if len(tags) == 0:
@@ -24,6 +27,7 @@ def fetch_random_tags():
 
 
 @info_bp.route("/info/metrics")
+@cross_origin()
 def fetch_metrics():
     data = aql.fetch_db_metrics()
     if not data:

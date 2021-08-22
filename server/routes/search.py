@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_cors import cross_origin
 from server import aql, vision
 from server.utils import parse_visualization_info
 
@@ -7,6 +8,7 @@ search_bp = Blueprint("search_bp", __name__)
 
 
 @search_bp.route("/search/keyword")
+@cross_origin()
 def from_keyword():
     keyword = request.args.get("keyword")
     if not keyword:
@@ -17,6 +19,7 @@ def from_keyword():
 
 
 @search_bp.route("/search/url")
+@cross_origin()
 def from_url():
     url = request.args.get("url")
     if not url:
@@ -31,6 +34,7 @@ def from_url():
 
 
 @search_bp.route("/search/surpriseme")
+@cross_origin()
 def from_surprise():
     tags = aql.fetch_surprise_tags()
     if not tags:
@@ -41,6 +45,7 @@ def from_surprise():
 
 
 @search_bp.route("/search/discover")
+@cross_origin()
 def from_discovery():
     clicked_images = request.args.get("IDs").split(",")
     if not clicked_images:
@@ -51,6 +56,7 @@ def from_discovery():
 
 
 @search_bp.route("/search/visualize", methods=["POST"])
+@cross_origin()
 def from_visualizer():
     body = request.get_json()
     data = {"vertices": [], "connections": []}

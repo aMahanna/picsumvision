@@ -1,7 +1,6 @@
 {
-  "name": "client",
-  "version": "0.1.0",
-  "private": true,
+  "name": "picsumvision-client",
+  "version": "1.0.0",
   "dependencies": {
     "@emotion/react": "^11.1.5",
     "@emotion/styled": "^11.3.0",

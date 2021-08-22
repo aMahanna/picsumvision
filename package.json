@@ -1,0 +1,34 @@
+{
+  "name": "picsumvision",
+  "version": "1.0.0",
+  "repository": "https://github.com/aMahanna/picsumvision",
+  "author": "Anthony Mahanna",
+  "license": "MIT",
+  "scripts": {
+    "start-temp": "node dist/start.js",
+    "dev": "concurrently \"yarn run server:dev\" \"yarn run client:start\"",
+    "client:install": "cd client && yarn install",
+    "client:build": "cd client && yarn build",
+    "client:start": "cd client && yarn start",
+    "client:test": "cd client && yarn test",
+    "server:dev": "concurrently \"yarn run watch:build\" \"yarn run watch:server\"",
+    "watch:build": "tsc --watch",
+    "watch:server": "NODE_ENV=test nodemon ./dist/start.js --watch ./dist",
+    "db:clear": "tsc && node dist/src/scripts/clear.js",
+    "db:onboard": "tsc && node dist/src/scripts/onboard.js",
+    "db:restore": "tsc && node dist/src/scripts/restore.js",
+    "db:populate": "tsc && node dist/src/scripts/populate.js",
+    "clean-temp": "rimraf dist",
+    "build-temp": "tsc",
+    "postinstall-temp": "tsc",
+    "test-temp": "jest && yarn client:install && yarn client:test",
+    "heroku-postbuild": "yarn run client:install && yarn run client:build",
+    "prettier": "prettier --config .prettierrc 'src/**/*.ts' --write && cd client && yarn prettier",
+    "lint": "eslint . --ext .ts && cd client && yarn lint",
+    "lint:fix": "eslint . --ext .ts --fix && cd client && yarn lint:fix"
+  },
+  "engines": {
+    "node": "^15.5.0",
+    "yarn": "^1.22.4"
+  }
+}

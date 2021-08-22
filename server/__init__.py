@@ -1,7 +1,8 @@
-from flask import Flask
-from dotenv import load_dotenv
-import logging
 import os
+import logging
+from flask import Flask
+from flask_cors import CORS, cross_origin
+from dotenv import load_dotenv
 
 from server.models.arangodb import ArangoDriver
 from server.models.googlevision import VisionDriver
@@ -15,7 +16,8 @@ logging.basicConfig(
 
 
 logger = logging.getLogger(__file__)
-app = Flask(__name__, static_folder="build")
+app = Flask(__name__, static_folder="client/build", static_url_path='')
+cors = CORS(app)
 
 vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 arango = ArangoDriver(

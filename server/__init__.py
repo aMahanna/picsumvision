@@ -1,7 +1,7 @@
 import os
 import logging
 from flask import Flask
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from dotenv import load_dotenv
 
 from server.models.arangodb import ArangoDriver
@@ -21,12 +21,10 @@ app = Flask(
 )
 cors = CORS(app)
 
-logging.info('Anthony')
-logging.info(os.environ.get("ARANGO_DB_URL"))
-# vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
-# arango = ArangoDriver(
-#     os.environ.get("ARANGO_DB_URL"),
-#     os.environ.get("ARANGO_USER"),
-#     os.environ.get("ARANGO_PASS"),
-#     os.environ.get("ARANGO_DB_NAME"),
-# )
+vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
+arango = ArangoDriver(
+    os.environ.get("ARANGO_DB_URL"),
+    os.environ.get("ARANGO_USER"),
+    os.environ.get("ARANGO_PASS"),
+    os.environ.get("ARANGO_DB_NAME"),
+)

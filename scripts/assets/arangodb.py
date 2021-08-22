@@ -25,6 +25,7 @@ class ArangoDriver:
         self.db.collection(name).truncate()
 
     def restore_collection(self, name, data):
+        print(f"Restoring {name} collection...")
         self.db.collection(name).import_bulk(data, on_duplicate="error")
 
     def drop_all_collections(self):

@@ -39,8 +39,8 @@ const Visualize = (props: any) => {
   const isSearchVisualization = !props.match.params.id;
   const [imageRedirect, setImageRedirect] = useState('');
   const [tagRedirect, setTagRedirect] = useState('');
-  const [verticeCount, setVerticeCount] = useState('');
-  const [imageCount, setImageCount] = useState('');
+  const [imageCount, setImageCount] = useState(undefined);
+  const [verticeCount, setVerticeCount] = useState(undefined);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [graph, setGraph]: any = useState({
     nodes: [],
@@ -134,9 +134,7 @@ const Visualize = (props: any) => {
           ? `"${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
           : `${props.match.params.id}`}
       </h3>
-      <h4>
-        ({imageCount} images, {verticeCount} {t('visualizerPage.labels')})
-      </h4>
+      <h4>{imageCount && verticeCount && `(${imageCount} images, ${verticeCount} ${t('visualizerPage.labels')})`}</h4>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
       {graph.nodes.length !== 0 && (

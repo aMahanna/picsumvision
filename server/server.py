@@ -17,7 +17,3 @@ def catch_all(path):
         path if path and exists(join(app.static_folder, path)) else "index.html"
     )
     return send_from_directory(app.static_folder, file_to_serve)
-
-
-if __name__ == "__main__":
-    app.run()

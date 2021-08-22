@@ -8,6 +8,7 @@ setup(
         'Flask',
         'python-dotenv',
         'python-arango'
-        'requests'
+        'requests',
+        'gunicorn'
     ],
 )

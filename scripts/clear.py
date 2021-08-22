@@ -1,9 +1,10 @@
-from server.services.arango import ArangoDriver
+from assets.arangodb import arango
 
 
-def clear_db():
-    pass
+def main():
+    for collection in arango.document_collections + arango.edge_collections:
+        arango.clear_collection(collection)
 
 
 if __name__ == "__main__":
-    clear_db()
+    main()

@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
-from server.controllers import aql
-from server.services.google import parse_vision_info
+from server import aql, vision
 from server.utils import parse_visualization_info
 
 
@@ -23,7 +22,7 @@ def from_url():
     if not url:
         return jsonify("Invalid URL"), 400
     else:
-        tags = parse_vision_info(url)
+        tags = vision.generate_keyword_from_url(url)
         if not tags:
             return jsonify("Error fetching vision tags"), 500
         else:

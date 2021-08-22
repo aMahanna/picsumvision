@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from ..controllers import aql
+from server import aql
 
 info_bp = Blueprint("info_bp", __name__)
 
@@ -17,7 +17,6 @@ def fetch_image():
 @info_bp.route("/info/randomtags")
 def fetch_random_tags():
     tags = aql.fetch_surprise_tags()
-    print(tags)
     if len(tags) == 0:
         return jsonify("Error fetching surprise keys"), 500
     else:

@@ -1,3 +1,4 @@
-# from server import app
-# if __name__ == "__main__":
-#   app.run()
+from server.server import flask_app
+
+if __name__ == "__main__":
+    flask_app.run()

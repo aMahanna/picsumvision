@@ -30,7 +30,7 @@ def from_url():
             return jsonify("Error fetching vision tags"), 500
         else:
             data = aql.fetch_images(tags)
-            return jsonify({"data": data}), 200 if len(data) > 0 else 204
+            return jsonify({"data": data, "tags": tags}), 200 if len(data) > 0 else 204
 
 
 @search_bp.route("/search/surpriseme")

@@ -10,7 +10,6 @@ setup(
         "gunicorn",
         "python-dotenv",
         "python-arango",
-        "python-arangorequests",
-        "requests",
+        "requests"
     ],
 )

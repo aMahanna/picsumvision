@@ -1,24 +1,21 @@
 {
-  "name": "picsumvision",
-  "version": "1.0.0",
-  "repository": "https://github.com/aMahanna/picsumvision",
-  "author": "Anthony Mahanna",
-  "license": "MIT",
-  "scripts": {
-    "build": "yarn run client:install && yarn run client:build",
-    "client:install": "cd client && yarn install",
-    "client:build": "cd client && yarn build",
-    "client:start": "cd client && yarn start",
-    "client:test": "cd client && yarn test",
-    "client:prettier": "cd client && yarn prettier",
-    "client:lint": "cd client && yarn lint",
-    "db:clear": "python scripts/clear.py",
-    "db:onboard": "python scripts/onboard.py",
-    "db:restore": "python scripts/restore.py",
-    "db:populate": "python scripts/populate.py"
-  },
-  "engines": {
-    "node": "^15.5.0",
-    "yarn": "^1.22.4"
-  }
+    "name": "picsumvision",
+    "version": "1.0.0",
+    "repository": "https://github.com/aMahanna/picsumvision",
+    "author": "Anthony Mahanna",
+    "license": "MIT",
+    "scripts": {
+        "build": "yarn run client:install && yarn run client:build",
+        "client:install": "cd client && yarn install",
+        "client:build": "cd client && yarn build",
+        "client:start": "cd client && yarn start",
+        "client:test": "cd client && yarn test",
+        "client:prettier": "cd client && yarn prettier",
+        "client:lint": "cd client && yarn lint",
+        "db:clear": "python scripts/clear.py",
+        "db:onboard": "python scripts/onboard.py",
+        "db:restore": "python scripts/restore.py",
+        "db:populate": "python scripts/populate.py",
+    },
+    "engines": {"node": "^15.5.0", "yarn": "^1.22.4"},
 }

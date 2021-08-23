@@ -1,5 +1,5 @@
-from assets.arangodb import arango
-from assets.constants import stop_words
+from server import arango
+from assets.stopwords import stop_words
 
 
 def main():

@@ -1,4 +1,4 @@
-from assets.arangodb import arango
+from server import arango
 
 
 def main():

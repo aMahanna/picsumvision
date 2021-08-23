@@ -15,7 +15,7 @@
         "db:clear": "python scripts/clear.py",
         "db:onboard": "python scripts/onboard.py",
         "db:restore": "python scripts/restore.py",
-        "db:populate": "python scripts/populate.py",
+        "db:populate": "python scripts/populate.py"
     },
-    "engines": {"node": "^15.5.0", "yarn": "^1.22.4"},
+    "engines": {"node": "^15.5.0", "yarn": "^1.22.4"}
 }

@@ -97,9 +97,17 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
+
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+
+# Python virtual environment (to switch between picsumvision implementations)
+.venv
+
+# Optional eslint cache
+.eslintcache
+
 
 # SageMath parsed files
 *.sage.py
@@ -138,4 +146,6 @@ dmypy.json
 cython_debug/
 
 .DS_STORE
+
+# npm stuff (to switch between picsumvision implementations)
 node_modules

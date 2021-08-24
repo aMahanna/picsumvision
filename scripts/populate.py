@@ -88,9 +88,7 @@ def populate_db(dataset):
 
         if "localizedObjectAnnotations" in vision_data:
             for vision_localized in vision_data["localizedObjectAnnotations"]:
-                if {"mid", "name"} <= set(vision_localized) and vision_localized[
-                    "score"
-                ] >= 0.2:
+                if is_valid_vision_data(vision_localized, {"mid", "name"}):
                     _key = string_to_ascii(vision_localized["name"])
                     _score = (
                         vision_localized["score"]
@@ -101,11 +99,12 @@ def populate_db(dataset):
                     _coord = []
                     if "boundingPoly" in vision_localized:
                         _coord = [
-                            [x, y]
-                            for x, y in vision_localized["boundingPoly"][
+                            [v["x"], v["y"]]
+                            for v in vision_localized["boundingPoly"][
                                 "normalizedVertices"
                             ]
                         ]
+                        _coord.append(_coord[0])
 
                     try:
                         localized = arango.insert_document(
@@ -133,9 +132,7 @@ def populate_db(dataset):
 
         if "webDetection" in vision_data:
             for vision_entity in vision_data["webDetection"]["webEntities"]:
-                if {"entityId", "description"} <= set(vision_entity) and vision_entity[
-                    "score"
-                ] >= 0.2:
+                if is_valid_vision_data(vision_entity, {"entityId", "description"}):
                     _key = string_to_ascii(vision_entity["description"])
                     _score = (
                         vision_entity["score"] if vision_entity["score"] < 1 else 0.999
@@ -165,9 +162,7 @@ def populate_db(dataset):
 
         if "labelAnnotations" in vision_data:
             for vision_label in vision_data["labelAnnotations"]:
-                if {"mid", "description"} <= set(vision_label) and vision_label[
-                    "score"
-                ] >= 0.2:
+                if is_valid_vision_data(vision_label, {"mid", "description"}):
                     _key = string_to_ascii(vision_label["description"])
                     _score = (
                         vision_label["score"] if vision_label["score"] < 1 else 0.999
@@ -194,6 +189,47 @@ def populate_db(dataset):
                             f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Label:"
                         )
                         print(json.dumps(label, indent=4))
+
+        if "imagePropertiesAnnotation" in vision_data:
+            clrs = vision_data["imagePropertiesAnnotation"]["dominantColors"]["colors"]
+            for vision_color in clrs:
+                if "color" in vision_color:
+                    color_json = get_color_from_rgb(
+                        [
+                            vision_color["color"]["red"],
+                            vision_color["color"]["green"],
+                            vision_color["color"]["blue"],
+                        ]
+                    )
+                    if color_json["color_family"] in ["black", "grey", "white"]:
+                        continue  # I find these colors to be present almost everywhere, so skip them
+
+                    color_family = color_json["color_family"]
+                    color_hex = color_json["xkcd_color_hex"]
+
+                    _key = string_to_ascii(color_family)
+                    _score = vision_color["score"]
+                    _pixel_fraction = vision_color["pixelFraction"]
+
+                    try:
+                        color = arango.insert_document(
+                            "Tag", _key=_key, tag=color_family, hex=color_hex
+                        )[0]
+
+                        arango.insert_document(
+                            "TagOf",
+                            _type="label",
+                            _key=_key + image["_key"],
+                            _from=color["_id"],
+                            _to=image["_id"],
+                            _score=_score,
+                            _pixel_fraction=_pixel_fraction,
+                        )
+                    except:
+                        print(
+                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Color:"
+                        )
+                        print(json.dumps(color, indent=4))
 
         print(f"{image['_id']} complete")
 
@@ -225,6 +261,10 @@ def fetch_lorem_picsum_images():
 
 def string_to_ascii(string):
     return "".join(str(ord(c)) for c in string)
+
+
+def is_valid_vision_data(vision_data, keys):
+    return vision_data["score"] >= 0.2 and keys <= set(vision_data)
 
 
 if __name__ == "__main__":

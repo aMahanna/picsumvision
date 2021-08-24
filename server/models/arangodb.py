@@ -23,10 +23,6 @@ class ArangoDriver:
         print(f"Clearing {name} collection...")
         self.db.collection(name).truncate()
 
-    def clear_all_collections(self):
-        for collection in self.document_collections + self.edge_collections:
-            self.db.collection(collection).truncate()
-
     def restore_collection(self, name, data):
         print(f"Restoring {name} collection...")
         self.db.collection(name).import_bulk(data, on_duplicate="error")

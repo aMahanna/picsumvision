@@ -10,6 +10,7 @@ setup(
         "gunicorn",
         "python-dotenv",
         "python-arango",
-        "requests"
+        "requests",
+        "colornamer"
     ],
 )

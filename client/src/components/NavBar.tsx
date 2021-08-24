@@ -23,9 +23,9 @@ const NavBar = () => {
           style={{ position: 'fixed', right: 15, top: 5, color: 'rgba(0, 0, 0, 0.87)', fontSize: '18px' }}
           className={'text-capitalize font-weight-normal nav-item nav-link active'}
           component={Link}
-          onClick={() => i18n.changeLanguage(lang === 'en' ? 'fr' : 'en')}
+          onClick={() => i18n.changeLanguage(lang.includes('en') ? 'fr' : 'en')}
         >
-          <LanguageIcon style={{ fontSize: 11 }} /> {lang === 'en' ? 'en' : 'fr'}
+          <LanguageIcon style={{ fontSize: 11 }} /> {lang.includes('en') ? 'en' : 'fr'}
         </MUILink>
       </div>
       <Container component="div" maxWidth="sm">

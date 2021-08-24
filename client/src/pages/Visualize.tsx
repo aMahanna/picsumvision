@@ -36,9 +36,11 @@ const options = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Visualize = (props: any) => {
   const [t] = useTranslation();
-  const visualizationType = props.match.params.id ? 'image' : 'search';
+  const isSearchVisualization = !props.match.params.id;
   const [imageRedirect, setImageRedirect] = useState('');
   const [tagRedirect, setTagRedirect] = useState('');
+  const [imageCount, setImageCount] = useState(undefined);
+  const [verticeCount, setVerticeCount] = useState(undefined);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [graph, setGraph]: any = useState({
     nodes: [],
@@ -81,18 +83,17 @@ const Visualize = (props: any) => {
    * - Updates the state of the graph with the endpoint's response
    */
   useEffect(() => {
-    const isImageVisualization = visualizationType === 'image';
-    if (!isImageVisualization && (lastSearch === '' || !persistedData[lastSearch])) {
+    if (isSearchVisualization && (lastSearch === '' || !persistedData[lastSearch])) {
       props.history.push('/');
       return;
     }
 
-    fetch(`/api/search/visualize?type=${visualizationType}`, {
+    fetch(`/api/search/visualize?type=${isSearchVisualization ? 'search' : 'image'}`, {
       method: 'POST',
       body: JSON.stringify({
-        imageID: isImageVisualization ? props.match.params.id.split(',') : undefined,
-        keyword: isImageVisualization ? undefined : lastSearch,
-        lastSearchResult: isImageVisualization ? undefined : persistedData[lastSearch].data,
+        imageID: isSearchVisualization ? undefined : props.match.params.id.split(','),
+        keyword: isSearchVisualization ? lastSearch : undefined,
+        lastSearchResult: isSearchVisualization ? persistedData[lastSearch].data : undefined,
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -101,8 +102,11 @@ const Visualize = (props: any) => {
       .then(result => (result.status === 200 ? result.json() : undefined))
       .then(response => {
         if (response) {
+          setVerticeCount(response.verticeCount);
+          setImageCount(response.imageCount);
           const nodes: { id: string; label: string; color: string }[] = response.graphObject.nodes;
           const edges: { id: string; from: string; to: string; label: string }[] = response.graphObject.edges;
+
           options.physics.barnesHut = {
             centralGravity: 0,
             springLength: 15 * nodes.length,
@@ -126,10 +130,11 @@ const Visualize = (props: any) => {
       {imageRedirect !== '' && <Redirect to={{ pathname: `/info/${imageRedirect}` }} />}
       {tagRedirect !== '' && <Redirect to={{ pathname: '/search', state: { fromRedirect: tagRedirect } }} />}
       <h3>
-        {visualizationType === 'search'
+        {isSearchVisualization && (persistedData[lastSearch] || lastSearch)
           ? `"${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
           : `${props.match.params.id}`}
       </h3>
+      <h4>{imageCount && verticeCount && `(${imageCount} images, ${verticeCount} ${t('visualizerPage.labels')})`}</h4>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
       {graph.nodes.length !== 0 && (

@@ -157,7 +157,7 @@ namespace SearchController {
       res.status(204).json('No visualization info found :/');
     } else {
       const graphObject = parseVisualizationInfo(data, visualizationType === 'search');
-      res.status(200).json({ graphObject });
+      res.status(200).json({ graphObject, verticeCount: data.vertices.length, imageCount: data.connections.length });
     }
   }
 

@@ -54,6 +54,9 @@ jspm_packages/
 # Optional npm cache directory
 .npm
 
+# Python virtual environment (to switch between picsumvision implementations)
+.venv
+
 # Optional eslint cache
 .eslintcache
 

@@ -60,9 +60,10 @@ def fetch_surprise_tags():
           LIMIT @max_results
           RETURN v.tag
     """
-    bind_vars = {"max_results": max_results, "ignored_words": ignored_words}
-    result = arango.query(aql, bind_vars=bind_vars)
 
+    bind_vars = {"max_results": max_results, "ignored_words": ignored_words}
+
+    result = arango.query(aql, bind_vars=bind_vars)
     return " ".join([tag for tag in result])
 
 
@@ -74,13 +75,12 @@ def fetch_image_info(id):
       Let tags = ( FOR v, e IN 1..1 INBOUND image TagOf SORT e._score DESC RETURN {_id: v._id, tag: v.tag, score: e._score} ) 
       RETURN {image, bestGuess, tags}
     """
+
     bind_vars = {"id": id}
-    result = arango.query(aql, bind_vars=bind_vars)
 
-    image = result.next()
-    image["similar"] = fetch_discovery([id])
-
-    return image
+    result = arango.query(aql, bind_vars=bind_vars).next()
+    result["similar"] = fetch_discovery([id])
+    return result
 
 
 def fetch_discovery(clicked_images):
@@ -130,9 +130,10 @@ def fetch_discovery(clicked_images):
       )
       RETURN APPEND(landmarkMatches, APPEND(localizationMatches, commonMatches), true)
     """
-    bind_vars = {"clicked_images": clicked_images}
-    result = arango.query(aql, bind_vars=bind_vars)
 
+    bind_vars = {"clicked_images": clicked_images}
+
+    result = arango.query(aql, bind_vars=bind_vars)
     return result.next()
 
 
@@ -168,9 +169,10 @@ def fetch_search_visualization(keyword, image_results):
       )
       RETURN {vertices, connections}
     """
-    bind_vars = {"keyword": keyword, "image_results": image_results}
-    result = arango.query(aql, bind_vars=bind_vars)
 
+    bind_vars = {"keyword": keyword, "image_results": image_results}
+
+    result = arango.query(aql, bind_vars=bind_vars)
     return result.next()
 
 
@@ -213,9 +215,10 @@ def fetch_image_visualization(clicked_images):
       )
       RETURN {vertices, connections: APPEND(startEdges, endEdges)}
     """
-    bind_vars = {"clicked_images": clicked_images, "similar_images": similar_images}
-    result = arango.query(aql, bind_vars=bind_vars)
 
+    bind_vars = {"clicked_images": clicked_images, "similar_images": similar_images}
+
+    result = arango.query(aql, bind_vars=bind_vars)
     return result.next()
 
 
@@ -229,6 +232,6 @@ def fetch_db_metrics():
         edges: LENGTH(AuthorOf) + LENGTH(TagOf) + LENGTH(BestGuessOf)
       }
     """
-    result = arango.query(aql)
 
+    result = arango.query(aql)
     return result.next()

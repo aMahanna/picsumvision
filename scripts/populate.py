@@ -40,71 +40,70 @@ def populate_db(dataset):
 
         if "webDetection" in vision_data:
             for vision_guess in vision_data["webDetection"]["bestGuessLabels"]:
-                bestguess = arango.insert_document(
-                    "BestGuess",
-                    _key=string_to_ascii(vision_guess["label"]),
-                    bestGuess=vision_guess["label"],
-                )[0]
+                if {"label"} <= set(vision_guess):
+                    try:
+                        bestguess = arango.insert_document(
+                            "BestGuess",
+                            _key=string_to_ascii(vision_guess["label"]),
+                            bestGuess=vision_guess["label"],
+                        )[0]
 
-                arango.insert_document(
-                    "BestGuessOf", _from=bestguess["_id"], _to=image["_id"], _score=1
-                )
+                        arango.insert_document(
+                            "BestGuessOf",
+                            _from=bestguess["_id"],
+                            _to=image["_id"],
+                            _score=1,
+                        )
+                    except:
+                        print(f"ArangoDB Error Encountered. Skipping Landmark:")
+                        print(json.dumps(bestguess, indent=4))
 
         if "landmarkAnnotations" in vision_data:
             for vision_landmark in vision_data["landmarkAnnotations"]:
-                _key = string_to_ascii(vision_landmark["description"])
-                _score = (
-                    vision_landmark["score"] if vision_landmark["score"] < 1 else 0.999
-                )
+                if is_valid_vision_data(
+                    vision_landmark, {"description", "locations", "mid"}
+                ):
+                    _key, _score = fetch_arango_key_and_score(
+                        vision_landmark, "description"
+                    )
 
-                _latitude, _longitude = 0, 0
-                if "locations" in vision_landmark:
                     _latitude = vision_landmark["locations"][0]["latLng"]["latitude"]
                     _longitude = vision_landmark["locations"][0]["latLng"]["longitude"]
 
-                try:
-                    landmark = arango.insert_document(
-                        "Tag",
-                        _key=_key,
-                        mid=vision_landmark["mid"],
-                        tag=vision_landmark["description"],
-                    )[0]
+                    try:
+                        landmark = arango.insert_document(
+                            "Tag",
+                            _key=_key,
+                            mid=vision_landmark["mid"],
+                            tag=vision_landmark["description"],
+                        )[0]
 
-                    arango.insert_document(
-                        "TagOf",
-                        _type="landmark",
-                        _key=_key + image["_key"],
-                        _from=landmark["_id"],
-                        _to=image["_id"],
-                        _score=_score,
-                        _latitude=_latitude,
-                        _longitude=_longitude,
-                    )
-                except:
-                    print(
-                        f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Landmark:"
-                    )
-                    print(json.dumps(landmark, indent=4))
+                        arango.insert_document(
+                            "TagOf",
+                            _type="landmark",
+                            _key=_key + image["_key"],
+                            _from=landmark["_id"],
+                            _to=image["_id"],
+                            _score=_score,
+                            _latitude=_latitude,
+                            _longitude=_longitude,
+                        )
+                    except:
+                        print(f"ArangoDB Error Encountered. Skipping Landmark:")
+                        print(json.dumps(landmark, indent=4))
 
         if "localizedObjectAnnotations" in vision_data:
             for vision_localized in vision_data["localizedObjectAnnotations"]:
-                if is_valid_vision_data(vision_localized, {"mid", "name"}):
-                    _key = string_to_ascii(vision_localized["name"])
-                    _score = (
-                        vision_localized["score"]
-                        if vision_localized["score"] < 1
-                        else 0.999
-                    )
+                if is_valid_vision_data(
+                    vision_localized, {"mid", "name", "boundingPoly"}
+                ):
+                    _key, _score = fetch_arango_key_and_score(vision_localized, "name")
 
-                    _coord = []
-                    if "boundingPoly" in vision_localized:
-                        _coord = [
-                            [v["x"], v["y"]]
-                            for v in vision_localized["boundingPoly"][
-                                "normalizedVertices"
-                            ]
-                        ]
-                        _coord.append(_coord[0])
+                    _coord = [
+                        [v.get("x", 0), v.get("y", 0)]
+                        for v in vision_localized["boundingPoly"]["normalizedVertices"]
+                    ]
+                    _coord.append(_coord[0])
 
                     try:
                         localized = arango.insert_document(
@@ -114,7 +113,6 @@ def populate_db(dataset):
                             tag=vision_localized["name"],
                         )[0]
 
-                        # print(localized, _key + image["_key"])
                         arango.insert_document(
                             "TagOf",
                             _type="object",
@@ -125,17 +123,14 @@ def populate_db(dataset):
                             _coord=_coord,
                         )
                     except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Localized:"
-                        )
+                        print(f"ArangoDB Error Encountered. Skipping Localized:")
                         print(json.dumps(localized, indent=4))
 
         if "webDetection" in vision_data:
             for vision_entity in vision_data["webDetection"]["webEntities"]:
                 if is_valid_vision_data(vision_entity, {"entityId", "description"}):
-                    _key = string_to_ascii(vision_entity["description"])
-                    _score = (
-                        vision_entity["score"] if vision_entity["score"] < 1 else 0.999
+                    _key, _score = fetch_arango_key_and_score(
+                        vision_entity, "description"
                     )
 
                     try:
@@ -155,17 +150,14 @@ def populate_db(dataset):
                             _score=_score,
                         )
                     except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Entity:"
-                        )
+                        print(f"ArangoDB Error Encountered. Skipping Entity:")
                         print(json.dumps(entity, indent=4))
 
         if "labelAnnotations" in vision_data:
             for vision_label in vision_data["labelAnnotations"]:
                 if is_valid_vision_data(vision_label, {"mid", "description"}):
-                    _key = string_to_ascii(vision_label["description"])
-                    _score = (
-                        vision_label["score"] if vision_label["score"] < 1 else 0.999
+                    _key, _score = fetch_arango_key_and_score(
+                        vision_label, "description"
                     )
 
                     try:
@@ -185,9 +177,7 @@ def populate_db(dataset):
                             _score=_score,
                         )
                     except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Label:"
-                        )
+                        print(f"ArangoDB Error Encountered. Skipping Label:")
                         print(json.dumps(label, indent=4))
 
         if "imagePropertiesAnnotation" in vision_data:
@@ -196,9 +186,9 @@ def populate_db(dataset):
                 if "color" in vision_color:
                     color_json = get_color_from_rgb(
                         [
-                            vision_color["color"]["red"],
-                            vision_color["color"]["green"],
-                            vision_color["color"]["blue"],
+                            vision_color["color"].get("red", 0),
+                            vision_color["color"].get("green", 0),
+                            vision_color["color"].get("blue", 0),
                         ]
                     )
                     if color_json["color_family"] in ["black", "grey", "white"]:
@@ -226,9 +216,7 @@ def populate_db(dataset):
                             _pixel_fraction=_pixel_fraction,
                         )
                     except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Color:"
-                        )
+                        print(f"ArangoDB Error Encountered. Skipping Color:")
                         print(json.dumps(color, indent=4))
 
         print(f"{image['_id']} complete")
@@ -241,7 +229,7 @@ def fetch_lorem_picsum_images():
 
     page = 1
     while True:
-        response = requests.get(f"https://picsum.photos/v2/list?limit=1&page={page}")
+        response = requests.get(f"https://picsum.photos/v2/list?limit=100&page={page}")
         response.raise_for_status()
 
         picsum_result = response.json()
@@ -255,7 +243,7 @@ def fetch_lorem_picsum_images():
             )
 
         page += 1
-        if len(picsum_result) == 0 or page > 2:
+        if len(picsum_result) == 0:
             return dataset
 
 
@@ -265,6 +253,13 @@ def string_to_ascii(string):
 
 def is_valid_vision_data(vision_data, keys):
     return vision_data["score"] >= 0.2 and keys <= set(vision_data)
+
+
+def fetch_arango_key_and_score(vision_data, key):
+    return (
+        string_to_ascii(vision_data[key]),
+        vision_data["score"] if vision_data["score"] < 1 else 0.999,
+    )
 
 
 if __name__ == "__main__":

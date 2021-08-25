@@ -44,17 +44,14 @@ class VisionDriver:
         if "landmarkAnnotations" in vision_data:
             return vision_data["landmarkAnnotations"][0]["description"]
         elif "webDetection" in vision_data:
-            return " ".join(
-                [
-                    doc["description"]
-                    for doc in vision_data["webDetection"]["webEntities"][0:3]
-                ]
-            )
+            best_entities = vision_data["webDetection"]["webEntities"][0:3]
+            return self.format_keyword(best_entities, "description")
         elif "localizedObjectAnnotations" in vision_data:
-            return " ".join(
-                [doc["name"] for doc in vision_data["localizedObjectAnnotations"][0:3]]
-            )
+            best_objects = vision_data["localizedObjectAnnotations"][0:3]
+            return self.format_keyword(best_objects, "name")
         else:
-            return " ".join(
-                [doc["description"] for doc in vision_data["labelAnnotations"][0:4]]
-            )
+            best_labels = vision_data["labelAnnotations"][0:4]
+            return self.format_keyword(best_labels, "description")
+
+    def format_keyword(data, key):
+        return " ".join([doc[key] for doc in data])

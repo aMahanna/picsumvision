@@ -38,7 +38,8 @@
       "noResults": "Oop, nous avons rien trouvé",
       "inputLabel": "Rechercher par mots clés / par une URL",
       "inputPlaceholder": "Cloud Mountain Rain",
-      "suggestAlert": "Suggestion: "
+      "suggestAlert": "Suggestion: ",
+      "sorryAlert": "Désolé, nous avons rencontré une erreur"
     },
     "historyPage": {
       "clear": "Effacer",

@@ -20,16 +20,12 @@ def from_keyword():
 @search_bp.route("/search/url")
 @cross_origin()
 def from_url():
-    url = request.args.get("url")
-    if not url:
+    if url := request.args.get("url"):
+        keyword = vision.generate_keyword_from_url(url)
+        images = aql.fetch_images(keyword)
+        return jsonify({"data": images, "tags": keyword}), 200 if images else 204
+    else:
         return jsonify("Invalid URL"), 400
-
-    keyword = vision.generate_keyword_from_url(url)
-    if not keyword:
-        return jsonify("Error fetching vision keyword"), 500
-
-    images = aql.fetch_images(keyword)
-    return jsonify({"data": images, "tags": keyword}), 200 if images else 204
 
 
 @search_bp.route("/search/surpriseme")

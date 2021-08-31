@@ -10,12 +10,11 @@ search_bp = Blueprint("search_bp", __name__)
 @search_bp.route("/search/keyword")
 @cross_origin()
 def from_keyword():
-    keyword = request.args.get("keyword")
-    if not keyword:
+    if keyword := request.args.get("keyword"):
+        images = aql.fetch_images(keyword)
+        return jsonify({"data": images}), 200 if images else 204
+    else:
         return jsonify("User must pass a keyword as a string to search"), 400
-
-    images = aql.fetch_images(keyword)
-    return jsonify({"data": images}), 200 if len(images) > 0 else 204
 
 
 @search_bp.route("/search/url")
@@ -30,29 +29,27 @@ def from_url():
         return jsonify("Error fetching vision keyword"), 500
 
     images = aql.fetch_images(keyword)
-    return jsonify({"data": images, "tags": keyword}), 200 if len(images) > 0 else 204
+    return jsonify({"data": images, "tags": keyword}), 200 if images else 204
 
 
 @search_bp.route("/search/surpriseme")
 @cross_origin()
 def from_surprise():
-    tags = aql.fetch_surprise_tags()
-    if not tags:
+    if tags := aql.fetch_surprise_tags():
+        images = aql.fetch_images(tags)
+        return jsonify({"data": images, "tags": tags}), 200
+    else:
         return jsonify("Error fetching surprise tags"), 500
-
-    images = aql.fetch_images(tags)
-    return jsonify({"data": images, "tags": tags}), 200
 
 
 @search_bp.route("/search/discover")
 @cross_origin()
 def from_discovery():
-    clicked_images = request.args.get("IDs").split(",")
-    if not clicked_images:
-        return jsonify("Invalid image IDs"), 500
-
-    discovery = aql.fetch_discovery(clicked_images)
-    return jsonify({"data": discovery}), 200 if len(discovery) > 0 else 204
+    if clicked_images := request.args.get("IDs").split(","):
+        discovery = aql.fetch_discovery(clicked_images)
+        return jsonify({"data": discovery}), 200 if discovery else 204
+    else:
+        return jsonify("Invalid image IDs"), 400
 
 
 @search_bp.route("/search/visualize", methods=["POST"])
@@ -61,33 +58,33 @@ def from_visualizer():
     body = request.get_json()
     data = {"vertices": [], "connections": []}
 
-    is_search_visualization = True if request.args.get("type") == "search" else False
+    is_search_visualization = request.args.get("type") == "search"
     if is_search_visualization:
-        keyword = body["keyword"]
-        last_search_result = body["lastSearchResult"]
-
-        if not keyword:
-            return jsonify("Missing keyword for visualization"), 400
-        elif not last_search_result:
-            return jsonify("Missing search result for visualization"), 400
-
-        data = aql.fetch_search_visualization(keyword, last_search_result)
-
+        data = visualize_search(body.get("keyword"), body.get("lastSearchResult"))
     else:
-        image_id = body["imageID"]
-        if not image_id:
-            return jsonify("Missing image ID for image visualization."), 400
+        data = visualize_image(body.get("imageID"))
 
-        data = aql.fetch_image_visualization(image_id)
+    if data["vertices"] and data["connections"]:
+        graph_object = parse_visualization_info(data, is_search_visualization)
+        return (
+            jsonify(
+                {
+                    "graphObject": graph_object,
+                    "verticeCount": len(data["vertices"]),
+                    "imageCount": len(data["connections"]),
+                }
+            ),
+            200,
+        )
+    else:
+        return jsonify("Invalid Visualization"), 400
 
-    if len(data["vertices"]) == 0:
-        return jsonify("No visualization info found :/"), 204
 
-    graph_object = parse_visualization_info(data, is_search_visualization)
-    return jsonify(
-        {
-            "graphObject": graph_object,
-            "verticeCount": len(data["vertices"]),
-            "imageCount": len(data["connections"]),
-        }
-    )
+def visualize_search(keyword, last_search):
+    if keyword and last_search:
+        return aql.fetch_search_visualization(keyword, last_search)
+
+
+def visualize_image(image_id):
+    if image_id:
+        return aql.fetch_image_visualization(image_id)

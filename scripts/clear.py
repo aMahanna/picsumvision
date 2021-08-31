@@ -2,7 +2,7 @@ from server import arango
 
 
 def main():
-    for collection in arango.document_collections + arango.edge_collections:
+    for collection in arango.DOCUMENT_COLLECTIONS + arango.EDGE_COLLECTIONS:
         arango.clear_collection(collection)
 
 

@@ -2,14 +2,18 @@ from typing import Optional, TypedDict
 
 from flask_cors.decorator import cross_origin
 
-#### populate.py ####################
+##### populate.py ####
+
+
 class AbstractImage(TypedDict):
     key: str
     author: str
     url: str
 
 
-#### AQL.py ####################
+##### aql.py ####
+
+
 class ArangoImage(AbstractImage):
     _id: str
     _key: str
@@ -62,7 +66,7 @@ class VisualizationData(TypedDict):
     connections: list[VisualizationConnection]
 
 
-########utils.py###################
+##### search.py ####
 
 
 class Node(TypedDict):

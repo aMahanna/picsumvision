@@ -5,8 +5,8 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from server.models.arangodb import ArangoDriver
-from server.models.googlevision import VisionDriver
+from server.controllers.arangodb import ArangoDriver
+from server.controllers.googlevision import VisionDriver
 
 load_dotenv()
 logging.basicConfig(

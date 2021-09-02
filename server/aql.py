@@ -18,7 +18,7 @@ ignored_words = [
 
 def fetch_images(keyword: str) -> list[ArangoImage]:
     aql = """
-      WITH Image, Author, Tag, BestGuess                            // Import Required Collections
+      WITH Image, Author, Tag, BestGuess                          // Import Required Collections
       LET normTokens = TOKENS(@keyword, 'norm_accent_lower')[0]   // Tokenize user input for exact matching
       LET textTokens = TOKENS(@keyword, 'text_en_stopwords')      // Tokenize user input for close matching
       LET exactMatches = (
@@ -82,9 +82,9 @@ def fetch_surprise_tags() -> str:
 def fetch_image_info(id: str) -> ArangoImageInfo:
     aql = """
       WITH Image, Author, Tag, BestGuess 
-      Let image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i) 
+      LET image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i) 
       LET bestGuess = (FOR v IN 1..1 INBOUND image BestGuessOf RETURN v.bestGuess) 
-      Let tags = ( FOR v, e IN 1..1 INBOUND image TagOf SORT e._score DESC RETURN {_id: v._id, tag: v.tag, score: e._score} ) 
+      LET tags = (FOR v, e IN 1..1 INBOUND image TagOf SORT e._score DESC RETURN {_id: v._id, tag: v.tag, score: e._score}) 
       RETURN {image, bestGuess, tags}
     """
 
@@ -168,7 +168,7 @@ def fetch_search_visualization(
       LET vertices = (
         FOR i IN @image_results
           FOR v, e IN 1..1 INBOUND i._id AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' }
-            FILTER v IN matchList // temporary measure to avoid clutter
+            FILTER v IN matchList
             LET vertice = {
               _key: v._key,
               _id: v._id,
@@ -244,7 +244,7 @@ def fetch_db_metrics() -> dict[str, int]:
         authors: LENGTH(Author),
         guesses: LENGTH(BestGuess),
         tags: LENGTH(Tag),
-        edges: LENGTH(AuthorOf)   LENGTH(TagOf)   LENGTH(BestGuessOf)
+        edges: LENGTH(AuthorOf) + LENGTH(TagOf) + LENGTH(BestGuessOf)
       }
     """
 

@@ -59,15 +59,17 @@ def from_search_visualizer():
     body = request.get_json()
     data: VisualizationData = {"vertices": [], "connections": []}
 
-    if keyword := body.get("keyword") and (last_search := body.get("lastSearchResult")):
-        data = aql.fetch_search_visualization(keyword, last_search)
+    last_search = body.get("lastSearch")
+    last_result = body.get("lastResult")
+    if last_search and last_result:
+        data = aql.fetch_search_visualization(last_search, last_search)
 
     return visualize_data(data, True)
 
 
 @search_bp.route("/search/visualizeimage", methods=["POST"])
 @cross_origin()
-def from_search_visualizer():
+def from_image_visualizer():
     body = request.get_json()
     data: VisualizationData = {"vertices": [], "connections": []}
 

@@ -88,12 +88,12 @@ const Visualize = (props: any) => {
       return;
     }
 
-    const url = `/api/search/visualize${isSearchVisualization ? 'search' : 'image'}`
+    const url = `/api/search/visualize${isSearchVisualization ? 'search' : 'image'}`;
     const body = {
-      keyword: isSearchVisualization ? lastSearch : undefined,
-      lastSearchResult: isSearchVisualization ? persistedData[lastSearch].data : undefined,
+      lastSearch: isSearchVisualization ? lastSearch : undefined,
+      lastResult: isSearchVisualization ? persistedData[lastSearch].data : undefined,
       imageID: isSearchVisualization ? undefined : props.match.params.id.split(','),
-    }
+    };
 
     fetch(url, {
       method: 'POST',

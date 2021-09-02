@@ -53,7 +53,7 @@ const Visualize = (props: any) => {
         const nodeID = nodes[0];
         const type = nodeID.split('/')[0];
 
-        if (type === 'Tag' || type === 'Author' || type === 'BestGuess') {
+        if (['Tag', 'Author', 'BestGuess'].includes(type)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const tag = graph.nodes.find((node: any) => node.id === nodeID).label;
           setTagRedirect(tag);
@@ -88,13 +88,16 @@ const Visualize = (props: any) => {
       return;
     }
 
-    fetch(`/api/search/visualize?type=${isSearchVisualization ? 'search' : 'image'}`, {
+    const url = `/api/search/visualize${isSearchVisualization ? 'search' : 'image'}`
+    const body = {
+      keyword: isSearchVisualization ? lastSearch : undefined,
+      lastSearchResult: isSearchVisualization ? persistedData[lastSearch].data : undefined,
+      imageID: isSearchVisualization ? undefined : props.match.params.id.split(','),
+    }
+
+    fetch(url, {
       method: 'POST',
-      body: JSON.stringify({
-        imageID: isSearchVisualization ? undefined : props.match.params.id.split(','),
-        keyword: isSearchVisualization ? lastSearch : undefined,
-        lastSearchResult: isSearchVisualization ? persistedData[lastSearch].data : undefined,
-      }),
+      body: JSON.stringify(body),
       headers: {
         'Content-Type': 'application/json',
       },

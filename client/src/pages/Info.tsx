@@ -51,7 +51,7 @@ const Info = (props: any) => {
           setURL(result.data.image.url);
           setAuthor(result.data.image.author);
           setBestGuess(result.data.bestGuess);
-          setTags(result.data.tags);
+          setTags(result.data.keyword);
           setSimilar(result.data.similar);
 
           setImageIDs({

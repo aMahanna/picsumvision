@@ -22,7 +22,7 @@ const History = () => {
       fetch('/api/info/randomtags')
         .then(result => result.json())
         .then(response => {
-          setMakeHistory(response.tags);
+          setMakeHistory(response.keyword);
         });
     }
   }, [history]);

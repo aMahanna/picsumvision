@@ -62,7 +62,7 @@ def from_search_visualizer():
     last_search = body.get("lastSearch")
     last_result = body.get("lastResult")
     if last_search and last_result:
-        data = aql.fetch_search_visualization(last_search, last_search)
+        data = aql.fetch_search_visualization(last_search, last_result)
 
     return visualize_data(data, True)
 

@@ -284,7 +284,7 @@ def insert_colors(image: ArangoImage, colors: list[VisionColor]):
 def fetch_lorem_picsum_images() -> list[AbstractImage]:
     dataset: list[AbstractImage] = []
 
-    page = 10
+    page = 1
     url = "https://picsum.photos/v2/list?limit=100&page="
     while picsum_result := fetch_from_endpoint(f"{url}{page}"):
         for picsum_object in picsum_result:

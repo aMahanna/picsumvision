@@ -1,4 +1,5 @@
 import requests
+from server.types import VisionResult
 
 
 class VisionDriver:
@@ -15,7 +16,7 @@ class VisionDriver:
             # {"maxResults": 5, "type": "TEXT_DETECTION"},
         ]
 
-    def get_image_metadata(self, image_uri):
+    def get_image_metadata(self, image_uri: str) -> VisionResult:
         body = {
             "requests": [
                 {
@@ -34,25 +35,28 @@ class VisionDriver:
 
         return response.json()["responses"][0]
 
-    def generate_keyword_from_url(self, url):
+    def generate_keyword_from_url(self, url) -> str:
+        """Returns vision data in a string for a url.
+
+        Raises:
+            Exception: When no google vision data is found
+        """
         vision_data = self.get_image_metadata(url)
         if not vision_data or "error" in vision_data:
-            return None
+            raise Exception
 
         if landmarks := vision_data.get("landmarkAnnotations"):
             return landmarks[0]["description"]
 
         elif web_detection := vision_data.get("webDetection"):
-            best_entities = web_detection["webEntities"][:3]
-            return self.format_keyword(best_entities, "description")
+            return self.format_keyword(web_detection["webEntities"][:3], "description")
 
         elif localized_objects := vision_data.get("localizedObjectAnnotations"):
-            best_objects = localized_objects[:3]
-            return self.format_keyword(best_objects, "name")
+            return self.format_keyword(localized_objects[:3], "name")
 
         else:
             best_labels = vision_data["labelAnnotations"][:4]
             return self.format_keyword(best_labels, "description")
 
-    def format_keyword(data, key):
+    def format_keyword(self, data, key: str) -> str:
         return " ".join([doc[key] for doc in data])

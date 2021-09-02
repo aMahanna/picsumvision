@@ -1,3 +1,4 @@
+import logging
 from server import arango
 from assets.stopwords import stop_words
 
@@ -83,7 +84,7 @@ def main():
         },
     )
 
-    print("Success: Onboarding complete.")
+    logging.info("Success: Onboarding complete.")
 
 
 if __name__ == "__main__":

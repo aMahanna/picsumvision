@@ -18,8 +18,8 @@ def fetch_image():
 @info_bp.route("/info/randomtags")
 @cross_origin()
 def fetch_random_tags():
-    if tags := aql.fetch_surprise_tags():
-        return jsonify({"tags": tags}), 200
+    if keyword := aql.fetch_surprise_tags():
+        return jsonify({"keyword": keyword}), 200
     else:
         return jsonify("Error fetching surprise keys"), 500
 

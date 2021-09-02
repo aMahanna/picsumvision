@@ -1,10 +1,22 @@
 import random
 import math
 from server import arango
-from server.utils import ignored_words
+from server.types import ArangoImage, ArangoImageInfo, VisualizationData
+
+ignored_words = [
+    "atmosphere",
+    "cloud",
+    "image",
+    "stock.xchng",
+    "sky",
+    "wallpaper",
+    "photograph",
+    "image",
+    "person",
+]
 
 
-def fetch_images(keyword):
+def fetch_images(keyword: str) -> list[ArangoImage]:
     aql = """
       WITH Image, Author, Tag, BestGuess                            // Import Required Collections
       LET normTokens = TOKENS(@keyword, 'norm_accent_lower')[0]   // Tokenize user input for exact matching
@@ -42,11 +54,11 @@ def fetch_images(keyword):
 
     bind_vars = {"keyword": keyword}
 
-    result = arango.query(aql, bind_vars=bind_vars)
-    return result.next()
+    result = arango.query(aql, bind_vars=bind_vars).next()
+    return result
 
 
-def fetch_surprise_tags():
+def fetch_surprise_tags() -> str:
     max_results = math.floor(random.random() * 3) + 1
     aql = """
       With Tag
@@ -67,7 +79,7 @@ def fetch_surprise_tags():
     return " ".join([tag for tag in result])
 
 
-def fetch_image_info(id):
+def fetch_image_info(id: str) -> ArangoImageInfo:
     aql = """
       WITH Image, Author, Tag, BestGuess 
       Let image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i) 
@@ -83,7 +95,7 @@ def fetch_image_info(id):
     return result
 
 
-def fetch_discovery(clicked_images):
+def fetch_discovery(clicked_images: list[str]) -> list[ArangoImage]:
     aql = """
       WITH Author, Tag, BestGuess                                           // Import collections
       LET commonMatches = (
@@ -133,11 +145,14 @@ def fetch_discovery(clicked_images):
 
     bind_vars = {"clicked_images": clicked_images}
 
-    result = arango.query(aql, bind_vars=bind_vars)
-    return result.next()
+    result = arango.query(aql, bind_vars=bind_vars).next()
+    return result
 
 
-def fetch_search_visualization(keyword, image_results):
+def fetch_search_visualization(
+    keyword: str, image_results: list[ArangoImage]
+) -> VisualizationData:
+
     aql = """
       WITH Image, Author, Tag, BestGuess
       LET textTokens = TOKENS(@keyword, 'text_en_stopwords')
@@ -172,11 +187,11 @@ def fetch_search_visualization(keyword, image_results):
 
     bind_vars = {"keyword": keyword, "image_results": image_results}
 
-    result = arango.query(aql, bind_vars=bind_vars)
-    return result.next()
+    result = arango.query(aql, bind_vars=bind_vars).next()
+    return result
 
 
-def fetch_image_visualization(clicked_images):
+def fetch_image_visualization(clicked_images: list[str]) -> VisualizationData:
     similar_images = fetch_discovery(clicked_images)
 
     aql = """
@@ -218,20 +233,20 @@ def fetch_image_visualization(clicked_images):
 
     bind_vars = {"clicked_images": clicked_images, "similar_images": similar_images}
 
-    result = arango.query(aql, bind_vars=bind_vars)
-    return result.next()
+    result = arango.query(aql, bind_vars=bind_vars).next()
+    return result
 
 
-def fetch_db_metrics():
+def fetch_db_metrics() -> dict[str, int]:
     aql = """
       RETURN {
         images: LENGTH(Image),
         authors: LENGTH(Author),
         guesses: LENGTH(BestGuess),
         tags: LENGTH(Tag),
-        edges: LENGTH(AuthorOf) + LENGTH(TagOf) + LENGTH(BestGuessOf)
+        edges: LENGTH(AuthorOf)   LENGTH(TagOf)   LENGTH(BestGuessOf)
       }
     """
 
-    result = arango.query(aql)
-    return result.next()
+    result = arango.query(aql).next()
+    return result

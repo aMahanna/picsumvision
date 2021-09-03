@@ -76,6 +76,13 @@ class Node(TypedDict):
     font: dict[str, str]
 
 
+class Edge(TypedDict):
+    id: str
+    # from: str
+    to: str
+    label: Optional[str]
+    color: str
+
 class ParsedVisualzationData(TypedDict):
     nodes: list[Node]
     edges: dict[str, str]

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 from server import aql, vision
-from server.types import Node, ParsedVisualzationData, VisualizationData
+from server.types import Edge, Node, ParsedVisualzationData, VisualizationData
 
 
 search_bp = Blueprint("search_bp", __name__)
@@ -104,7 +104,7 @@ def parse_visualization_info(
 ) -> ParsedVisualzationData:
 
     nodes: list[Node] = []
-    edges: dict[str, str] = []
+    edges: list[Edge] = []
     edge_colors = ["#241023", "#4464AD", "#DC0073", "#47A025", "#FF7700", "#6B0504"]
 
     for vertice in info["vertices"]:
@@ -118,17 +118,16 @@ def parse_visualization_info(
         )
 
     for index, connection in enumerate(info["connections"]):
-        node_col = connection["i"]["color"] if "color" in connection["i"] else "#422040"
         nodes.append(
             {
                 "id": connection["i"]["_id"],
                 "label": connection["i"]["_key"],
-                "color": node_col,
+                "color": connection["i"].get("color", "#422040"),
                 "font": {"color": "white"},
             }
         )
 
-        edge_col = edge_colors[index % len(edge_colors)]
+        edge_color = edge_colors[index % len(edge_colors)]
         for edge in connection["edges"]:
             edge_label = f"{edge['_score']:.2f}%" if is_search_visualization else None
             edges.append(
@@ -137,7 +136,7 @@ def parse_visualization_info(
                     "from": edge["_from"],
                     "to": edge["_to"],
                     "label": edge_label,
-                    "color": edge_col,
+                    "color": edge_color,
                 }
             )
 

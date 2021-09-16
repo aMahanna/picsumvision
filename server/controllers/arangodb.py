@@ -47,6 +47,9 @@ class ArangoDriver:
         self.db.create_view(name, type, properties)
 
     def insert(self, doc_collection: str, **document):
+        if "_key" not in document:
+            raise KeyError("Missing _key")
+
         collection = self.db.collection(doc_collection)
         if existing_doc := collection.get(document["_key"]):
             return existing_doc, True

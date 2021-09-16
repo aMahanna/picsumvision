@@ -39,11 +39,11 @@ class VisionDriver:
         """Returns vision data in a string for a url.
 
         Raises:
-            Exception: When no google vision data is found
+            ValueError: When no google vision data is found
         """
         vision_data = self.get_image_metadata(url)
         if not vision_data or "error" in vision_data:
-            raise Exception
+            raise ValueError("Google Vision Uncooperative")
 
         if landmarks := vision_data.get("landmarkAnnotations"):
             return landmarks[0]["description"]

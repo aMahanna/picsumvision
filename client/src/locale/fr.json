@@ -13,16 +13,15 @@
       }
     },
     "landingPage": {
-      "heading": "Lorem Picsum + Google Vision",
-      "description": "Recherchez des images de la collection Lorem Picsum à l'aide de données générées par Google Vision.",
-      "discover": "Découvrez des images qui correspondent à votre historique",
-      "visualize": "Visualisez vos résultats de recherche sous forme de réseau pour comprendre les relations d'images.",
-      "info": "Construit avec Lorem Picsum, Google Vision et ArangoDB.",
-      "images": " images visibles",
-      "authors": " auteurs distingués",
-      "tags": " étiquettes recherchables",
-      "guesses": " meilleures suppositions",
-      "edges": " arêtes de connexion"
+      "description": "Explorez des images via Google Vision",
+      "discover": "Découvrez des images similaires à votre historique.",
+      "visualize": "Visualisez vos résultats sous forme de réseau graphique.",
+      "info": "Lorem Picsum, Google Vision et ArangoDB.",
+      "images": "Images",
+      "authors": "Auteur(e)s",
+      "tags": "Étiquettes",
+      "guesses": "Suppositions",
+      "edges": "Arêtes de connexion"
     },
     "searchPage": {
       "query": "Réaliser",
@@ -36,7 +35,7 @@
       "visualize": "Visualizer",
       "visualizeTip": "Visualisez les résultats sous forme de graphique",
       "noResults": "Oop, nous avons rien trouvé",
-      "inputLabel": "Rechercher par mots clés / par une URL",
+      "inputLabel": "mot-clé ou lien à une image",
       "inputPlaceholder": "Cloud Mountain Rain",
       "suggestAlert": "Suggestion: ",
       "sorryAlert": "Désolé, nous avons rencontré une erreur"
@@ -65,7 +64,7 @@
     "visualizerPage": {
       "search": "Recherche: ",
       "interact": "Double-cliquez sur un sommet pour voir les résultats associés.",
-      "labels": "étiquettes"
+      "labels": "Étiquettes"
     }
   }
 }

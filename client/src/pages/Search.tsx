@@ -86,7 +86,7 @@ const Search = (props: any) => {
         .then(result => (result.status === 200 ? result.json() : undefined))
         .then(response => {
           if (response) {
-            setInputPlaceholder(response.data);
+            setInputPlaceholder(response.keyword);
           }
         });
     }

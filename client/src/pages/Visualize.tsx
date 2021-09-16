@@ -137,7 +137,6 @@ const Visualize = (props: any) => {
           ? `"${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
           : `${props.match.params.id}`}
       </h3>
-      <h4>{imageCount && verticeCount && `(${imageCount} images, ${verticeCount} ${t('visualizerPage.labels')})`}</h4>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}
       {graph.nodes.length !== 0 && (
@@ -145,6 +144,7 @@ const Visualize = (props: any) => {
           <Graph graph={graph} options={options} events={events} style={{ border: 'solid', height: '80vh' }} />
         </Box>
       )}
+      <h4>{imageCount && verticeCount && `Images: ${imageCount} | ${t('visualizerPage.labels')}: ${verticeCount}`}</h4>
     </Container>
   );
 };

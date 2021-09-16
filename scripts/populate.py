@@ -312,13 +312,13 @@ def string_to_ascii(string: str) -> str:
 
 
 def is_valid_vision_data(vision_data: dict, keys: list[str]) -> bool:
-    return vision_data["score"] >= 0.2 and keys <= set(vision_data)
+    return keys <= set(vision_data) and vision_data.get("score", 0) >= 0.2
 
 
 def fetch_key_and_score(vision_data: dict, key: str) -> Tuple[str, float]:
     return (
         string_to_ascii(vision_data[key]),
-        vision_data["score"] if vision_data["score"] < 1 else 0.999,
+        score if (score := vision_data["score"]) < 1 else 0.999,
     )
 
 

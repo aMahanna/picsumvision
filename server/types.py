@@ -83,6 +83,7 @@ class Edge(TypedDict):
     label: Optional[str]
     color: str
 
+
 class ParsedVisualzationData(TypedDict):
     nodes: list[Node]
     edges: dict[str, str]

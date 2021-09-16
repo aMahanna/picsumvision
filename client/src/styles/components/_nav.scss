@@ -7,10 +7,10 @@
     &--items {
       > a {
         margin: 0 8px;
-        width: 10vw;
+        width: 9em;
 
         @media all and (max-width: $medium) {
-          width: 25%;
+          width: 3em;
         }
 
         font-weight: 500;

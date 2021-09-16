@@ -16,16 +16,18 @@ This project was submitted as a Shopify Developer Challenge on May 9th, but has 
 
 _Disclaimer: Searching is far from being optimized._
 
-## How to run
+## Setup
 
-1. Run `git clone https://github.com/aMahanna/picsumvision.git`
-2. Run `cd picsumvision`
-3. Run `cp .env.example .env` (For fast setup, **do not modify anything**.)
-4. Run `yarn install && yarn client:install`
-5. Run `docker-compose up -d` to create your local DB instance
+1. `git clone https://github.com/aMahanna/picsumvision.git`
+2. `cd picsumvision`
+3. `cp .env.example .env` (For fast setup, **do not modify anything**.)
+4. `yarn install && yarn client:install`
+5. `docker-compose up -d` to create your local DB instance
     * Verify at `http://localhost:8529/` with `root` // `rootpassword`
-5. Run `yarn db:onboard` (configures your DB with Collections, Analyzers, and a View)
-6. Run `yarn db:restore` (restores your DB with data from latest ArangoDB dump)
+6. `python3 -m venv .venv && source .venv/bin/activate`
+7. `pip install -e .`
+8. Run `yarn db:onboard` (configures your DB with Collections, Analyzers, and a View)
+9. Run `yarn db:restore` (restores your DB with data from latest ArangoDB dump)
 
 **Good to go:**
 * Run `yarn dev`.
@@ -43,35 +45,33 @@ For fast setup, I recommend you use the `yarn db:restore` command instead of `ya
 
 ## Configuring New Image Datasets
 
-Context: The `populate.ts` script.
+File: `scripts/populate.py`
 
-If you want to substitute Lorem Picsum for another image dataset (e.g Unsplash), add a handler function in `populate.ts`, similar to `fetchLoremPicsumImages()`. This method will need to fetch your JSON payload from the dataset source, and format each image to the `AbstractImage` interface standard:
+If you want to substitute Lorem Picsum for another image dataset (e.g Unsplash), add a handler function in `populate.py`, similar to `fetch_lorem_picsum_images()`. This method will need to fetch your JSON payload from the dataset source, and format each image to the `AbstractImage` interface standard:
 
-```typescript
-export interface AbstractImage {
-  id: string; // An Image ID
-  author: string; // An Image author
-  url: string; // Image original URL (source site)
-}
+```python
+class AbstractImage(TypedDict):
+    key: str
+    author: str
+    url: str
 ```
 
-Once you have an array of type `AbstractImage[]`, you can pass it to the `populateDB()`  function, which takes care of the rest. 
+Once you have a `list[AbstractImage]`, you can pass it to the `populate_db()` function, which takes care of the rest. 
 
 ## Configuring New Collections
 
-Context: The `picsumvision/src/collections` directory.
+File: The `server/controller/arangodb.py`
 
-Adding a new collections is a simple as creating a file under `/src/collections`, and updating the `documentCollections` and `edgeCollections` arrays in `database.ts` to indicate that you have added new collections.
-
-Keep in mind that collections are created in pairs. You create a Document collection to store the data you want to add, and you create an Edge collection to connect your Document collection with other Document collections. 
-
-If you would like as well, you can update the `populate.ts` to generate some data into your new collections. However, you do not need to modify the `onboard.ts` or `clear.ts` scripts, as it will take into account your changes, based on the `documentCollections` and `edgeCollections` values.
+1. Update `DOCUMENT_COLLECTIONS` or `EDGE_COLLECTIONS`, depending on the collection type you want to add.
+    * Keep in mind that most graph db collections are created in pairs. You create a Document collection to store the data you want to add, and you create an Edge collection to connect your Document collection with other Document collections
+2. Update `populate.py` to to generate some data into your new collections.
+3. Consider creating a dump of the newly added collections via the `arangodump` command, and adding it in `arangodump/` for the `restore.py` to use.
 
 ## Configuring New Queries
 
-Context: The `queries.ts` file.
+File: `server/aql.py`
 
-Simply create a new `export async function...` in `/src/queries.ts`, and you can begin to reference it in an existing Search / Info API Route, or create a new API / Endpoint.
+Simply create a new function in `aql.py`, and you can begin to reference it in an existing Search / Info API Route, or create a new one.
 
 ## Routes
 
@@ -79,7 +79,8 @@ Simply create a new `export async function...` in `/src/queries.ts`, and you can
 * GET `/api/search/url` - Queries images based on user url (e.g [dog](https://post.medicalnewstoday.com/wp-content/uploads/sites/3/2020/02/322868_1100-1100x628.jpg))
 * GET `/api/search/surpriseme` - Queries images based on random tags (generated from ArangoDB)
 * GET `/api/search/discover` - Recommends images a user may like based on history
-* GET `/api/search/visualize` - Represents the user's last search results as a graph network
+* GET `/api/search/visualizesearch` - Represents the user's last search results as a graph network
+* GET `/api/search/visualizeimage` - Represents the user's last clicked image as a graph network
 
 * GET `/api/info/image` - Returns metadata of an image using its ID
 * GET `/api/info/randomtags` - Returns random tags (picked from a random image)

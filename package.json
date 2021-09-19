@@ -9,17 +9,17 @@
     },
     "scripts": {
         "dev": "concurrently \"flask run\" \"yarn client:start\"",
-        "build": "yarn run client:install && yarn run client:build",
+        "db:clear": "python scripts/clear.py",
+        "db:onboard": "python scripts/onboard.py",
+        "db:restore": "python scripts/restore.py",
+        "db:populate": "python scripts/populate.py",
+        "black": "black server scripts",
         "client:install": "cd client && yarn install",
         "client:build": "cd client && yarn build",
         "client:start": "cd client && yarn start",
         "client:test": "cd client && yarn test",
         "client:prettier": "cd client && yarn prettier",
-        "client:lint": "cd client && yarn lint",
-        "db:clear": "python scripts/clear.py",
-        "db:onboard": "python scripts/onboard.py",
-        "db:restore": "python scripts/restore.py",
-        "db:populate": "python scripts/populate.py"
+        "client:lint": "cd client && yarn lint"
     },
     "engines": {"node": "^16.9.1", "yarn": "^1.22.4"}
 }

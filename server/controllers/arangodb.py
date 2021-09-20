@@ -57,6 +57,15 @@ class ArangoDriver:
             new_doc = collection.insert(document, sync=True, return_new=True)
             return new_doc["new"], False
 
-    def remove_from(self, collection_name: str, id: str):
-        logging.info(f"Removing {id} from {collection_name}...")
-        self.db.collection(collection_name).delete(id, ignore_missing=True)
+    def dissolve(self, image_id: str):
+        logging.info(f"Dissolving: {image_id} (& all its associated edges)")
+        aql = """
+            FOR v,e IN 1..1 INBOUND @image_id TagOf, BestGuessOf, AuthorOf
+                REMOVE e._key IN TagOf OPTIONS { ignoreErrors: true } 
+                REMOVE e._key IN BestGuessOf OPTIONS { ignoreErrors: true } 
+                REMOVE e._key IN AuthorOf OPTIONS { ignoreErrors: true }
+        """
+        bind_vars = {"image_id": image_id}
+
+        self.query(aql, bind_vars)
+        self.db.collection("Image").delete(image_id)

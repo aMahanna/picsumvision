@@ -1,10 +1,10 @@
 import json
 import logging
 import requests
-from typing import Tuple, Optional
 from colornamer import get_color_from_rgb
-
 from server import arango, vision
+
+from typing import Tuple, Optional
 from server.types import (
     AbstractImage,
     ArangoImage,
@@ -30,56 +30,59 @@ def populate_db(dataset: list[AbstractImage]) -> None:
     logging.info(f"Generating metadata for {len(dataset)} images. Please standby...")
 
     for image in dataset:
+        try:
+            img_doc: ArangoImage
+            img_doc, is_old_img = arango.insert(
+                "Image",
+                _key=image["key"],
+                author=image["author"],
+                url=image["url"],
+            )
 
-        img_doc: ArangoImage
-        img_doc, is_old_img = arango.insert(
-            "Image",
-            _key=image["key"],
-            author=image["author"],
-            url=image["url"],
-        )
+            if is_old_img:
+                logging.info(f'Already exists: {img_doc["_id"]}, skipping...')
+                continue
 
-        if is_old_img:
-            logging.info(f'Already exists: {img_doc["_id"]}, skipping...')
-            continue
+            vision_data: VisionResult = vision.get_image_metadata(img_doc["url"])
+            if not vision_data or "error" in vision_data:
+                logging.info(f"Error: Vision uncooperative")
+                print(json.dumps(vision_data.get("error"), indent=4))
+                arango.dissolve(img_doc["_id"])
 
-        vision_data: VisionResult = vision.get_image_metadata(img_doc["url"])
-        if not vision_data or "error" in vision_data:
-            logging.info(f"Vision uncooperative, skipping...")
-            print(json.dumps(vision_data, indent=4))
-            arango.remove_from("Image", img_doc["_id"])
-            continue
+            auth: str
+            if auth := img_doc.get("author"):
+                insert_author(img_doc, auth)
 
-        auth: str
-        if auth := img_doc.get("author"):
-            insert_author(img_doc, auth)
+            landmarks: Optional[list[LandmarkAnnotation]]
+            if landmarks := vision_data.get("landmarkAnnotations"):
+                insert_landmarks(img_doc, landmarks)
 
-        landmarks: Optional[list[LandmarkAnnotation]]
-        if landmarks := vision_data.get("landmarkAnnotations"):
-            insert_landmarks(img_doc, landmarks)
+            web_detection: Optional[VisionWebDetection]
+            if web_detection := vision_data.get("webDetection"):
+                if guesses := web_detection.get("bestGuessLabels"):
+                    insert_guesses(img_doc, guesses)
 
-        web_detection: Optional[VisionWebDetection]
-        if web_detection := vision_data.get("webDetection"):
-            if guesses := web_detection.get("bestGuessLabels"):
-                insert_guesses(img_doc, guesses)
+                if entities := web_detection.get("webEntities"):
+                    insert_entities(img_doc, entities)
 
-            if entities := web_detection.get("webEntities"):
-                insert_entities(img_doc, entities)
+            localized_objects: Optional[list[LocalizedObjectAnnotation]]
+            if localized_objects := vision_data.get("localizedObjectAnnotations"):
+                insert_localized_objects(img_doc, localized_objects)
 
-        localized_objects: Optional[list[LocalizedObjectAnnotation]]
-        if localized_objects := vision_data.get("localizedObjectAnnotations"):
-            insert_localized_objects(img_doc, localized_objects)
+            labels: Optional[list[VisionAnnotation]]
+            if labels := vision_data.get("labelAnnotations"):
+                insert_labels(img_doc, labels)
 
-        labels: Optional[list[VisionAnnotation]]
-        if labels := vision_data.get("labelAnnotations"):
-            insert_labels(img_doc, labels)
+            properties: Optional[VisionImageProperties]
+            if properties := vision_data.get("imagePropertiesAnnotation"):
+                if colors := properties["dominantColors"]["colors"]:
+                    insert_colors(img_doc, colors)
 
-        properties: Optional[VisionImageProperties]
-        if properties := vision_data.get("imagePropertiesAnnotation"):
-            if colors := properties["dominantColors"]["colors"]:
-                insert_colors(img_doc, colors)
+            logging.info(f"Success: {img_doc['_id']}")
 
-        logging.info(f"{img_doc['_id']} complete")
+        except:
+            logging.info(f'Error: {img_doc["_id"]}')
+            arango.dissolve(img_doc["_id"])
 
     logging.info("Success: Populating DB complete.")
 
@@ -96,8 +99,8 @@ def insert_author(image: ArangoImage, auth: str):
             _to=image["_id"],
             _score=2,
         )
-    except Exception as e:
-        logging.info(f"ArangoDB Error Encountered while inserting Author:")
+    except BaseException as e:
+        logging.info(f"ArangoDB Error: {auth} (Author)")
         print(e)
 
 
@@ -127,8 +130,8 @@ def insert_landmarks(image: ArangoImage, landmarks: list[LandmarkAnnotation]):
                     _latitude=_latitude,
                     _longitude=_longitude,
                 )
-            except Exception as e:
-                logging.info(f"ArangoDB Error Encountered while inserting Landmark:")
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {landmark["description"]} (Landmark)')
                 print(e)
 
 
@@ -151,8 +154,8 @@ def insert_guesses(image: ArangoImage, guesses: list[VisionGuess]):
                     _to=image["_id"],
                     _score=1,
                 )
-            except Exception as e:
-                logging.info(f"ArangoDB Error Encountered while inserting Guess:")
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {guess["label"]} (BestGuess)')
                 print(e)
 
 
@@ -177,8 +180,8 @@ def insert_entities(image: ArangoImage, entities: list[VisionAnnotation]):
                     _type="label",
                     _score=_score,
                 )
-            except Exception as e:
-                logging.info(f"ArangoDB Error Encountered while inserting Entity:")
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {entity["description"]} (Entity)')
                 print(e)
 
 
@@ -210,8 +213,8 @@ def insert_localized_objects(
                     _score=_score,
                     _coord=_coord,
                 )
-            except Exception as e:
-                logging.info(f"ArangoDB Error Encountered while inserting Object:")
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {localized_object["name"]} (Object)')
                 print(e)
 
 
@@ -236,8 +239,8 @@ def insert_labels(image: ArangoImage, labels: list[VisionAnnotation]):
                     _type="label",
                     _score=_score,
                 )
-            except Exception as e:
-                logging.info(f"ArangoDB Error Encountered while inserting Label:")
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {label["description"]} (Label)')
                 print(e)
 
 
@@ -276,8 +279,8 @@ def insert_colors(image: ArangoImage, colors: list[VisionColor]):
                 _score=_score,
                 _pixel_fraction=_pixel_fraction,
             )
-        except Exception as e:
-            logging.info(f"ArangoDB Error Encountered while inserting Color:")
+        except BaseException as e:
+            logging.info(f"ArangoDB Error: {family} (Color)")
             print(e)
 
 
@@ -312,7 +315,7 @@ def string_to_ascii(string: str) -> str:
 
 
 def is_valid_vision_data(vision_data: dict, keys: list[str]) -> bool:
-    return keys <= set(vision_data) and vision_data.get("score", 0) >= 0.2
+    return keys <= set(vision_data) and vision_data.get("score", 0) >= 0.3
 
 
 def fetch_key_and_score(vision_data: dict, key: str) -> Tuple[str, float]:

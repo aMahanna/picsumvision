@@ -5,13 +5,12 @@
 
   &-nav {
     &--items {
-      margin-top: 21px;
-
       > a {
-        margin: 0 12px;
+        margin: 0 8px;
+        width: 9em;
 
         @media all and (max-width: $medium) {
-          width: 75%;
+          width: 3em;
         }
 
         font-weight: 500;
@@ -21,18 +20,6 @@
           transition: 0.3s ease-in;
           background-color: #2f2d2e;
           color: white;
-        }
-
-        &:nth-of-type(1) {
-          font-weight: 500;
-          background-color: #2f2d2e;
-          color: white;
-
-          &:hover {
-            transition: 0.3s ease-in;
-            background-color: rgba(0, 0, 0, 0.04);
-            color: rgba(0, 0, 0, 0.87);
-          }
         }
       }
     }

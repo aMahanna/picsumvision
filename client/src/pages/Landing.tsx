@@ -1,35 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import HomeIcon from '@material-ui/icons/BubbleChart';
-import { Container, CssBaseline, Box, Avatar, Link as MUILink } from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/styles';
+import { Container, CssBaseline, Box, Link as MUILink } from '@material-ui/core';
 
 /**
- * CreateStyles allows us to style MUI components
- * This @var is passed as a paramater in the export of the component
- * @see https://material-ui.com/styles/basics/
- */
-const useStyles = makeStyles(() =>
-  createStyles({
-    avatar: {
-      backgroundColor: 'inherit',
-      color: '#2F2D2E',
-      margin: 'auto',
-    },
-    image: {
-      height: '100%',
-      width: '100%',
-    },
-  }),
-);
-
-/**
- * Home page (@todo)
+ * Home page
  */
 const Landing = () => {
   const [t] = useTranslation();
-  const classes = useStyles();
 
   // Store the metrics of each collection
   const [imageCount, setImageCount] = useState('');
@@ -55,35 +33,29 @@ const Landing = () => {
   return (
     <Container component="main" maxWidth="sm">
       <CssBaseline />
-      <Avatar className={classes.avatar}>
-        <HomeIcon fontSize="large" />
-      </Avatar>
       <Box mt={4}>
-        <h2>{t('landingPage.heading')}</h2>
         <h3>{t('landingPage.description')}</h3>
-        <p>{t('landingPage.discover')}</p>
-        <p>{t('landingPage.visualize')}</p>
+        <p>
+          {t('landingPage.discover')}
+          <br></br>
+          {t('landingPage.visualize')}
+        </p>
         <p>{t('landingPage.info')}</p>
       </Box>
       {imageCount !== '' && (
         <Box mt={4}>
           <div>
-            <b>{imageCount}</b>
-            {t('landingPage.images')}
+            {t('landingPage.images')}: <b>{imageCount}</b>
+            {' | '}
+            {t('landingPage.authors')}: <b>{authorCount}</b>
           </div>
           <div>
-            <b>{authorCount}</b>
-            {t('landingPage.authors')}
+            {t('landingPage.tags')}: <b>{tagCount}</b>
             {' | '}
-            <b>{tagCount}</b>
-            {t('landingPage.tags')}
+            {t('landingPage.guesses')}: <b>{bestGuessCount}</b>
           </div>
           <div>
-            <b>{bestGuessCount}</b>
-            {t('landingPage.guesses')}
-            {' | '}
-            <b>{edgeCount}</b>
-            {t('landingPage.edges')}
+            {t('landingPage.edges')}: <b>{edgeCount}</b>
           </div>
         </Box>
       )}

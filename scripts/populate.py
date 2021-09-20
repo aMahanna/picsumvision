@@ -1,250 +1,295 @@
 import json
+import logging
 import requests
 from colornamer import get_color_from_rgb
-
 from server import arango, vision
+
+from typing import Tuple, Optional
+from server.types import (
+    AbstractImage,
+    ArangoImage,
+    VisionAnnotation,
+    LandmarkAnnotation,
+    LocalizedObjectAnnotation,
+    VisionColor,
+    VisionGuess,
+    VisionImageProperties,
+    VisionWebDetection,
+    VisionResult,
+)
 
 
 def main():
-    picsum_dataset = fetch_lorem_picsum_images()
-    # unsplash_dataset = fetch_unsplash_images()
+    picsum_dataset: list[AbstractImage] = fetch_lorem_picsum_images()
+    # unsplash_dataset: list[AbstractImage] = fetch_unsplash_images()
+
     populate_db(picsum_dataset)
 
 
-def populate_db(dataset):
-    print(f"Generating metadata for {len(dataset)} images. Please standby...")
-    for image_obj in dataset:
-        image, is_old_image = arango.insert_document(
-            "Image",
-            _key=image_obj["key"],
-            author=image_obj["author"],
-            url=image_obj["url"],
+def populate_db(dataset: list[AbstractImage]) -> None:
+    logging.info(f"Generating metadata for {len(dataset)} images. Please standby...")
+
+    for image in dataset:
+        try:
+            img_doc: ArangoImage
+            img_doc, is_old_img = arango.insert(
+                "Image",
+                _key=image["key"],
+                author=image["author"],
+                url=image["url"],
+            )
+
+            if is_old_img:
+                logging.info(f'Already exists: {img_doc["_id"]}, skipping...')
+                continue
+
+            vision_data: VisionResult = vision.get_image_metadata(img_doc["url"])
+            if not vision_data or "error" in vision_data:
+                logging.info(f"Error: Vision uncooperative")
+                print(json.dumps(vision_data.get("error"), indent=4))
+                arango.dissolve(img_doc["_id"])
+
+            auth: str
+            if auth := img_doc.get("author"):
+                insert_author(img_doc, auth)
+
+            landmarks: Optional[list[LandmarkAnnotation]]
+            if landmarks := vision_data.get("landmarkAnnotations"):
+                insert_landmarks(img_doc, landmarks)
+
+            web_detection: Optional[VisionWebDetection]
+            if web_detection := vision_data.get("webDetection"):
+                if guesses := web_detection.get("bestGuessLabels"):
+                    insert_guesses(img_doc, guesses)
+
+                if entities := web_detection.get("webEntities"):
+                    insert_entities(img_doc, entities)
+
+            localized_objects: Optional[list[LocalizedObjectAnnotation]]
+            if localized_objects := vision_data.get("localizedObjectAnnotations"):
+                insert_localized_objects(img_doc, localized_objects)
+
+            labels: Optional[list[VisionAnnotation]]
+            if labels := vision_data.get("labelAnnotations"):
+                insert_labels(img_doc, labels)
+
+            properties: Optional[VisionImageProperties]
+            if properties := vision_data.get("imagePropertiesAnnotation"):
+                if colors := properties["dominantColors"]["colors"]:
+                    insert_colors(img_doc, colors)
+
+            logging.info(f"Success: {img_doc['_id']}")
+
+        except:
+            logging.info(f'Error: {img_doc["_id"]}')
+            arango.dissolve(img_doc["_id"])
+
+    logging.info("Success: Populating DB complete.")
+
+
+def insert_author(image: ArangoImage, auth: str):
+    _key = string_to_ascii(auth)
+
+    try:
+        author, _ = arango.insert("Author", _key=_key, author=auth)
+        arango.insert(
+            "AuthorOf",
+            _key=_key + image["_key"],
+            _from=author["_id"],
+            _to=image["_id"],
+            _score=2,
         )
+    except BaseException as e:
+        logging.info(f"ArangoDB Error: {auth} (Author)")
+        print(e)
 
-        if is_old_image:
-            print(f'Already exists: {image["_id"]}, skipping...')
-            continue
 
-        vision_data = vision.get_image_metadata(image["url"])
-        if not vision_data or "error" in vision_data:
-            print(f"Vision uncooperative, skipping...")
-            arango.remove_from("Image", image["_id"])
-            continue
+def insert_landmarks(image: ArangoImage, landmarks: list[LandmarkAnnotation]):
+    for landmark in landmarks:
+        if is_valid_vision_data(landmark, {"description", "locations", "mid"}):
+            _key, _score = fetch_key_and_score(landmark, "description")
 
-        author = arango.insert_document(
-            "Author", _key=string_to_ascii(image["author"]), author=image["author"]
-        )[0]
-        arango.insert_document(
-            "AuthorOf", _from=author["_id"], _to=image["_id"], _score=2
-        )
+            _latitude = landmark["locations"][0]["latLng"]["latitude"]
+            _longitude = landmark["locations"][0]["latLng"]["longitude"]
 
-        if "webDetection" in vision_data:
-            for vision_guess in vision_data["webDetection"]["bestGuessLabels"]:
-                bestguess = arango.insert_document(
+            try:
+                landmark_doc, _ = arango.insert(
+                    "Tag",
+                    _key=_key,
+                    mid=landmark["mid"],
+                    tag=landmark["description"],
+                )
+
+                arango.insert(
+                    "TagOf",
+                    _key=_key + image["_key"],
+                    _from=landmark_doc["_id"],
+                    _to=image["_id"],
+                    _type="landmark",
+                    _score=_score,
+                    _latitude=_latitude,
+                    _longitude=_longitude,
+                )
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {landmark["description"]} (Landmark)')
+                print(e)
+
+
+def insert_guesses(image: ArangoImage, guesses: list[VisionGuess]):
+    for guess in guesses:
+        if {"label"} <= set(guess):
+            _key = string_to_ascii(guess["label"])
+
+            try:
+                guess_doc, _ = arango.insert(
                     "BestGuess",
-                    _key=string_to_ascii(vision_guess["label"]),
-                    bestGuess=vision_guess["label"],
-                )[0]
-
-                arango.insert_document(
-                    "BestGuessOf", _from=bestguess["_id"], _to=image["_id"], _score=1
+                    _key=_key,
+                    bestGuess=guess["label"],
                 )
 
-        if "landmarkAnnotations" in vision_data:
-            for vision_landmark in vision_data["landmarkAnnotations"]:
-                _key = string_to_ascii(vision_landmark["description"])
-                _score = (
-                    vision_landmark["score"] if vision_landmark["score"] < 1 else 0.999
+                arango.insert(
+                    "BestGuessOf",
+                    _key=_key + image["_key"],
+                    _from=guess_doc["_id"],
+                    _to=image["_id"],
+                    _score=1,
+                )
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {guess["label"]} (BestGuess)')
+                print(e)
+
+
+def insert_entities(image: ArangoImage, entities: list[VisionAnnotation]):
+    for entity in entities:
+        if is_valid_vision_data(entity, {"entityId", "description"}):
+            _key, _score = fetch_key_and_score(entity, "description")
+
+            try:
+                entity_doc, _ = arango.insert(
+                    "Tag",
+                    _key=_key,
+                    mid=entity["entityId"],
+                    tag=entity["description"],
                 )
 
-                _latitude, _longitude = 0, 0
-                if "locations" in vision_landmark:
-                    _latitude = vision_landmark["locations"][0]["latLng"]["latitude"]
-                    _longitude = vision_landmark["locations"][0]["latLng"]["longitude"]
-
-                try:
-                    landmark = arango.insert_document(
-                        "Tag",
-                        _key=_key,
-                        mid=vision_landmark["mid"],
-                        tag=vision_landmark["description"],
-                    )[0]
-
-                    arango.insert_document(
-                        "TagOf",
-                        _type="landmark",
-                        _key=_key + image["_key"],
-                        _from=landmark["_id"],
-                        _to=image["_id"],
-                        _score=_score,
-                        _latitude=_latitude,
-                        _longitude=_longitude,
-                    )
-                except:
-                    print(
-                        f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Landmark:"
-                    )
-                    print(json.dumps(landmark, indent=4))
-
-        if "localizedObjectAnnotations" in vision_data:
-            for vision_localized in vision_data["localizedObjectAnnotations"]:
-                if is_valid_vision_data(vision_localized, {"mid", "name"}):
-                    _key = string_to_ascii(vision_localized["name"])
-                    _score = (
-                        vision_localized["score"]
-                        if vision_localized["score"] < 1
-                        else 0.999
-                    )
-
-                    _coord = []
-                    if "boundingPoly" in vision_localized:
-                        _coord = [
-                            [v["x"], v["y"]]
-                            for v in vision_localized["boundingPoly"][
-                                "normalizedVertices"
-                            ]
-                        ]
-                        _coord.append(_coord[0])
-
-                    try:
-                        localized = arango.insert_document(
-                            "Tag",
-                            _key=_key,
-                            mid=vision_localized["mid"],
-                            tag=vision_localized["name"],
-                        )[0]
-
-                        # print(localized, _key + image["_key"])
-                        arango.insert_document(
-                            "TagOf",
-                            _type="object",
-                            _key=_key + image["_key"],
-                            _from=localized["_id"],
-                            _to=image["_id"],
-                            _score=_score,
-                            _coord=_coord,
-                        )
-                    except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Localized:"
-                        )
-                        print(json.dumps(localized, indent=4))
-
-        if "webDetection" in vision_data:
-            for vision_entity in vision_data["webDetection"]["webEntities"]:
-                if is_valid_vision_data(vision_entity, {"entityId", "description"}):
-                    _key = string_to_ascii(vision_entity["description"])
-                    _score = (
-                        vision_entity["score"] if vision_entity["score"] < 1 else 0.999
-                    )
-
-                    try:
-                        entity = arango.insert_document(
-                            "Tag",
-                            _key=_key,
-                            mid=vision_entity["entityId"],
-                            tag=vision_entity["description"],
-                        )[0]
-
-                        arango.insert_document(
-                            "TagOf",
-                            _type="object",
-                            _key=_key + image["_key"],
-                            _from=entity["_id"],
-                            _to=image["_id"],
-                            _score=_score,
-                        )
-                    except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Entity:"
-                        )
-                        print(json.dumps(entity, indent=4))
-
-        if "labelAnnotations" in vision_data:
-            for vision_label in vision_data["labelAnnotations"]:
-                if is_valid_vision_data(vision_label, {"mid", "description"}):
-                    _key = string_to_ascii(vision_label["description"])
-                    _score = (
-                        vision_label["score"] if vision_label["score"] < 1 else 0.999
-                    )
-
-                    try:
-                        label = arango.insert_document(
-                            "Tag",
-                            _key=_key,
-                            mid=vision_label["mid"],
-                            tag=vision_label["description"],
-                        )[0]
-
-                        arango.insert_document(
-                            "TagOf",
-                            _type="label",
-                            _key=_key + image["_key"],
-                            _from=label["_id"],
-                            _to=image["_id"],
-                            _score=_score,
-                        )
-                    except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Label:"
-                        )
-                        print(json.dumps(label, indent=4))
-
-        if "imagePropertiesAnnotation" in vision_data:
-            clrs = vision_data["imagePropertiesAnnotation"]["dominantColors"]["colors"]
-            for vision_color in clrs:
-                if "color" in vision_color:
-                    color_json = get_color_from_rgb(
-                        [
-                            vision_color["color"]["red"],
-                            vision_color["color"]["green"],
-                            vision_color["color"]["blue"],
-                        ]
-                    )
-                    if color_json["color_family"] in ["black", "grey", "white"]:
-                        continue  # I find these colors to be present almost everywhere, so skip them
-
-                    color_family = color_json["color_family"]
-                    color_hex = color_json["xkcd_color_hex"]
-
-                    _key = string_to_ascii(color_family)
-                    _score = vision_color["score"]
-                    _pixel_fraction = vision_color["pixelFraction"]
-
-                    try:
-                        color = arango.insert_document(
-                            "Tag", _key=_key, tag=color_family, hex=color_hex
-                        )[0]
-
-                        arango.insert_document(
-                            "TagOf",
-                            _type="label",
-                            _key=_key + image["_key"],
-                            _from=color["_id"],
-                            _to=image["_id"],
-                            _score=_score,
-                            _pixel_fraction=_pixel_fraction,
-                        )
-                    except:
-                        print(
-                            f"ArangoDB Error Encountered. Most likely an Illegal document key. Skipping Color:"
-                        )
-                        print(json.dumps(color, indent=4))
-
-        print(f"{image['_id']} complete")
-
-    print("Success: Populating DB complete.")
+                arango.insert(
+                    "TagOf",
+                    _key=_key + image["_key"],
+                    _from=entity_doc["_id"],
+                    _to=image["_id"],
+                    _type="label",
+                    _score=_score,
+                )
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {entity["description"]} (Entity)')
+                print(e)
 
 
-def fetch_lorem_picsum_images():
-    dataset = []
+def insert_localized_objects(
+    image: ArangoImage, localized_objects: list[LocalizedObjectAnnotation]
+):
+    for localized_object in localized_objects:
+        if is_valid_vision_data(localized_object, {"mid", "name", "boundingPoly"}):
+            _key, _score = fetch_key_and_score(localized_object, "name")
+
+            vertices = localized_object["boundingPoly"]["normalizedVertices"]
+            _coord = [[v.get("x", 0), v.get("y", 0)] for v in vertices]
+            _coord.append(_coord[0])
+
+            try:
+                localized_object_doc, _ = arango.insert(
+                    "Tag",
+                    _key=_key,
+                    mid=localized_object["mid"],
+                    tag=localized_object["name"],
+                )
+
+                arango.insert(
+                    "TagOf",
+                    _key=_key + image["_key"],
+                    _from=localized_object_doc["_id"],
+                    _to=image["_id"],
+                    _type="object",
+                    _score=_score,
+                    _coord=_coord,
+                )
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {localized_object["name"]} (Object)')
+                print(e)
+
+
+def insert_labels(image: ArangoImage, labels: list[VisionAnnotation]):
+    for label in labels:
+        if is_valid_vision_data(label, {"mid", "description"}):
+            _key, _score = fetch_key_and_score(label, "description")
+
+            try:
+                label_doc, _ = arango.insert(
+                    "Tag",
+                    _key=_key,
+                    mid=label["mid"],
+                    tag=label["description"],
+                )
+
+                arango.insert(
+                    "TagOf",
+                    _key=_key + image["_key"],
+                    _from=label_doc["_id"],
+                    _to=image["_id"],
+                    _type="label",
+                    _score=_score,
+                )
+            except BaseException as e:
+                logging.info(f'ArangoDB Error: {label["description"]} (Label)')
+                print(e)
+
+
+def insert_colors(image: ArangoImage, colors: list[VisionColor]):
+    for color in colors:
+        if "color" not in color:
+            continue
+
+        color_json = get_color_from_rgb(
+            [
+                color["color"].get("red", 0),
+                color["color"].get("green", 0),
+                color["color"].get("blue", 0),
+            ]
+        )
+
+        if color_json["color_family"] in ["black", "grey", "white"]:
+            continue  # I find these colors to be present almost everywhere, so skip them
+
+        family: str = color_json["color_family"]
+        hex: str = color_json["xkcd_color_hex"]
+
+        _key = string_to_ascii(family)
+        _score = color["score"]
+        _pixel_fraction = color["pixelFraction"]
+
+        try:
+            color_doc, _ = arango.insert("Tag", _key=_key, tag=family, hex=hex)
+
+            arango.insert(
+                "TagOf",
+                _key=_key + image["_key"],
+                _from=color_doc["_id"],
+                _to=image["_id"],
+                _type="label",
+                _score=_score,
+                _pixel_fraction=_pixel_fraction,
+            )
+        except BaseException as e:
+            logging.info(f"ArangoDB Error: {family} (Color)")
+            print(e)
+
+
+def fetch_lorem_picsum_images() -> list[AbstractImage]:
+    dataset: list[AbstractImage] = []
 
     page = 1
-    while True:
-        response = requests.get(f"https://picsum.photos/v2/list?limit=1&page={page}")
-        response.raise_for_status()
-
-        picsum_result = response.json()
+    url = "https://picsum.photos/v2/list?limit=100&page="
+    while picsum_result := fetch_from_endpoint(f"{url}{page}"):
         for picsum_object in picsum_result:
             dataset.append(
                 {
@@ -255,16 +300,29 @@ def fetch_lorem_picsum_images():
             )
 
         page += 1
-        if len(picsum_result) == 0 or page > 2:
-            return dataset
+
+    return dataset
 
 
-def string_to_ascii(string):
+def fetch_from_endpoint(url: str):
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
+
+
+def string_to_ascii(string: str) -> str:
     return "".join(str(ord(c)) for c in string)
 
 
-def is_valid_vision_data(vision_data, keys):
-    return vision_data["score"] >= 0.2 and keys <= set(vision_data)
+def is_valid_vision_data(vision_data: dict, keys: list[str]) -> bool:
+    return keys <= set(vision_data) and vision_data.get("score", 0) >= 0.3
+
+
+def fetch_key_and_score(vision_data: dict, key: str) -> Tuple[str, float]:
+    return (
+        string_to_ascii(vision_data[key]),
+        score if (score := vision_data["score"]) < 1 else 0.999,
+    )
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import logging
 from server import arango
 from assets.stopwords import stop_words
 
@@ -5,10 +6,10 @@ from assets.stopwords import stop_words
 def main():
     arango.drop_all_collections()
 
-    for collection in arango.document_collections:
+    for collection in arango.DOCUMENT_COLLECTIONS:
         arango.create_collection(collection)
 
-    for collection in arango.edge_collections:
+    for collection in arango.EDGE_COLLECTIONS:
         arango.create_collection(collection, is_edge_collection=True)
 
     arango.create_analyzer(
@@ -27,7 +28,7 @@ def main():
     )
 
     arango.create_view(
-        arango.view_name,
+        arango.ARANGO_VIEW,
         "arangosearch",
         {
             "links": {
@@ -83,7 +84,7 @@ def main():
         },
     )
 
-    print("Success: Onboarding complete.")
+    logging.info("Success: Onboarding complete.")
 
 
 if __name__ == "__main__":

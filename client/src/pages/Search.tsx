@@ -85,7 +85,9 @@ const Search = (props: any) => {
       fetch('/api/info/randomtags')
         .then(result => (result.status === 200 ? result.json() : undefined))
         .then(response => {
-          setInputPlaceholder(response ? response.tags : 'cloud sky plant');
+          if (response) {
+            setInputPlaceholder(response.keyword);
+          }
         });
     }
   }, []);
@@ -118,12 +120,12 @@ const Search = (props: any) => {
       setLastSearch(index);
     } else {
       const isImageURL = await isValidURL(input);
-      const uri = isImageURL ? `/api/search/url?url=${input}` : `/api/search/keyword?keyword=${input}`;
+      const uri = `/api/search/${isImageURL ? `url?url=` : `keyword?keyword=`}${input}`;
       const response = await fetch(uri);
       if (response.status === 200) {
         const result = await response.json();
         setSearchResult(result.data);
-        updateCache(input, isImageURL ? result.tags : index, result.data, isImageURL);
+        updateCache(input, isImageURL ? result.keyword : index, result.data, isImageURL);
       } else if (response.status === 204) {
         setResultIsEmpty(true);
       } else {
@@ -146,10 +148,10 @@ const Search = (props: any) => {
     const response = await fetch(`/api/search/surpriseme`);
     if (response.status === 200) {
       const result = await response.json();
-      setTextFieldInput(result.tags);
+      setTextFieldInput(result.keyword);
       setSearchResult(result.data);
       setResultIsEmpty(result.data.length === 0);
-      updateCache(result.tags, result.tags.split(' ').sort().join(' ').toLowerCase(), result.data, false);
+      updateCache(result.keyword, result.keyword.split(' ').sort().join(' ').toLowerCase(), result.data, false);
     } else {
       setSorryAlert(true);
     }
@@ -197,7 +199,7 @@ const Search = (props: any) => {
     if (response.status === 200) {
       const result = await response.json();
       setSuggestInput(true);
-      setInputPlaceholder(result.tags);
+      setInputPlaceholder(result.keyword);
     }
 
     setIsLoading(false);

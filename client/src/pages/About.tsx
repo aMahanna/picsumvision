@@ -3,7 +3,7 @@ import React from 'react';
 import { Container, Box, Link as MUILink } from '@material-ui/core';
 
 /**
- * About page (@todo)
+ * About page
  */
 const About = () => {
   return (

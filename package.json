@@ -4,18 +4,23 @@
     "repository": "https://github.com/aMahanna/picsumvision",
     "author": "Anthony Mahanna",
     "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^6.2.1"
+    },
     "scripts": {
+        "dev": "concurrently \"flask run\" \"yarn client:start\"",
         "build": "yarn run client:install && yarn run client:build",
+        "black": "black server scripts",
+        "db:clear": "python scripts/clear.py",
+        "db:onboard": "python scripts/onboard.py",
+        "db:restore": "python scripts/restore.py",
+        "db:populate": "python scripts/populate.py",
         "client:install": "cd client && yarn install",
         "client:build": "cd client && yarn build",
         "client:start": "cd client && yarn start",
         "client:test": "cd client && yarn test",
         "client:prettier": "cd client && yarn prettier",
-        "client:lint": "cd client && yarn lint",
-        "db:clear": "python scripts/clear.py",
-        "db:onboard": "python scripts/onboard.py",
-        "db:restore": "python scripts/restore.py",
-        "db:populate": "python scripts/populate.py"
+        "client:lint": "cd client && yarn lint"
     },
-    "engines": {"node": "^15.5.0", "yarn": "^1.22.4"}
+    "engines": {"node": "^16.9.1", "yarn": "^1.22.4"}
 }

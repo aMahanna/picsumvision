@@ -7,11 +7,11 @@ class VisionDriver:
         self.endpoint = f"https://vision.googleapis.com/v1/images:annotate?key={auth}"
         self.headers = {"Content-Type": "application/json"}
         self.features = [
-            {"maxResults": 50, "type": "LABEL_DETECTION"},
-            {"maxResults": 50, "type": "WEB_DETECTION"},
-            {"maxResults": 50, "type": "OBJECT_LOCALIZATION"},
-            {"maxResults": 50, "type": "LANDMARK_DETECTION"},
-            {"maxResults": 5, "type": "IMAGE_PROPERTIES"}
+            {"maxResults": 100, "type": "LABEL_DETECTION"},
+            {"maxResults": 100, "type": "WEB_DETECTION"},
+            {"maxResults": 100, "type": "OBJECT_LOCALIZATION"},
+            {"maxResults": 100, "type": "LANDMARK_DETECTION"},
+            {"maxResults": 100, "type": "IMAGE_PROPERTIES"}
             # {"maxResults": 5, "type": "FACE_DETECTION"},
             # {"maxResults": 5, "type": "TEXT_DETECTION"},
         ]

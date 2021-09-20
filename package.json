@@ -9,11 +9,12 @@
     },
     "scripts": {
         "dev": "concurrently \"flask run\" \"yarn client:start\"",
+        "build": "yarn run client:install && yarn run client:build",
+        "black": "black server scripts",
         "db:clear": "python scripts/clear.py",
         "db:onboard": "python scripts/onboard.py",
         "db:restore": "python scripts/restore.py",
         "db:populate": "python scripts/populate.py",
-        "black": "black server scripts",
         "client:install": "cd client && yarn install",
         "client:build": "cd client && yarn build",
         "client:start": "cd client && yarn start",

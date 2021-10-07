@@ -18,13 +18,15 @@ _Disclaimer: Searching is far from being optimized._
 
 ## Setup
 
+0. **Note**: Project was developped with Python 3.9.7
 1. `git clone https://github.com/aMahanna/picsumvision.git`
 2. `cd picsumvision`
 3. `cp .env.example .env` (For fast setup, **do not modify anything**.)
-4. `yarn install && yarn client:install`
+4. `yarn install && yarn client:install` (if not using `yarn`, replace with `npm run`)
 5. `docker-compose up -d` to create your local DB instance
     * Verify at `http://localhost:8529/` with `root` // `rootpassword`
-6. `python3 -m venv .venv && source .venv/bin/activate`
+6. `python -m venv .venv`
+7. `source .venv/bin/activate` (MacOS) or `.venv/scripts/activate` (Windows)
 7. `pip install -e .`
 8. Run `yarn db:onboard` (configures your DB with Collections, Analyzers, and a View)
 9. Run `yarn db:restore` (restores your DB with data from latest ArangoDB dump)

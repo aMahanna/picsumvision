@@ -10,7 +10,7 @@ An image repository powered by Lorem Picsum, Google Vision, and ArangoDB, allowi
 * Discover images similar to click history
 * Visualize image results as a graph network
 
-**[Show, don't tell](https://picsumvision.mahanna.dev/)**
+**[Show, don't tell](https://picsumvision.herokuapp.com/)**
 
 This project was submitted as a Shopify Developer Challenge on May 9th, but has continued to grow since. If you would like to see the state of the project as of May 9th only, you can rollback to the following commit: [53e84e8](https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e)
 

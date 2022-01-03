@@ -36,3 +36,4 @@ Note: You can replace `yarn` with `npm run`.
      1. Via data restore: `yarn db:restore`
      2. Via data insert: `yarn db:populate`
          1. Note: requires `GOOGLE_APPLICATION_CREDENTIALS` key
+11. `yarn dev`

@@ -1,10 +1,8 @@
 # picsumvision
-<img width=120 align=right src="./client/public/logo.svg" />
-
 [![Heroku](https://pyheroku-badge.herokuapp.com/?app=picsumvision)](https://picsumvision.herokuapp.com/)
 [![Last commit](https://img.shields.io/github/last-commit/aMahanna/picsumvision)](https://github.com/aMahanna/picsumvision/commits/main)
 
-[![Python versions badge](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.6%20|%203.7%20|%203.8%20|%203.9%20|%203.10)]()
+![Python](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.6%20%7C%203.7%20%7C%203.8%20%7C%203.9)
 
 [![License](https://img.shields.io/github/license/aMahanna/picsumvision?color=9E2165&style=for-the-badge)](https://github.com/aMahanna/picsumvision/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
@@ -38,3 +36,6 @@ Note: You can replace `yarn` with `npm run`.
      2. Via data insert: `yarn db:populate`
          1. Note: requires `GOOGLE_APPLICATION_CREDENTIALS` key
 11. `yarn dev`
+
+<br/>
+<img width=100 src="./client/public/logo.svg" />

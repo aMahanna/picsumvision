@@ -1,4 +1,5 @@
 from flask import Flask
+
 from .info import info_bp
 from .search import search_bp
 

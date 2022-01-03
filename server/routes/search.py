@@ -1,8 +1,10 @@
+from typing import List
+
 from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
+
 from server import aql, vision
 from server.typings import Edge, Node, ParsedVisualzationData, VisualizationData
-
 
 search_bp = Blueprint("search_bp", __name__)
 
@@ -107,8 +109,8 @@ def parse_visualization_info(
     info: VisualizationData, is_search_visualization: bool
 ) -> ParsedVisualzationData:
 
-    nodes: list[Node] = []
-    edges: list[Edge] = []
+    nodes: List[Node] = []
+    edges: List[Edge] = []
     edge_colors = ["#241023", "#4464AD", "#DC0073", "#47A025", "#FF7700", "#6B0504"]
 
     for vertice in info["vertices"]:

@@ -1,6 +1,6 @@
 import logging
-from server import app, routes
 
+from server import app, routes
 
 logger = logging.getLogger(__file__)
 

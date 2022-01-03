@@ -20,4 +20,10 @@ setup(
         "python-dotenv==0.19.0",
         "requests==2.26.0"
     ],
+    extras_require={
+        "dev": [
+            "black",
+            "isort>=5.0.0",
+        ],
+    },
 )

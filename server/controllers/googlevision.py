@@ -1,4 +1,5 @@
 import requests
+
 from server.typings import VisionResult
 
 

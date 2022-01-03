@@ -1,5 +1,7 @@
-import random
 import math
+import random
+from typing import Dict, List
+
 from server import arango
 from server.typings import ArangoImage, ArangoImageInfo, VisualizationData
 
@@ -16,7 +18,7 @@ ignored_words = [
 ]
 
 
-def fetch_images(keyword: str) -> list[ArangoImage]:
+def fetch_images(keyword: str) -> List[ArangoImage]:
     aql = """
       WITH Image, Author, Tag, BestGuess                          // Import Required Collections
       LET normTokens = TOKENS(@keyword, 'norm_accent_lower')[0]   // Tokenize user input for exact matching
@@ -95,7 +97,7 @@ def fetch_image_info(id: str) -> ArangoImageInfo:
     return result
 
 
-def fetch_discovery(clicked_images: list[str]) -> list[ArangoImage]:
+def fetch_discovery(clicked_images: List[str]) -> List[ArangoImage]:
     aql = """
       WITH Author, Tag, BestGuess                                           // Import collections
       LET commonMatches = (
@@ -150,7 +152,7 @@ def fetch_discovery(clicked_images: list[str]) -> list[ArangoImage]:
 
 
 def fetch_search_visualization(
-    keyword: str, image_results: list[ArangoImage]
+    keyword: str, image_results: List[ArangoImage]
 ) -> VisualizationData:
 
     aql = """
@@ -191,7 +193,7 @@ def fetch_search_visualization(
     return result
 
 
-def fetch_image_visualization(clicked_images: list[str]) -> VisualizationData:
+def fetch_image_visualization(clicked_images: List[str]) -> VisualizationData:
     similar_images = fetch_discovery(clicked_images)
 
     aql = """
@@ -237,7 +239,7 @@ def fetch_image_visualization(clicked_images: list[str]) -> VisualizationData:
     return result
 
 
-def fetch_db_metrics() -> dict[str, int]:
+def fetch_db_metrics() -> Dict[str, int]:
     aql = """
       RETURN {
         images: LENGTH(Image),

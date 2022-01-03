@@ -1,8 +1,9 @@
 import logging
-from typing import Any, Sequence
+from typing import Any, Dict, Sequence
+
 from arango import ArangoClient
-from arango.result import Result
 from arango.cursor import Cursor
+from arango.result import Result
 from arango.typings import Json
 
 
@@ -32,7 +33,7 @@ class ArangoDriver:
         self.db = client.db(db_name, username=user, password=password)
         logging.info(f"Arango: {self.db.name} database")
 
-    def query(self, aql: str, bind_vars: dict[str, Any] = None) -> Result[Cursor]:
+    def query(self, aql: str, bind_vars: Dict[str, Any] = None) -> Result[Cursor]:
         return self.db.aql.execute(aql, bind_vars=bind_vars)
 
     def create_collection(self, name: str, is_edge_collection: bool = False):

@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
+
 from server import aql
 
 info_bp = Blueprint("info_bp", __name__)

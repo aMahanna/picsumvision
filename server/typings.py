@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict
 
 from flask_cors.decorator import cross_origin
 
@@ -30,9 +30,9 @@ class Tag(TypedDict):
 
 class ArangoImageInfo(TypedDict):
     image: ArangoImage
-    bestGuess: list[str]
-    tags: list[Tag]
-    similar: list[ArangoImage]
+    bestGuess: List[str]
+    tags: List[Tag]
+    similar: List[ArangoImage]
 
 
 class VisualizationVertice(TypedDict):
@@ -60,12 +60,12 @@ class VisualizationEdge(TypedDict):
 
 class VisualizationConnection(TypedDict):
     i: VisualizationImage
-    edges: list[VisualizationEdge]
+    edges: List[VisualizationEdge]
 
 
 class VisualizationData(TypedDict):
-    vertices: list[VisualizationVertice]
-    connections: list[VisualizationConnection]
+    vertices: List[VisualizationVertice]
+    connections: List[VisualizationConnection]
 
 
 ##### search.py ####
@@ -75,7 +75,7 @@ class Node(TypedDict):
     id: str
     label: str
     color: str
-    font: dict[str, str]
+    font: Dict[str, str]
 
 
 class Edge(TypedDict):
@@ -87,15 +87,15 @@ class Edge(TypedDict):
 
 
 class ParsedVisualzationData(TypedDict):
-    nodes: list[Node]
-    edges: dict[str, str]
+    nodes: List[Node]
+    edges: Dict[str, str]
 
 
 ##### googlevision.py ####
 
 
 class VisionColor(TypedDict):
-    color: dict[str, int]
+    color: Dict[str, int]
     score: float
     pixelFraction: float
 
@@ -125,20 +125,20 @@ class VisionAnnotation(TypedDict):
 
 
 class LandmarkAnnotation(VisionAnnotation):
-    locations: list[dict[str, VisionLocation]]
+    locations: List[Dict[str, VisionLocation]]
 
 
 class LocalizedObjectAnnotation(VisionAnnotation):
-    boundingPoly: dict[str, list[VisionPoly]]
+    boundingPoly: Dict[str, List[VisionPoly]]
 
 
 class VisionWebDetection(TypedDict):
-    webEntities: list[VisionAnnotation]
-    bestGuessLabels: list[VisionGuess]
+    webEntities: List[VisionAnnotation]
+    bestGuessLabels: List[VisionGuess]
 
 
 class VisionImageProperties(TypedDict):
-    dominantColors: dict[str, list[VisionColor]]
+    dominantColors: Dict[str, List[VisionColor]]
 
 
 class VisionError(TypedDict):
@@ -148,8 +148,8 @@ class VisionError(TypedDict):
 
 class VisionResult(TypedDict):
     error: Optional[VisionError]
-    labelAnnotations: Optional[list[VisionAnnotation]]
-    landmarkAnnotations: Optional[list[VisionAnnotation]]
+    labelAnnotations: Optional[List[VisionAnnotation]]
+    landmarkAnnotations: Optional[List[VisionAnnotation]]
     webDetection: Optional[VisionWebDetection]
-    localizedObjectAnnotations: Optional[list[VisionAnnotation]]
+    localizedObjectAnnotations: Optional[List[VisionAnnotation]]
     imagePropertiesAnnotation: Optional[VisionImageProperties]

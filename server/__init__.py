@@ -1,9 +1,10 @@
-import os
 import logging
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
-from dotenv import load_dotenv
 
 from server.controllers.arangodb import ArangoDriver
 from server.controllers.googlevision import VisionDriver

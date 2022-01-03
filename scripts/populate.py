@@ -1,32 +1,33 @@
 import json
 import logging
+from typing import List, Tuple
+
 import requests
 from colornamer import get_color_from_rgb
-from server import arango, vision
 
-from typing import Tuple, Optional
+from server import arango, vision
 from server.typings import (
     AbstractImage,
     ArangoImage,
-    VisionAnnotation,
     LandmarkAnnotation,
     LocalizedObjectAnnotation,
+    VisionAnnotation,
     VisionColor,
     VisionGuess,
     VisionImageProperties,
-    VisionWebDetection,
     VisionResult,
+    VisionWebDetection,
 )
 
 
 def main():
-    picsum_dataset: list[AbstractImage] = fetch_lorem_picsum_images()
-    # unsplash_dataset: list[AbstractImage] = fetch_unsplash_images()
+    picsum_dataset: List[AbstractImage] = fetch_lorem_picsum_images()
+    # unsplash_dataset: List[AbstractImage] = fetch_unsplash_images()
 
     populate_db(picsum_dataset)
 
 
-def populate_db(dataset: list[AbstractImage]) -> None:
+def populate_db(dataset: List[AbstractImage]) -> None:
     logging.info(f"Generating metadata for {len(dataset)} images. Please standby...")
 
     for image in dataset:
@@ -105,7 +106,7 @@ def insert_author(image: ArangoImage, author: str):
         print(e)
 
 
-def insert_landmarks(image: ArangoImage, landmarks: list[LandmarkAnnotation]):
+def insert_landmarks(image: ArangoImage, landmarks: List[LandmarkAnnotation]):
     for landmark in landmarks:
         if is_valid_vision_data(landmark, {"description", "locations", "mid"}):
             _key, _score = fetch_key_and_score(landmark, "description")
@@ -136,7 +137,7 @@ def insert_landmarks(image: ArangoImage, landmarks: list[LandmarkAnnotation]):
                 print(e)
 
 
-def insert_guesses(image: ArangoImage, guesses: list[VisionGuess]):
+def insert_guesses(image: ArangoImage, guesses: List[VisionGuess]):
     for guess in guesses:
         if {"label"} <= set(guess):
             _key = string_to_ascii(guess["label"])
@@ -160,7 +161,7 @@ def insert_guesses(image: ArangoImage, guesses: list[VisionGuess]):
                 print(e)
 
 
-def insert_entities(image: ArangoImage, entities: list[VisionAnnotation]):
+def insert_entities(image: ArangoImage, entities: List[VisionAnnotation]):
     for entity in entities:
         if is_valid_vision_data(entity, {"entityId", "description"}):
             _key, _score = fetch_key_and_score(entity, "description")
@@ -187,7 +188,7 @@ def insert_entities(image: ArangoImage, entities: list[VisionAnnotation]):
 
 
 def insert_localized_objects(
-    image: ArangoImage, localized_objects: list[LocalizedObjectAnnotation]
+    image: ArangoImage, localized_objects: List[LocalizedObjectAnnotation]
 ):
     for localized_object in localized_objects:
         if is_valid_vision_data(localized_object, {"mid", "name", "boundingPoly"}):
@@ -219,7 +220,7 @@ def insert_localized_objects(
                 print(e)
 
 
-def insert_labels(image: ArangoImage, labels: list[VisionAnnotation]):
+def insert_labels(image: ArangoImage, labels: List[VisionAnnotation]):
     for label in labels:
         if is_valid_vision_data(label, {"mid", "description"}):
             _key, _score = fetch_key_and_score(label, "description")
@@ -245,7 +246,7 @@ def insert_labels(image: ArangoImage, labels: list[VisionAnnotation]):
                 print(e)
 
 
-def insert_colors(image: ArangoImage, colors: list[VisionColor]):
+def insert_colors(image: ArangoImage, colors: List[VisionColor]):
     for color in colors:
         if "color" not in color:
             continue
@@ -285,8 +286,8 @@ def insert_colors(image: ArangoImage, colors: list[VisionColor]):
             print(e)
 
 
-def fetch_lorem_picsum_images() -> list[AbstractImage]:
-    dataset: list[AbstractImage] = []
+def fetch_lorem_picsum_images() -> List[AbstractImage]:
+    dataset: List[AbstractImage] = []
 
     page = 1
     url = "https://picsum.photos/v2/list?limit=100&page="
@@ -317,7 +318,7 @@ def string_to_ascii(string: str) -> str:
     return "".join(str(ord(c)) for c in string)
 
 
-def is_valid_vision_data(vision_data: dict, keys: list[str]) -> bool:
+def is_valid_vision_data(vision_data: dict, keys: List[str]) -> bool:
     return keys <= set(vision_data) and vision_data.get("score", 0) >= 0.3
 
 

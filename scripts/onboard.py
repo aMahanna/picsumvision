@@ -1,6 +1,8 @@
 import logging
-from server import arango
+
 from assets.stopwords import stop_words
+
+from server import arango
 
 
 def main():

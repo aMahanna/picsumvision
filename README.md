@@ -12,7 +12,7 @@ Note: You can replace `yarn` with `npm run`.
 6. Activate Virtual Environment
    1. MacOS / Linux: `source .venv/bin/activate`
    2. Windows: `.venv/scripts/activate`
-7. `pip install -e .`
+7. `pip install -e .[dev]`
 8. `docker-compose up -d`
 9. `yarn db:onboard`
 10. Import Picsum Vision Data

@@ -1,5 +1,5 @@
 {
-    "name": "picsumvision",
+    "name": "picsumvision-server",
     "version": "1.0.0",
     "repository": "https://github.com/aMahanna/picsumvision",
     "author": "Anthony Mahanna",
@@ -9,6 +9,7 @@
     },
     "scripts": {
         "setup": "yarn install && cd client && yarn install && yarn build",
+        "build": "yarn run client:install && yarn run client:build",
         "dev": "concurrently \"yarn server:start\" \"yarn client:start\"",
         "black": "black server scripts",
         "db:nuke": "python scripts/nuke.py",
@@ -19,6 +20,8 @@
         "client:install": "cd client && yarn install",
         "client:build": "cd client && yarn build",
         "client:start": "cd client && yarn start",
-        "client:prettier": "cd client && yarn prettier && yarn lint"
-    }
+        "client:prettier": "cd client && yarn prettier && yarn lint",
+        "client:test": "cd client && yarn test"
+    },
+    "engines": {"node": "^16.9.1", "yarn": "^1.22.4"}
 }

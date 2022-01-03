@@ -8,13 +8,14 @@
 [![License](https://img.shields.io/github/license/aMahanna/picsumvision?color=9E2165&style=for-the-badge)](https://github.com/aMahanna/picsumvision/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
 
+See it live: [picsumvision.herokuapp.com](https://picsumvision.herokuapp.com/)
 
 An image repository allowing you to:
 1. Search for images by keyword or URL
 2. Discover images similar to click history
 3. Visualize results as a graph network
 
-See it live: [picsumvision.herokuapp.com](https://picsumvision.herokuapp.com/)
+Built with Lorem Picsum Photos, Google Vision, and ArangoDB 🥑
 
 ## Developer Setup (est time: 8 minutes)
 

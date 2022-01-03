@@ -1,5 +1,19 @@
 # picsumvision
 
+[![Last commit](https://img.shields.io/github/last-commit/aMahanna/picsumvision)](https://github.com/aMahanna/picsumvision/commits/main)
+
+[![Python versions badge](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&message=3.6%20|%203.7%20|%203.8%20|%203.9%20|%203.10)]()
+
+[![License](https://img.shields.io/github/license/aMahanna/picsumvision?color=9E2165&style=for-the-badge)](https://github.com/aMahanna/picsumvision/blob/main/LICENSE)
+[![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
+
+An image repository allowing you to:
+1. Search for images by keyword or URL
+2. Discover images similar to click history
+3. Visualize results as a graph network
+
+See it live: [picsumvision.herokuapp.com](https://picsumvision.herokuapp.com/)
+
 ## Developer Setup (est time: 8 minutes)
 
 Note: You can replace `yarn` with `npm run`.

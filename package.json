@@ -5,7 +5,7 @@
     "author": "Anthony Mahanna",
     "license": "MIT",
     "devDependencies": {
-        "concurrently": "^6.2.1"
+        "concurrently": "^6.5.1"
     },
     "scripts": {
         "setup": "yarn install && cd client && yarn install && yarn build",

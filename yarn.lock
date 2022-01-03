@@ -43,7 +43,7 @@ color-name@~1.1.4:
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
-concurrently@^6.2.1:
+concurrently@^6.5.1:
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/concurrently/-/concurrently-6.5.1.tgz#4518c67f7ac680cf5c34d5adf399a2a2047edc8c"
   integrity sha512-FlSwNpGjWQfRwPLXvJ/OgysbBxPkWpiVjy1042b0U7on7S7qwwMIILRj7WTN1mTgqa582bG6NFuScOoh6Zgdag==

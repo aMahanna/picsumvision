@@ -81,7 +81,7 @@ def fetch_surprise_tags() -> str:
     return " ".join([tag for tag in result])
 
 
-def fetch_image_info(id: str) -> ArangoImageInfo:
+def fetch_image_info(img_id: str) -> ArangoImageInfo:
     aql = """
       WITH Image, Author, Tag, BestGuess 
       LET image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i) 
@@ -90,7 +90,7 @@ def fetch_image_info(id: str) -> ArangoImageInfo:
       RETURN {image, bestGuess, tags}
     """
 
-    bind_vars = {"id": id}
+    bind_vars = {"id": img_id}
 
     result = arango.query(aql, bind_vars=bind_vars).next()
     result["similar"] = fetch_discovery([id])

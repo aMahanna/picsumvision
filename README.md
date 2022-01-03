@@ -32,5 +32,6 @@ Note: You can replace `yarn` with `npm run`.
 8. `docker-compose up -d`
 9. `yarn db:onboard`
 10. Import Picsum Vision Data
-   1. Via data dump restoration: `yarn db:restore`
-   2. Via new data insertion (requires `GOOGLE_APPLICATION_CREDENTIALS` key): `yarn db:populate`
+     1. Via data restore: `yarn db:restore`
+     2. Via data insert: `yarn db:populate`
+         1. Note: requires `GOOGLE_APPLICATION_CREDENTIALS` key

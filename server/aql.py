@@ -1,7 +1,9 @@
-import random
 import math
+import random
+from typing import Dict, List
+
 from server import arango
-from server.types import ArangoImage, ArangoImageInfo, VisualizationData
+from server.typings import ArangoImage, ArangoImageInfo, VisualizationData
 
 ignored_words = [
     "atmosphere",
@@ -16,7 +18,7 @@ ignored_words = [
 ]
 
 
-def fetch_images(keyword: str) -> list[ArangoImage]:
+def fetch_images(keyword: str) -> List[ArangoImage]:
     aql = """
       WITH Image, Author, Tag, BestGuess                          // Import Required Collections
       LET normTokens = TOKENS(@keyword, 'norm_accent_lower')[0]   // Tokenize user input for exact matching
@@ -79,7 +81,7 @@ def fetch_surprise_tags() -> str:
     return " ".join([tag for tag in result])
 
 
-def fetch_image_info(id: str) -> ArangoImageInfo:
+def fetch_image_info(img_id: str) -> ArangoImageInfo:
     aql = """
       WITH Image, Author, Tag, BestGuess 
       LET image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i) 
@@ -88,14 +90,14 @@ def fetch_image_info(id: str) -> ArangoImageInfo:
       RETURN {image, bestGuess, tags}
     """
 
-    bind_vars = {"id": id}
+    bind_vars = {"id": img_id}
 
     result = arango.query(aql, bind_vars=bind_vars).next()
-    result["similar"] = fetch_discovery([id])
+    result["similar"] = fetch_discovery([img_id])
     return result
 
 
-def fetch_discovery(clicked_images: list[str]) -> list[ArangoImage]:
+def fetch_discovery(clicked_images: List[str]) -> List[ArangoImage]:
     aql = """
       WITH Author, Tag, BestGuess                                           // Import collections
       LET commonMatches = (
@@ -150,7 +152,7 @@ def fetch_discovery(clicked_images: list[str]) -> list[ArangoImage]:
 
 
 def fetch_search_visualization(
-    keyword: str, image_results: list[ArangoImage]
+    keyword: str, image_results: List[ArangoImage]
 ) -> VisualizationData:
 
     aql = """
@@ -191,7 +193,7 @@ def fetch_search_visualization(
     return result
 
 
-def fetch_image_visualization(clicked_images: list[str]) -> VisualizationData:
+def fetch_image_visualization(clicked_images: List[str]) -> VisualizationData:
     similar_images = fetch_discovery(clicked_images)
 
     aql = """
@@ -237,7 +239,7 @@ def fetch_image_visualization(clicked_images: list[str]) -> VisualizationData:
     return result
 
 
-def fetch_db_metrics() -> dict[str, int]:
+def fetch_db_metrics() -> Dict[str, int]:
     aql = """
       RETURN {
         images: LENGTH(Image),

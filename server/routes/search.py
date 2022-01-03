@@ -1,8 +1,10 @@
+from typing import List
+
 from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
-from server import aql, vision
-from server.types import Edge, Node, ParsedVisualzationData, VisualizationData
 
+from server import aql, vision
+from server.typings import Edge, Node, ParsedVisualzationData, VisualizationData
 
 search_bp = Blueprint("search_bp", __name__)
 
@@ -10,7 +12,8 @@ search_bp = Blueprint("search_bp", __name__)
 @search_bp.route("/search/keyword")
 @cross_origin()
 def from_keyword():
-    if keyword := request.args.get("keyword"):
+    keyword = request.args.get("keyword")
+    if keyword:
         images = aql.fetch_images(keyword)
         return jsonify({"data": images}), 200 if images else 204
     else:
@@ -36,7 +39,8 @@ def from_url():
 @search_bp.route("/search/surpriseme")
 @cross_origin()
 def from_surprise():
-    if keyword := aql.fetch_surprise_tags():
+    keyword = aql.fetch_surprise_tags()
+    if keyword:
         images = aql.fetch_images(keyword)
         return jsonify({"data": images, "keyword": keyword}), 200
     else:
@@ -46,7 +50,8 @@ def from_surprise():
 @search_bp.route("/search/discover")
 @cross_origin()
 def from_discovery():
-    if clicked_images := request.args.get("IDs").split(","):
+    clicked_images = request.args.get("IDs").split(",")
+    if clicked_images:
         discovery = aql.fetch_discovery(clicked_images)
         return jsonify({"data": discovery}), 200 if discovery else 204
     else:
@@ -56,7 +61,7 @@ def from_discovery():
 @search_bp.route("/search/visualizesearch", methods=["POST"])
 @cross_origin()
 def from_search_visualizer():
-    body = request.get_json()
+    body: dict = request.get_json()
     data: VisualizationData = {"vertices": [], "connections": []}
 
     last_search = body.get("lastSearch")
@@ -70,10 +75,11 @@ def from_search_visualizer():
 @search_bp.route("/search/visualizeimage", methods=["POST"])
 @cross_origin()
 def from_image_visualizer():
-    body = request.get_json()
+    body: dict = request.get_json()
     data: VisualizationData = {"vertices": [], "connections": []}
 
-    if image_id := body.get("imageID"):
+    image_id = body.get("imageID")
+    if image_id:
         data = aql.fetch_image_visualization(image_id)
 
     return visualize_data(data, False)
@@ -103,8 +109,8 @@ def parse_visualization_info(
     info: VisualizationData, is_search_visualization: bool
 ) -> ParsedVisualzationData:
 
-    nodes: list[Node] = []
-    edges: list[Edge] = []
+    nodes: List[Node] = []
+    edges: List[Edge] = []
     edge_colors = ["#241023", "#4464AD", "#DC0073", "#47A025", "#FF7700", "#6B0504"]
 
     for vertice in info["vertices"]:

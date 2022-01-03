@@ -1,9 +1,10 @@
-import os
 import logging
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
-from dotenv import load_dotenv
 
 from server.controllers.arangodb import ArangoDriver
 from server.controllers.googlevision import VisionDriver
@@ -24,10 +25,10 @@ app = Flask(
 )
 cors = CORS(app)
 
-vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 arango = ArangoDriver(
     os.environ.get("ARANGO_DB_URL"),
     os.environ.get("ARANGO_USER"),
     os.environ.get("ARANGO_PASS"),
     os.environ.get("ARANGO_DB_NAME"),
 )
+vision = VisionDriver(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))

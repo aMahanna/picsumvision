@@ -93,7 +93,7 @@ def fetch_image_info(img_id: str) -> ArangoImageInfo:
     bind_vars = {"id": img_id}
 
     result = arango.query(aql, bind_vars=bind_vars).next()
-    result["similar"] = fetch_discovery([id])
+    result["similar"] = fetch_discovery([img_id])
     return result
 
 

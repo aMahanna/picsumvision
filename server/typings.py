@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional, TypedDict
-
-from flask_cors.decorator import cross_origin
+from typing import Dict, List, Optional
+from typing_extensions import TypedDict
 
 ##### populate.py ####
 

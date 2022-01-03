@@ -19,6 +19,7 @@ setup(
         "python-arango==7.2.0",
         "python-dotenv==0.19.0",
         "requests==2.26.0"
+        "typing_extensions==4.0.1"
     ],
     extras_require={
         "dev": [

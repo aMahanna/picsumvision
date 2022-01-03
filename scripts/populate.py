@@ -5,7 +5,7 @@ from colornamer import get_color_from_rgb
 from server import arango, vision
 
 from typing import Tuple, Optional
-from server.types import (
+from server.typings import (
     AbstractImage,
     ArangoImage,
     VisionAnnotation,
@@ -43,40 +43,41 @@ def populate_db(dataset: list[AbstractImage]) -> None:
                 logging.info(f'Already exists: {img_doc["_id"]}, skipping...')
                 continue
 
-            vision_data: VisionResult = vision.get_image_metadata(img_doc["url"])
+            vision_data: dict = vision.get_image_metadata(img_doc["url"])
             if not vision_data or "error" in vision_data:
                 logging.info(f"Error: Vision uncooperative")
                 print(json.dumps(vision_data.get("error"), indent=4))
                 arango.dissolve(img_doc["_id"])
 
-            auth: str
-            if auth := img_doc.get("author"):
-                insert_author(img_doc, auth)
+            author = img_doc["author"]
+            insert_author(img_doc, author)
 
-            landmarks: Optional[list[LandmarkAnnotation]]
-            if landmarks := vision_data.get("landmarkAnnotations"):
+            landmarks = vision_data.get("landmarkAnnotations", None)
+            if landmarks:
                 insert_landmarks(img_doc, landmarks)
 
-            web_detection: Optional[VisionWebDetection]
-            if web_detection := vision_data.get("webDetection"):
-                if guesses := web_detection.get("bestGuessLabels"):
+            web_detection: dict = vision_data.get("webDetection", None)
+            if web_detection:
+                guesses = web_detection.get("bestGuessLabels", None)
+                if guesses:
                     insert_guesses(img_doc, guesses)
 
-                if entities := web_detection.get("webEntities"):
+                entities = web_detection.get("webEntities", None)
+                if entities:
                     insert_entities(img_doc, entities)
 
-            localized_objects: Optional[list[LocalizedObjectAnnotation]]
-            if localized_objects := vision_data.get("localizedObjectAnnotations"):
+            localized_objects = vision_data.get("localizedObjectAnnotations", None)
+            if localized_objects:
                 insert_localized_objects(img_doc, localized_objects)
 
-            labels: Optional[list[VisionAnnotation]]
-            if labels := vision_data.get("labelAnnotations"):
+            labels = vision_data.get("labelAnnotations", None)
+            if labels:
                 insert_labels(img_doc, labels)
 
-            properties: Optional[VisionImageProperties]
-            if properties := vision_data.get("imagePropertiesAnnotation"):
-                if colors := properties["dominantColors"]["colors"]:
-                    insert_colors(img_doc, colors)
+            properties = vision_data.get("imagePropertiesAnnotation", None)
+            if properties:
+                colors = properties["dominantColors"]["colors"]
+                insert_colors(img_doc, colors)
 
             logging.info(f"Success: {img_doc['_id']}")
 
@@ -87,11 +88,11 @@ def populate_db(dataset: list[AbstractImage]) -> None:
     logging.info("Success: Populating DB complete.")
 
 
-def insert_author(image: ArangoImage, auth: str):
-    _key = string_to_ascii(auth)
+def insert_author(image: ArangoImage, author: str):
+    _key = string_to_ascii(author)
 
     try:
-        author, _ = arango.insert("Author", _key=_key, author=auth)
+        author, _ = arango.insert("Author", _key=_key, author=author)
         arango.insert(
             "AuthorOf",
             _key=_key + image["_key"],
@@ -100,7 +101,7 @@ def insert_author(image: ArangoImage, auth: str):
             _score=2,
         )
     except BaseException as e:
-        logging.info(f"ArangoDB Error: {auth} (Author)")
+        logging.info(f"ArangoDB Error: {author} (Author)")
         print(e)
 
 
@@ -289,7 +290,8 @@ def fetch_lorem_picsum_images() -> list[AbstractImage]:
 
     page = 1
     url = "https://picsum.photos/v2/list?limit=100&page="
-    while picsum_result := fetch_from_endpoint(f"{url}{page}"):
+    picsum_result = fetch_from_endpoint(f"{url}{page}")
+    while picsum_result:
         for picsum_object in picsum_result:
             dataset.append(
                 {
@@ -300,6 +302,7 @@ def fetch_lorem_picsum_images() -> list[AbstractImage]:
             )
 
         page += 1
+        picsum_result = fetch_from_endpoint(f"{url}{page}")
 
     return dataset
 
@@ -319,9 +322,10 @@ def is_valid_vision_data(vision_data: dict, keys: list[str]) -> bool:
 
 
 def fetch_key_and_score(vision_data: dict, key: str) -> Tuple[str, float]:
+    score = vision_data.get("score", 1)
     return (
         string_to_ascii(vision_data[key]),
-        score if (score := vision_data["score"]) < 1 else 0.999,
+        score if score < 1 else 0.999,
     )
 
 

@@ -4,13 +4,13 @@ from assets.stopwords import stop_words
 
 
 def main():
-    arango.drop_all_collections()
-
     for collection in arango.DOCUMENT_COLLECTIONS:
         arango.create_collection(collection)
 
     for collection in arango.EDGE_COLLECTIONS:
         arango.create_collection(collection, is_edge_collection=True)
+
+    arango.create_graph("picsumvision", arango.EDGE_DEFINITIONS)
 
     arango.create_analyzer(
         name="text_en_stopwords",
@@ -28,7 +28,7 @@ def main():
     )
 
     arango.create_view(
-        arango.ARANGO_VIEW,
+        "searchview",
         "arangosearch",
         {
             "links": {

@@ -1,5 +1,5 @@
 import requests
-from server.types import VisionResult
+from server.typings import VisionResult
 
 
 class VisionDriver:
@@ -41,18 +41,22 @@ class VisionDriver:
         Raises:
             ValueError: When no google vision data is found
         """
-        vision_data = self.get_image_metadata(url)
+        vision_data: dict = self.get_image_metadata(url)
         if not vision_data or "error" in vision_data:
             raise ValueError("Google Vision Uncooperative")
 
-        if landmarks := vision_data.get("landmarkAnnotations"):
-            return landmarks[0]["description"]
+        if vision_data.get("landmarkAnnotations", None):
+            return vision_data["landmarkAnnotations"][0]["description"]
 
-        elif web_detection := vision_data.get("webDetection"):
-            return self.format_keyword(web_detection["webEntities"][:3], "description")
+        elif vision_data.get("webDetection", None):
+            return self.format_keyword(
+                vision_data["webDetection"]["webEntities"][:3], "description"
+            )
 
-        elif localized_objects := vision_data.get("localizedObjectAnnotations"):
-            return self.format_keyword(localized_objects[:3], "name")
+        elif vision_data.get("localizedObjectAnnotations", None):
+            return self.format_keyword(
+                vision_data["localizedObjectAnnotations"][:3], "name"
+            )
 
         else:
             best_labels = vision_data["labelAnnotations"][:4]

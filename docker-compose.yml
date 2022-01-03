@@ -1,9 +1,7 @@
-version: '3.7'
+version: '3.8.2'
 services:
-  arangodb_db_container:
-    image: arangodb:latest
-    environment:
-      ARANGO_ROOT_PASSWORD: rootpassword
+  arangodb:
+    image: arangodb/arangodb:3.8.2
     ports:
       - 8529:8529
     volumes:

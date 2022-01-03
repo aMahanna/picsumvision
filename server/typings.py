@@ -18,6 +18,8 @@ class ArangoImage(AbstractImage):
     _id: str
     _key: str
     _rev: str
+    author: str
+    url: str
 
 
 class Tag(TypedDict):

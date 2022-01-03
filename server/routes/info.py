@@ -8,8 +8,9 @@ info_bp = Blueprint("info_bp", __name__)
 @info_bp.route("/info/image")
 @cross_origin()
 def fetch_image():
-    if (id := request.args.get("id")) and id.isdigit():
-        data = aql.fetch_image_info(id)
+    img_id = request.args.get("id")
+    if img_id and img_id.isdigit():
+        data = aql.fetch_image_info(img_id)
         return jsonify({"data": data}), 200
     else:
         return jsonify("User must pass image ID to view."), 400
@@ -18,7 +19,8 @@ def fetch_image():
 @info_bp.route("/info/randomtags")
 @cross_origin()
 def fetch_random_tags():
-    if keyword := aql.fetch_surprise_tags():
+    keyword = aql.fetch_surprise_tags()
+    if keyword:
         return jsonify({"keyword": keyword}), 200
     else:
         return jsonify("Error fetching surprise keys"), 500
@@ -27,7 +29,8 @@ def fetch_random_tags():
 @info_bp.route("/info/metrics")
 @cross_origin()
 def fetch_metrics():
-    if data := aql.fetch_db_metrics():
+    data = aql.fetch_db_metrics()
+    if data:
         return jsonify({"data": data}), 200
     else:
         return jsonify("Error fetching metrics"), 500

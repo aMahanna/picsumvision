@@ -1,7 +1,7 @@
 import random
 import math
 from server import arango
-from server.types import ArangoImage, ArangoImageInfo, VisualizationData
+from server.typings import ArangoImage, ArangoImageInfo, VisualizationData
 
 ignored_words = [
     "atmosphere",

@@ -1,6 +1,6 @@
 # picsumvision
 
-## Developer Setup (est time: 5 minutes)
+## Developer Setup (est time: 8 minutes)
 
 Note: You can replace `yarn` with `npm run`.
 

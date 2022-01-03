@@ -1,4 +1,5 @@
 # picsumvision
+<img width=120 align=right src="./client/public/logo.svg" />
 
 [![Last commit](https://img.shields.io/github/last-commit/aMahanna/picsumvision)](https://github.com/aMahanna/picsumvision/commits/main)
 
@@ -7,7 +8,6 @@
 [![License](https://img.shields.io/github/license/aMahanna/picsumvision?color=9E2165&style=for-the-badge)](https://github.com/aMahanna/picsumvision/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
 
-<img width=125 align=right src="./client/public/logo.svg" />
 
 An image repository allowing you to:
 1. Search for images by keyword or URL

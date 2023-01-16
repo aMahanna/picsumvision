@@ -37,7 +37,7 @@ class VisionDriver:
         return response.json()["responses"][0]
 
     def generate_keyword_from_url(self, url) -> str:
-        """Returns vision data in a string for a url.
+        """Returns vision data in a string for a url. Used for search-by-url feature.
 
         Raises:
             ValueError: When no google vision data is found

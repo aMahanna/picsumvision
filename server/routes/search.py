@@ -135,7 +135,7 @@ def parse_visualization_info(
 
         edge_color = edge_colors[index % len(edge_colors)]
         for edge in connection["edges"]:
-            edge_label = f"{edge['_score']:.2f}%" if is_search_visualization else None
+            edge_label = f"{edge['_score']:.2f}" if is_search_visualization else None
             edges.append(
                 {
                     "id": edge["_id"],

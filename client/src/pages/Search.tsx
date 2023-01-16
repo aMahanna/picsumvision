@@ -57,9 +57,9 @@ const Search = (props: any) => {
   const [resultIsEmpty, setResultIsEmpty] = useState(false); // Renders a "no search found" display
   const [sorryAlert, setSorryAlert] = useState(false); // For times that I want to say I apologize
 
-  const [persistedData, setPersistedData] = usePersistedState('data', {}); // Persist previous results to use for search history
-  const [lastSearch, setLastSearch] = usePersistedState('lastSearch', ''); // Persist last search to use for visualization
-  const [imageClicks] = getPersistedState('clicks');
+  const [persistedData, setPersistedData] = usePersistedState('pv_history', {}); // Persist previous results to use for search history
+  const [lastSearch, setLastSearch] = usePersistedState('pv_lastSearch', ''); // Persist last search to use for visualization
+  const [imageClicks] = getPersistedState('pv_clicks');
 
   /**
    * @useEffect Determines whether to:

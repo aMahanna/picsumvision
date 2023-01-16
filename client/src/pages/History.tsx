@@ -9,9 +9,9 @@ const History = () => {
   const [t, i18n] = useTranslation();
   const [makeHistory, setMakeHistory] = useState(''); // Provide some random tags for a quick search
 
-  const [history] = getPersistedState('data');
-  const [favourites] = getPersistedState('favourites');
-  const [imageClicks] = getPersistedState('clicks');
+  const [history] = getPersistedState('pv_history');
+  const [favourites] = getPersistedState('pv_favourites');
+  const [imageClicks] = getPersistedState('pv_clicks');
 
   /**
    * @useEffect Sets some random tags for a quick search
@@ -32,10 +32,10 @@ const History = () => {
    * Forces a reload to clear up the table
    */
   const clearCache = () => {
-    localStorage.removeItem('data');
-    localStorage.removeItem('lastSearch');
-    localStorage.removeItem('favourites');
-    localStorage.removeItem('clicks');
+    localStorage.removeItem('pv_history');
+    localStorage.removeItem('pv_lastSearch');
+    localStorage.removeItem('pv_favourites');
+    localStorage.removeItem('pv_clicks');
     window.location.reload();
   };
 
@@ -107,7 +107,7 @@ const History = () => {
           <Link to={{ pathname: '/search', state: { fromRedirect: makeHistory } }}>{t('historyPage.makehistory')}</Link>
         </div>
       )}
-      {(history || favourites || imageClicks) && (
+      {(history || imageClicks || favourites) && (
         <Button id="history-clear" style={{ color: '#2f2d2e' }} onClick={clearCache}>
           {t('historyPage.clear')}
         </Button>
@@ -134,6 +134,27 @@ const History = () => {
           </TableContainer>
         </Box>
       )}
+      {imageClicks && (
+        <Box mt={3} mb={5}>
+          <h3>{t('historyPage.imageClicks')}</h3>
+          <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
+            <Table aria-label="history-table" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('historyPage.imageID')}</TableCell>
+                  <TableCell align="center">{t('historyPage.date')}</TableCell>
+                  <TableCell align="center">{t('historyPage.view')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {imageClicks.map(elem => (
+                  <ClicksRow key={Object.keys(elem)[0]} persistedState={elem} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
       {favourites && (
         <Box mt={3}>
           <h3>{t('historyPage.favourites')}</h3>
@@ -150,27 +171,6 @@ const History = () => {
               <TableBody>
                 {favourites.map(elem => (
                   <FavouritesRow key={Object.keys(elem)[0]} persistedState={elem} />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
-      {imageClicks && (
-        <Box mt={3} mb={5}>
-          <h3>{t('historyPage.imageClicks')}</h3>
-          <TableContainer component={Paper} style={{ maxHeight: '32vh' }}>
-            <Table aria-label="history-table" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('historyPage.imageID')}</TableCell>
-                  <TableCell align="center">{t('historyPage.date')}</TableCell>
-                  <TableCell align="center">{t('historyPage.view')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {imageClicks.map(elem => (
-                  <ClicksRow key={Object.keys(elem)[0]} persistedState={elem} />
                 ))}
               </TableBody>
             </Table>

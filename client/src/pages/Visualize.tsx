@@ -69,12 +69,12 @@ const Visualize = (props: any) => {
 
   const [lastSearch] = useState(() => {
     // Fetch the user's last search
-    const persistedState = localStorage.getItem('lastSearch');
+    const persistedState = localStorage.getItem('pv_lastSearch');
     return persistedState ? JSON.parse(persistedState) : {};
   });
   const [persistedData] = useState(() => {
     // Fetch the user's result history
-    const persistedState = localStorage.getItem('data');
+    const persistedState = localStorage.getItem('pv_history');
     return persistedState ? JSON.parse(persistedState) : {};
   });
 

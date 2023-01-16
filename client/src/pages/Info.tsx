@@ -35,7 +35,7 @@ const Info = (props: any) => {
   const [tags, setTags] = useState([]);
   const [similar, setSimilar] = useState([]);
 
-  const [imageIDs, setImageIDs] = usePersistedState('clicks', {}); // Persist user clicks to use for Discovery searches
+  const [imageIDs, setImageIDs] = usePersistedState('pv_clicks', {}); // Persist user clicks to use for Discovery searches
 
   /**
    *
@@ -91,7 +91,7 @@ const Info = (props: any) => {
                 {tags.map((tag: { tag: string; score: number }) => (
                   <Box key={tag.tag} mt={1}>
                     <span>
-                      <b>{tag.tag}</b>: {tag.score.toFixed(2)}%
+                      <b>{tag.tag}</b>: {tag.score.toFixed(2)}
                     </span>
                   </Box>
                 ))}

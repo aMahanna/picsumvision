@@ -12,7 +12,7 @@ import usePersistedState from '../hooks/usePersistedState';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Gallery = (props: any) => {
-  const [persistedFavourites, setPersistedFavourites] = usePersistedState('favourites', {}); // Persist previous results to use for search history
+  const [persistedFavourites, setPersistedFavourites] = usePersistedState('pv_favourites', {}); // Persist previous results to use for search history
   const isFavourite = (id: string) => {
     return persistedFavourites[id] !== undefined;
   };

@@ -1,0 +1,60 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Railway
+.railway/
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Data
+data/
+*.json
+!package.json
+!client/package.json
+
+# Logs
+*.log
+logs/
+

@@ -5,8 +5,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Import Material-UI Components
-import LanguageIcon from '@material-ui/icons/Language';
-import { CssBaseline, Container, Button, Link as MUILink } from '@material-ui/core';
+import LanguageIcon from '@mui/icons-material/Language';
+import { CssBaseline, Container, Button, Link as MUILink } from '@mui/material';
 // Import useTranslation hook to allow for bilingualism
 import { useTranslation } from 'react-i18next';
 

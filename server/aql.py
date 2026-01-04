@@ -26,9 +26,9 @@ def fetch_images(keyword: str) -> List[ArangoImage]:
       LET exactMatches = (
         FOR doc IN searchview                                       // Iterate through View documents
           SEARCH ANALYZER(                                          // Search with an overrided analyzer
-            doc.tag == normTokens ||                                // Search for exact Tag matches 
-            doc.bestGuess == normTokens ||                          // Search for exact BestGuess matches 
-            doc.author == normTokens                                // Search for exact Author matches 
+            doc.tag == normTokens ||                                // Search for exact Tag matches
+            doc.bestGuess == normTokens ||                          // Search for exact BestGuess matches
+            doc.author == normTokens                                // Search for exact Author matches
           , 'norm_accent_lower')
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' } // For each View document found, perform a Graph Traversal
             SORT e._score DESC
@@ -41,7 +41,7 @@ def fetch_images(keyword: str) -> List[ArangoImage]:
             BOOST(doc.bestGuess IN textTokens, 2) ||                // Boost by 2 if match is a bestGuess
             BOOST(doc.tag IN textTokens, 3) ||                      // Boost by 3 if match is a Tag
             BOOST(doc.author IN textTokens, 4)                      // Boost by 4 if match is an Author
-          , 'text_en') 
+          , 'text_en')
           SORT BM25(doc, 2.4, 1) DESC                               // Sort by BM25 Ranking Function
           FOR v, e IN 1..1 OUTBOUND doc AuthorOf, TagOf, BestGuessOf OPTIONS {bfs: true, uniqueVertices: 'global' } // For each View document, perform a Graph Traversal
             FILTER v NOT IN exactMatches                            // Skip images already found
@@ -78,15 +78,15 @@ def fetch_surprise_tags() -> str:
     bind_vars = {"max_results": max_results, "ignored_words": ignored_words}
 
     result = arango.query(aql, bind_vars=bind_vars)
-    return " ".join([tag for tag in result])
+    return " ".join(list(result))
 
 
 def fetch_image_info(img_id: str) -> ArangoImageInfo:
     aql = """
-      WITH Image, Author, Tag, BestGuess 
-      LET image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i) 
-      LET bestGuess = (FOR v IN 1..1 INBOUND image BestGuessOf RETURN v.bestGuess) 
-      LET tags = (FOR v, e IN 1..1 INBOUND image TagOf SORT e._score DESC RETURN {_id: v._id, tag: v.tag, score: e._score}) 
+      WITH Image, Author, Tag, BestGuess
+      LET image = FIRST(FOR i IN Image FILTER i._key == @id RETURN i)
+      LET bestGuess = (FOR v IN 1..1 INBOUND image BestGuessOf RETURN v.bestGuess)
+      LET tags = (FOR v, e IN 1..1 INBOUND image TagOf SORT e._score DESC RETURN {_id: v._id, tag: v.tag, score: e._score})
       RETURN {image, bestGuess, tags}
     """
 
@@ -151,10 +151,7 @@ def fetch_discovery(clicked_images: List[str]) -> List[ArangoImage]:
     return result
 
 
-def fetch_search_visualization(
-    keyword: str, image_results: List[ArangoImage]
-) -> VisualizationData:
-
+def fetch_search_visualization(keyword: str, image_results: List[ArangoImage]) -> VisualizationData:
     aql = """
       WITH Image, Author, Tag, BestGuess
       LET textTokens = TOKENS(@keyword, 'text_en_stopwords')

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container, Button, Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper, Box } from '@material-ui/core';
+import { Container, Button, Table, TableBody, TableContainer, TableHead, TableRow, TableCell, Paper, Box } from '@mui/material';
 import getPersistedState from '../hooks/getPersistedState';
 
 const History = () => {
@@ -58,7 +58,7 @@ const History = () => {
         <TableCell align="center">{results}</TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
         <TableCell align="center" className="search">
-          <Link to={{ pathname: '/search', state: { fromRedirect: key } }}>{t('historyPage.view')}</Link>
+          <Link to="/search" state={{ fromRedirect: key }}>{t('historyPage.view')}</Link>
         </TableCell>
       </TableRow>
     );
@@ -77,7 +77,7 @@ const History = () => {
         <TableCell align="center">{author}</TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
         <TableCell align="center" className="search">
-          <Link to={{ pathname: `/info/${key}` }}>{t('historyPage.view')}</Link>
+          <Link to={`/info/${key}`}>{t('historyPage.view')}</Link>
         </TableCell>
       </TableRow>
     );
@@ -94,7 +94,7 @@ const History = () => {
         </TableCell>
         <TableCell align="center">{`${date.toLocaleTimeString(i18n.language)} (${date.toLocaleDateString(i18n.language)})`}</TableCell>
         <TableCell align="center" className="search">
-          <Link to={{ pathname: `/info/${key}` }}>{t('historyPage.view')}</Link>
+          <Link to={`/info/${key}`}>{t('historyPage.view')}</Link>
         </TableCell>
       </TableRow>
     );
@@ -104,7 +104,7 @@ const History = () => {
     <Container component="main" maxWidth="md">
       {!history && (
         <div className="search">
-          <Link to={{ pathname: '/search', state: { fromRedirect: makeHistory } }}>{t('historyPage.makehistory')}</Link>
+          <Link to="/search" state={{ fromRedirect: makeHistory }}>{t('historyPage.makehistory')}</Link>
         </div>
       )}
       {(history || imageClicks || favourites) && (

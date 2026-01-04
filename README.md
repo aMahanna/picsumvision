@@ -1,14 +1,12 @@
 # picsumvision
 
-[![Render](https://img.shields.io/badge/Render-%46E3B7.svg?style=for-the-badge&logo=render&logoColor=white)](https://picsumvision.mahanna.dev/)
+[![Railway](https://img.shields.io/badge/Railway-%23131415.svg?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app)
 [![Last commit](https://img.shields.io/github/last-commit/aMahanna/picsumvision)](https://github.com/aMahanna/picsumvision/commits/main)
 
-![Python](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.6%20%7C%203.7%20%7C%203.8%20%7C%203.9)
+![Python](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.8%2B)
 
 [![License](https://img.shields.io/github/license/aMahanna/picsumvision?color=9E2165&style=for-the-badge)](https://github.com/aMahanna/picsumvision/blob/main/LICENSE)
-[![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
-
-See it live: [picsumvision.mahanna.dev](https://picsumvision.mahanna.dev/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge)](https://github.com/astral-sh/ruff)
 
 An image repository allowing you to:
 1. Search for images by keyword or URL
@@ -28,15 +26,29 @@ Note: You can replace `yarn` with `npm run`.
 5. `python -m venv .venv`
 6. Activate Virtual Environment
    1. MacOS / Linux: `source .venv/bin/activate`
-   2. Windows: `.venv/scripts/activate`
-7. `pip install -e .[dev]`
-8. `docker-compose up -d`
+   2. Windows: `.venv\Scripts\activate`
+7. `pip install -e '.[dev]'`
+8. `docker compose up -d`
 9. `yarn db:onboard`
 10. Import Picsum Vision Data
-     1. Via data restore: `yarn db:restore`
-     2. Via data insert: `yarn db:populate`
-         1. Note: requires `GOOGLE_APPLICATION_CREDENTIALS` key
+    1. Via data restore: `yarn db:restore`
+    2. Via data insert: `yarn db:populate`
+        1. Note: requires `GOOGLE_APPLICATION_CREDENTIALS` key
 11. `yarn dev`
+
+## Deployment
+
+Deploy to Railway for free (with $5/month credits):
+
+1. **Fork/Clone** this repository
+2. **Sign up** at [railway.app](https://railway.app)
+3. **Create project** → Deploy from GitHub repo
+4. **Add ArangoDB** as a separate service (Docker: `arangodb/arangodb:3.12`)
+5. **Set environment variables** (see [DEPLOYMENT.md](./DEPLOYMENT.md))
+6. **Initialize database**: `railway run python scripts/onboard.py`
+7. **Import data**: `railway run python scripts/restore.py`
+
+📖 **Detailed deployment guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 <br/>
 <img width=100 src="./client/public/logo.svg" />

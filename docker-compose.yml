@@ -1,7 +1,8 @@
-version: '3.8.2'
 services:
   arangodb:
-    image: arangodb/arangodb:3.8.2
+    image: arangodb/arangodb:3.12
+    environment:
+      - ARANGO_ROOT_PASSWORD=test
     ports:
       - 8529:8529
     volumes:

@@ -105,33 +105,37 @@ def visualize_data(data: VisualizationData, is_search_visualization):
         return jsonify("Invalid Visualization"), 400
 
 
-def parse_visualization_info(
-    info: VisualizationData, is_search_visualization: bool
-) -> ParsedVisualzationData:
-
+def parse_visualization_info(info: VisualizationData, is_search_visualization: bool) -> ParsedVisualzationData:
     nodes: List[Node] = []
     edges: List[Edge] = []
     edge_colors = ["#241023", "#4464AD", "#DC0073", "#47A025", "#FF7700", "#6B0504"]
+    seen_node_ids = set()
 
     for vertice in info["vertices"]:
-        nodes.append(
-            {
-                "id": vertice["_id"],
-                "label": vertice["data"],
-                "color": vertice["color"],
-                "font": {"color": "white"},
-            }
-        )
+        node_id = vertice["_id"]
+        if node_id not in seen_node_ids:
+            nodes.append(
+                {
+                    "id": node_id,
+                    "label": vertice["data"],
+                    "color": vertice["color"],
+                    "font": {"color": "white"},
+                }
+            )
+            seen_node_ids.add(node_id)
 
     for index, connection in enumerate(info["connections"]):
-        nodes.append(
-            {
-                "id": connection["i"]["_id"],
-                "label": connection["i"]["_key"],
-                "color": connection["i"].get("color", "#422040"),
-                "font": {"color": "white"},
-            }
-        )
+        node_id = connection["i"]["_id"]
+        if node_id not in seen_node_ids:
+            nodes.append(
+                {
+                    "id": node_id,
+                    "label": connection["i"]["_key"],
+                    "color": connection["i"].get("color", "#422040"),
+                    "font": {"color": "white"},
+                }
+            )
+            seen_node_ids.add(node_id)
 
         edge_color = edge_colors[index % len(edge_colors)]
         for edge in connection["edges"]:

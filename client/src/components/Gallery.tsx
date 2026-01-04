@@ -4,9 +4,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Box, ImageList, ImageListItem, ImageListItemBar, IconButton } from '@material-ui/core';
-import StarBorderIcon from '@material-ui/icons/StarBorder';
-import StarIcon from '@material-ui/icons/Star';
+import { Box, ImageList, ImageListItem, ImageListItemBar, IconButton } from '@mui/material';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 
 import usePersistedState from '../hooks/usePersistedState';
 
@@ -41,7 +41,7 @@ const Gallery = (props: any) => {
         <ImageList variant="masonry" style={{ overflowY: 'hidden' }} cols={props.data.length <= 2 ? 1 : 2}>
           {props.data.map((item: { url: string; author: string; _key: string }) => (
             <ImageListItem key={item.url}>
-              <Link to={{ pathname: `/info/${item._key}`, state: { fromSearch: props.fromSearch } }}>
+              <Link to={`/info/${item._key}`} state={{ fromSearch: props.fromSearch }}>
                 <img className={props.imageClass} src={item.url} alt={item.author} loading="lazy" />
               </Link>
               <ImageListItemBar

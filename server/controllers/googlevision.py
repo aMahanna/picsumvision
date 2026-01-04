@@ -12,7 +12,7 @@ class VisionDriver:
             {"maxResults": 100, "type": "WEB_DETECTION"},
             {"maxResults": 100, "type": "OBJECT_LOCALIZATION"},
             {"maxResults": 100, "type": "LANDMARK_DETECTION"},
-            {"maxResults": 100, "type": "IMAGE_PROPERTIES"}
+            {"maxResults": 100, "type": "IMAGE_PROPERTIES"},
             # {"maxResults": 5, "type": "FACE_DETECTION"},
             # {"maxResults": 5, "type": "TEXT_DETECTION"},
         ]
@@ -50,14 +50,10 @@ class VisionDriver:
             return vision_data["landmarkAnnotations"][0]["description"]
 
         elif vision_data.get("webDetection", None):
-            return self.format_keyword(
-                vision_data["webDetection"]["webEntities"][:3], "description"
-            )
+            return self.format_keyword(vision_data["webDetection"]["webEntities"][:3], "description")
 
         elif vision_data.get("localizedObjectAnnotations", None):
-            return self.format_keyword(
-                vision_data["localizedObjectAnnotations"][:3], "name"
-            )
+            return self.format_keyword(vision_data["localizedObjectAnnotations"][:3], "name")
 
         else:
             best_labels = vision_data["labelAnnotations"][:4]

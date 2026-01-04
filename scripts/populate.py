@@ -14,9 +14,6 @@ from server.typings import (
     VisionAnnotation,
     VisionColor,
     VisionGuess,
-    VisionImageProperties,
-    VisionResult,
-    VisionWebDetection,
 )
 
 
@@ -41,12 +38,12 @@ def populate_db(dataset: List[AbstractImage]) -> None:
             )
 
             if is_old_img:
-                logging.info(f'Already exists: {img_doc["_id"]}, skipping...')
+                logging.info(f"Already exists: {img_doc['_id']}, skipping...")
                 continue
 
             vision_data: dict = vision.get_image_metadata(img_doc["url"])
             if not vision_data or "error" in vision_data:
-                logging.info(f"Error: Vision uncooperative")
+                logging.info("Error: Vision uncooperative")
                 print(json.dumps(vision_data.get("error"), indent=4))
                 arango.dissolve(img_doc["_id"])
 
@@ -83,7 +80,7 @@ def populate_db(dataset: List[AbstractImage]) -> None:
             logging.info(f"Success: {img_doc['_id']}")
 
         except:
-            logging.info(f'Error: {img_doc["_id"]}')
+            logging.info(f"Error: {img_doc['_id']}")
             arango.dissolve(img_doc["_id"])
 
     logging.info("Success: Populating DB complete.")
@@ -133,7 +130,7 @@ def insert_landmarks(image: ArangoImage, landmarks: List[LandmarkAnnotation]):
                     _longitude=_longitude,
                 )
             except BaseException as e:
-                logging.info(f'ArangoDB Error: {landmark["description"]} (Landmark)')
+                logging.info(f"ArangoDB Error: {landmark['description']} (Landmark)")
                 print(e)
 
 
@@ -157,7 +154,7 @@ def insert_guesses(image: ArangoImage, guesses: List[VisionGuess]):
                     _score=1,
                 )
             except BaseException as e:
-                logging.info(f'ArangoDB Error: {guess["label"]} (BestGuess)')
+                logging.info(f"ArangoDB Error: {guess['label']} (BestGuess)")
                 print(e)
 
 
@@ -183,13 +180,11 @@ def insert_entities(image: ArangoImage, entities: List[VisionAnnotation]):
                     _score=_score,
                 )
             except BaseException as e:
-                logging.info(f'ArangoDB Error: {entity["description"]} (Entity)')
+                logging.info(f"ArangoDB Error: {entity['description']} (Entity)")
                 print(e)
 
 
-def insert_localized_objects(
-    image: ArangoImage, localized_objects: List[LocalizedObjectAnnotation]
-):
+def insert_localized_objects(image: ArangoImage, localized_objects: List[LocalizedObjectAnnotation]):
     for localized_object in localized_objects:
         if is_valid_vision_data(localized_object, {"mid", "name", "boundingPoly"}):
             _key, _score = fetch_key_and_score(localized_object, "name")
@@ -216,7 +211,7 @@ def insert_localized_objects(
                     _coord=_coord,
                 )
             except BaseException as e:
-                logging.info(f'ArangoDB Error: {localized_object["name"]} (Object)')
+                logging.info(f"ArangoDB Error: {localized_object['name']} (Object)")
                 print(e)
 
 
@@ -242,7 +237,7 @@ def insert_labels(image: ArangoImage, labels: List[VisionAnnotation]):
                     _score=_score,
                 )
             except BaseException as e:
-                logging.info(f'ArangoDB Error: {label["description"]} (Label)')
+                logging.info(f"ArangoDB Error: {label['description']} (Label)")
                 print(e)
 
 

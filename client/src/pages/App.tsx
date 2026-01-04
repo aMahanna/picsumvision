@@ -1,5 +1,5 @@
 import React from 'react';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 // Import React Components
 import NavBar from '../components/NavBar';
@@ -18,15 +18,16 @@ const App = () => {
   return (
     <div className="App">
       <NavBar />
-      <Switch>
-        <Route exact path="/" component={Landing} />
-        <Route exact path="/search" render={props => <Search {...props} />} />
-        <Route exact path={['/visualize', '/visualize/:id']} component={Visualize} />
-        <Route exact path="/history" component={History} />
-        <Route exact path="/about" component={About} />
-        <Route exact path="/info/:id" component={Info} />
-        <Route render={() => <Redirect to={{ pathname: '/' }} />} />
-      </Switch>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/visualize" element={<Visualize />} />
+        <Route path="/visualize/:id" element={<Visualize />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/info/:id" element={<Info />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 };

@@ -1,14 +1,16 @@
 [phases.setup]
-nixPkgs = ["python310", "nodejs-18_x", "yarn", "gcc"]
+nixPkgs = ["python310", "nodejs-18_x", "yarn"]
 
 [phases.install]
 cmds = [
-    "python -m ensurepip --upgrade",
-    "python -m pip install --upgrade pip setuptools wheel",
-    "python -m pip install -e .",
+    "pip install --user --upgrade pip setuptools wheel",
+    "pip install --user -e .",
     "cd client && yarn install && yarn build"
 ]
 
 [start]
-cmd = "gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers=2"
+cmd = "PATH=$HOME/.local/bin:$PATH gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers=2"
+
+[variables]
+PIP_BREAK_SYSTEM_PACKAGES = "1"
 

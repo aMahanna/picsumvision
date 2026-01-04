@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container, TextField, Button, Box, CircularProgress, Tooltip } from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/styles';
+import { Container, TextField, Button, Box, CircularProgress, Tooltip } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 import Alert from '../components/Alert';
 import Gallery from '../components/Gallery';
@@ -13,38 +13,35 @@ import getPersistedState from '../hooks/getPersistedState';
 /**
  * CreateStyles allows us to style MUI components
  * This @var is passed as a paramater in the export of the component
- * @see https://material-ui.com/styles/basics/
+ * @see https://mui.com/material-ui/customization/how-to-customize/
  */
-const useStyles = makeStyles(() =>
-  createStyles({
-    image: {
-      height: '100%',
-      width: '100%',
-    },
-    button: {
-      '& > *': {
-        color: '#2f2d2e',
-        margin: '8px',
-        '&:hover': {
-          transition: '0.3s ease-in',
-          backgroundColor: '#2f2d2e',
-          color: 'white',
-        },
+const useStyles = makeStyles(() => ({
+  image: {
+    height: '100%',
+    width: '100%',
+  },
+  button: {
+    '& > *': {
+      color: '#2f2d2e',
+      margin: '8px',
+      '&:hover': {
+        transition: '0.3s ease-in',
+        backgroundColor: '#2f2d2e',
+        color: 'white',
       },
     },
-  }),
-);
+  },
+}));
 
 /**
  * The page responsible for image search functionality
  *
- * @param props Used to accept searches from the History page
  * @returns
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Search = (props: any) => {
+const Search = () => {
   const [t, i18n] = useTranslation();
   const classes = useStyles();
+  const location = useLocation();
 
   const [textFieldInput, setTextFieldInput] = useState(''); // The input of the search bar
   const [searchResult, setSearchResult] = useState([]); // The results of the search
@@ -68,7 +65,7 @@ const Search = (props: any) => {
    * - Set random tags as the input placeholder for search inspiration
    */
   useEffect(() => {
-    const redirectIndex: string = props.location?.state?.fromRedirect;
+    const redirectIndex: string | undefined = (location.state as { fromRedirect?: string })?.fromRedirect;
     if (redirectIndex) {
       if (persistedData[redirectIndex]) {
         setTextFieldInput(persistedData[redirectIndex].input || redirectIndex);
@@ -78,10 +75,10 @@ const Search = (props: any) => {
         setTextFieldInput(redirectIndex);
         query(redirectIndex);
       }
-    } else if (lastSearch !== '') {
+    } else if (lastSearch !== '' && persistedData[lastSearch]) {
       setTextFieldInput(persistedData[lastSearch].input || lastSearch);
       setSearchResult(persistedData[lastSearch].data);
-    } else {
+    } else if (lastSearch === '') {
       fetch('/api/info/randomtags')
         .then(result => (result.status === 200 ? result.json() : undefined))
         .then(response => {
@@ -90,7 +87,7 @@ const Search = (props: any) => {
           }
         });
     }
-  }, []);
+  }, [location.state]);
 
   // Handles the change of any MUI component that isn't the Checkbox (so currently just the search bar)
   const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 // Import MUI Components
-import { Container, Box, Link as MUILink } from '@material-ui/core';
+import { Container, Box, Link as MUILink } from '@mui/material';
 
 /**
  * About page

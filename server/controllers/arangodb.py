@@ -30,6 +30,12 @@ class ArangoDriver:
 
     def __init__(self, url: str, user: str, password: str, db_name: str):
         client = ArangoClient(hosts=url)
+        sys_db = client.db("_system", username=user, password=password)
+
+        if not sys_db.has_database(db_name):
+            logging.info(f"Creating {db_name} database...")
+            sys_db.create_database(db_name)
+
         self.db = client.db(db_name, username=user, password=password)
         logging.info(f"Arango: {self.db.name} database")
 
@@ -57,7 +63,7 @@ class ArangoDriver:
 
     def create_graph(self, name: str, edge_definitions: list):
         logging.info(f"Creating {name} graph...")
-        self.db.delete_graph(name, ignore_missing=True)
+        self.db.delete_graph(name, ignore_missing=True, drop_collections=True)
         self.db.create_graph(name, edge_definitions=edge_definitions)
 
     def nuke_database(self):
@@ -98,8 +104,8 @@ class ArangoDriver:
         logging.info(f"Dissolving: {image_id}...")
         aql = """
             FOR v,e IN 1..1 INBOUND @image_id TagOf, BestGuessOf, AuthorOf
-                REMOVE e._key IN TagOf OPTIONS { ignoreErrors: true } 
-                REMOVE e._key IN BestGuessOf OPTIONS { ignoreErrors: true } 
+                REMOVE e._key IN TagOf OPTIONS { ignoreErrors: true }
+                REMOVE e._key IN BestGuessOf OPTIONS { ignoreErrors: true }
                 REMOVE e._key IN AuthorOf OPTIONS { ignoreErrors: true }
         """
         bind_vars = {"image_id": image_id}

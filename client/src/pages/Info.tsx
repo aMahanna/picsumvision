@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { withStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 import {
   Container,
   Box,
@@ -13,29 +13,29 @@ import {
   Accordion,
   AccordionSummary as MuiAccordionSummary,
   AccordionDetails,
-} from '@material-ui/core';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 // Import hooks
 import usePersistedState from '../hooks/usePersistedState';
 
-const AccordionSummary = withStyles({
-  content: {
+const AccordionSummary = styled(MuiAccordionSummary)({
+  '& .MuiAccordionSummary-content': {
     flexGrow: 0,
   },
-})(MuiAccordionSummary);
+});
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Info = (props: any) => {
+const Info = () => {
   const [t] = useTranslation();
-
-  const [id] = useState(props.match.params.id);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [url, setURL] = useState('');
   const [author, setAuthor] = useState('');
   const [bestGuess, setBestGuess] = useState([]);
   const [tags, setTags] = useState([]);
   const [similar, setSimilar] = useState([]);
 
-  const [imageIDs, setImageIDs] = usePersistedState('pv_clicks', {}); // Persist user clicks to use for Discovery searches
+  const [, setImageIDs] = usePersistedState('pv_clicks', {}); // Persist user clicks to use for Discovery searches
 
   /**
    *
@@ -43,7 +43,7 @@ const Info = (props: any) => {
    * If no image is found, redirect to landing page
    */
   useEffect(() => {
-    const fromSearch: string | undefined = props.location?.state?.fromSearch;
+    const fromSearch: string | undefined = (location.state as { fromSearch?: string })?.fromSearch;
     fetch(`/api/info/image?id=${id}`)
       .then(response => (response.status === 200 ? response.json() : undefined))
       .then(result => {
@@ -54,18 +54,21 @@ const Info = (props: any) => {
           setTags(result.data.tags);
           setSimilar(result.data.similar);
 
-          setImageIDs({
-            ...imageIDs,
-            [id]: {
-              fromSearch,
-              date: new Date(),
-            },
-          });
+          if (id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setImageIDs((prevImageIDs: any) => ({
+              ...prevImageIDs,
+              [id]: {
+                fromSearch,
+                date: new Date(),
+              },
+            }));
+          }
         } else {
-          props.history.push('/');
+          navigate('/');
         }
       });
-  }, [id, props.history]);
+  }, [id, navigate, location.state, setImageIDs]);
 
   return (
     <Container component="main" maxWidth="md">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Redirect } from 'react-router-dom';
+import { Navigate, useParams, useNavigate } from 'react-router-dom';
 import Graph from 'react-graph-vis';
-import { CircularProgress, Container, Box } from '@material-ui/core';
+import { CircularProgress, Container, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 const options = {
@@ -33,10 +33,11 @@ const options = {
  * @see VISJS.org
  *
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Visualize = (props: any) => {
+const Visualize = () => {
   const [t] = useTranslation();
-  const isSearchVisualization = !props.match.params.id;
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isSearchVisualization = !id;
   const [imageRedirect, setImageRedirect] = useState('');
   const [tagRedirect, setTagRedirect] = useState('');
   const [imageCount, setImageCount] = useState(undefined);
@@ -84,7 +85,7 @@ const Visualize = (props: any) => {
    */
   useEffect(() => {
     if (isSearchVisualization && (lastSearch === '' || !persistedData[lastSearch])) {
-      props.history.push('/');
+      navigate('/');
       return;
     }
 
@@ -92,7 +93,7 @@ const Visualize = (props: any) => {
     const body = {
       lastSearch: isSearchVisualization ? lastSearch : undefined,
       lastResult: isSearchVisualization ? persistedData[lastSearch].data : undefined,
-      imageID: isSearchVisualization ? undefined : props.match.params.id.split(','),
+      imageID: isSearchVisualization ? undefined : id?.split(','),
     };
 
     fetch(url, {
@@ -123,19 +124,19 @@ const Visualize = (props: any) => {
             edges,
           });
         } else {
-          props.history.push('/');
+          navigate('/');
         }
       });
-  }, []);
+  }, [id]);
 
   return (
     <Container maxWidth="lg">
-      {imageRedirect !== '' && <Redirect to={{ pathname: `/info/${imageRedirect}` }} />}
-      {tagRedirect !== '' && <Redirect to={{ pathname: '/search', state: { fromRedirect: tagRedirect } }} />}
+      {imageRedirect !== '' && <Navigate to={`/info/${imageRedirect}`} replace />}
+      {tagRedirect !== '' && <Navigate to="/search" state={{ fromRedirect: tagRedirect }} replace />}
       <h3>
         {isSearchVisualization && (persistedData[lastSearch] || lastSearch)
           ? `"${persistedData[lastSearch].isImageURL ? lastSearch : persistedData[lastSearch].input}"`
-          : `${props.match.params.id}`}
+          : `${id}`}
       </h3>
       <h4>{t('visualizerPage.interact')}</h4>
       {graph.nodes.length === 0 && <CircularProgress color="inherit" />}

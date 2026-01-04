@@ -3,15 +3,14 @@
  */
 
 import React from 'react';
-import { Snackbar, SnackbarCloseReason } from '@material-ui/core';
-import MuiAlert, { Color } from '@material-ui/lab/Alert';
+import { Snackbar, SnackbarCloseReason, Alert as MuiAlert, AlertColor } from '@mui/material';
 
 interface AlertProps {
   open: boolean;
   message: string;
-  severity: Color;
+  severity: AlertColor;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSnackbarClose: (e: React.SyntheticEvent<any, Event>, r: SnackbarCloseReason) => void;
+  onSnackbarClose: (event: Event | React.SyntheticEvent<any, Event>, reason: SnackbarCloseReason) => void;
   onAlertClose: () => void;
 }
 

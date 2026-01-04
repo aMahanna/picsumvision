@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 // Import MUI Components
-import { Container, CssBaseline, Box, Link as MUILink } from '@material-ui/core';
+import { Container, CssBaseline, Box, Link as MUILink } from '@mui/material';
 
 /**
  * Home page

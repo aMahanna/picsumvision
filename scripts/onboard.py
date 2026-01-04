@@ -6,12 +6,6 @@ from server import arango
 
 
 def main():
-    for collection in arango.DOCUMENT_COLLECTIONS:
-        arango.create_collection(collection)
-
-    for collection in arango.EDGE_COLLECTIONS:
-        arango.create_collection(collection, is_edge_collection=True)
-
     arango.create_graph("picsumvision", arango.EDGE_DEFINITIONS)
 
     arango.create_analyzer(

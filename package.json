@@ -5,18 +5,20 @@
     "author": "Anthony Mahanna",
     "license": "MIT",
     "devDependencies": {
-        "concurrently": "^6.5.1"
+        "concurrently": "^9.1.2"
     },
     "scripts": {
         "setup": "yarn install && cd client && yarn install && yarn build",
         "build": "yarn run client:install && yarn run client:build",
         "dev": "concurrently \"yarn server:start\" \"yarn client:start\"",
-        "black": "black server scripts",
+        "format": "yarn format:server && yarn format:client",
+        "format:server": "ruff format server scripts && ruff check --fix --unsafe-fixes server scripts",
+        "format:client": "cd client && yarn prettier && yarn lint",
         "db:nuke": "python scripts/nuke.py",
         "db:onboard": "python scripts/onboard.py",
         "db:restore": "python scripts/restore.py",
         "db:populate": "python scripts/populate.py",
-        "server:start": "flask run",
+        "server:start": "flask run --host=127.0.0.1 --port=8000",
         "client:install": "cd client && yarn install",
         "client:build": "cd client && yarn build",
         "client:start": "cd client && yarn start",

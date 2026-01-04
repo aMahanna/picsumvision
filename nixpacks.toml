@@ -1,14 +1,13 @@
 [phases.setup]
-nixPkgs = ["python310", "nodejs-18_x", "yarn"]
+nixPkgs = ["python310", "nodejs-18_x", "yarn", "gcc"]
 
 [phases.install]
 cmds = [
-    "pip install -e .",
+    "python -m ensurepip --upgrade",
+    "python -m pip install --upgrade pip setuptools wheel",
+    "python -m pip install -e .",
     "cd client && yarn install && yarn build"
 ]
-
-[phases.build]
-cmds = ["echo 'Build complete'"]
 
 [start]
 cmd = "gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers=2"

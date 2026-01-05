@@ -30,13 +30,13 @@ class ArangoDriver:
 
     def __init__(self, url: str, user: str, password: str, db_name: str):
         client = ArangoClient(hosts=url)
-        sys_db = client.db("_system", username=user, password=password)
+        sys_db = client.db("_system", username=user, password=password, verify=True)
 
         if not sys_db.has_database(db_name):
             logging.info(f"Creating {db_name} database...")
             sys_db.create_database(db_name)
 
-        self.db = client.db(db_name, username=user, password=password)
+        self.db = client.db(db_name, username=user, password=password, verify=True)
         logging.info(f"Arango: {self.db.name} database")
 
     def query(self, aql: str, bind_vars: Dict[str, Any] = None) -> Result[Cursor]:

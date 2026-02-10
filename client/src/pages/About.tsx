@@ -19,7 +19,7 @@ const About = () => {
         <h4>
           It was presented as ArangoDB's{' '}
           <a href="https://www.youtube.com/watch?v=M4w4IuSbsRg&list=PL0tn-TSss6NXXvzRtAwyh50CGQ5MkfUyh&index=1">
-            first Community Pioneer initiative of 2021.
+            Community Pioneer project of 2021.
           </a>
         </h4>
       </Box>

@@ -2,12 +2,6 @@
 
 [picsumvision.mahanna.dev](https://picsumvision.mahanna.dev/)
 
-[![Railway](https://img.shields.io/badge/Railway-%23131415.svg?style=for-the-badge&logo=railway&logoColor=white)](https://picsumvision.mahanna.dev/)
-![Python](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.8%2B)
-
-[![License](https://img.shields.io/github/license/aMahanna/picsumvision?color=9E2165&style=for-the-badge)](https://github.com/aMahanna/picsumvision/blob/main/LICENSE)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge)](https://github.com/astral-sh/ruff)
-
 An image repository allowing you to:
 1. Search for images by keyword or URL
 2. Discover images similar to click history

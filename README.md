@@ -44,5 +44,7 @@ Deploy to Railway for free (with $5/month credits):
 
 📖 **Detailed deployment guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-<br/>
-<img width=100 src="./client/public/logo.svg" />
+
+|                                                      |                                                    |                                                      |
+| :---------------------------------------------------: | :------------------------------------------------: | :--------------------------------------------------: |
+| <img src="./img/a.png"  width="1200"/> | <img src="./img/b.png"  width="1200"/> | <img src="./img/c.png"  width="1000"/> |

@@ -1,6 +1,6 @@
 # picsumvision
 
-[picsumvision.mahanna.dev](https://picsumvision.mahanna.dev/)
+[picsumvision.mahanna.dev](https://picsumvision.mahanna.dev/) (app might be sleeping, just refresh if Railway page shows up) 
 
 An image repository allowing you to:
 1. Search for images by keyword or URL

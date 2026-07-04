@@ -9,7 +9,7 @@ An image repository allowing you to:
 
 Built with Lorem Picsum Photos, Google Vision, and ArangoDB 🥑
 
-This project was submitted for the Summer 2021 Shopify Developer Challenge. If you would like to see the state of the project as of the submission date, you can rollback to the following commit: [53e84e8](https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e)
+This project was submitted for the Summer 2021 Shopify Intern Developer Challenge. If you would like to see the state of the project as of the submission date, you can rollback to the following commit: [53e84e8](https://github.com/aMahanna/picsumvision/commit/53e84e86a1a61560acead5ff91cf3d86f6c94f0e)
 
 ## Developer Setup (est time: 8 minutes)
 
